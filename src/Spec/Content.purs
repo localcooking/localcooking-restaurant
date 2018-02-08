@@ -62,7 +62,7 @@ spec = T.simpleSpec performAction render
                  Timeline -> 2
             , onChange: mkEffFn2 \_ value -> dispatch $ ChangedPage $
                           if value == 0 then Home else if value == 1 then Plan else Timeline
-            , indicatorColor: Tabs.primary
+            , indicatorColor: Tabs.secondary
             , textColor: Tabs.primary
             , centered: true
             }
@@ -85,21 +85,23 @@ spec = T.simpleSpec performAction render
                                 else if level == 4 then Typography.display1
                                 else if level == 5 then Typography.headline
                                 else Typography.subheading
+                      , style: createStyles {marginLeft: "1em"}
                       } children
                 , blockquote: R.createClassStateless' \_ children ->
-                   typography
-                     { "type": Typography.caption
-                     } children
+                    typography
+                      { "type": Typography.caption
+                      } children
                 , paragraph: R.createClassStateless' \_ children ->
-                   typography
-                     { "type": Typography.body1
-                     } children
+                    typography
+                      { "type": Typography.body1
+                      , style: createStyles {margin: "1em", textIndent: "2em"}
+                      } children
                 , strong: R.createClassStateless' \_ children ->
-                   typography
-                     { "type": Typography.body2
-                     } children
+                    typography
+                      { "type": Typography.body2
+                      } children
                 , thematicBreak: R.createClassStateless' \_ children ->
-                   divider {}
+                    divider {}
                 }
               }
             ]
@@ -125,11 +127,12 @@ homeMd = """
 Local Cooking
 =============
 
-Welcome to Local Cooking.
+Welcome to [LocalCooking.com](http://localcooking.com)
 
 ----------------------------------
 
-This page is currently under construction.
+This website is a repository for the Local Cooking ideas, business plan, timelines, and strategies.
+It's currently under construction; please forward all complaints and concerns to [localcookinginc@gmail.com](mailto:localcookinginc@gmail.com).
 """
 
 planMd :: String

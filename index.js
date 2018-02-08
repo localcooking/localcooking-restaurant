@@ -2764,9 +2764,11 @@ var PS = {};
           return React.createElement($foreign.tabImpl)(props)([  ]);
       };
   };
+  var secondary = "secondary";
   var primary = "primary";
   exports["tabs"] = tabs;
   exports["tab"] = tab;
+  exports["secondary"] = secondary;
   exports["primary"] = primary;
 })(PS["MaterialUI.Tabs"] = PS["MaterialUI.Tabs"] || {});
 (function(exports) {
@@ -3051,7 +3053,7 @@ var PS = {};
   var initialState = {
       page: Home.value
   };
-  var homeMd = "\x0aLocal Cooking\x0a=============\x0a\x0aWelcome to Local Cooking.\x0a\x0a----------------------------------\x0a\x0aThis page is currently under construction.\x0a";
+  var homeMd = "\x0aLocal Cooking\x0a=============\x0a\x0aWelcome to [LocalCooking.com](http://localcooking.com)\x0a\x0a----------------------------------\x0a\x0aThis website is a repository for the Local Cooking ideas, business plan, timelines, and strategies.\x0aIt's currently under construction; please forward all complaints and concerns to [localcookinginc@gmail.com](mailto:localcookinginc@gmail.com).\x0a";
   var spec = (function () {
       var render = function (dispatch) {
           return function (props) {
@@ -3095,7 +3097,7 @@ var PS = {};
                                   })()));
                               };
                           }),
-                          indicatorColor: MaterialUI_Tabs.primary,
+                          indicatorColor: MaterialUI_Tabs.secondary,
                           textColor: MaterialUI_Tabs.primary,
                           centered: true
                       })([ MaterialUI_Tabs.tab(Data_Record_Class.srInst())({
@@ -3147,7 +3149,10 @@ var PS = {};
                                                   return MaterialUI_Typography.headline;
                                               };
                                               return MaterialUI_Typography.subheading;
-                                          })()
+                                          })(),
+                                          style: MaterialUI_Types.createStyles({
+                                              marginLeft: "1em"
+                                          })
                                       })(children1);
                                   };
                               }),
@@ -3161,7 +3166,11 @@ var PS = {};
                               paragraph: React["createClassStateless'"](React.reactElementReactRender)(function (v) {
                                   return function (children1) {
                                       return MaterialUI_Typography.typography(Data_Record_Class.srInst())({
-                                          type: MaterialUI_Typography.body1
+                                          type: MaterialUI_Typography.body1,
+                                          style: MaterialUI_Types.createStyles({
+                                              margin: "1em",
+                                              textIndent: "2em"
+                                          })
                                       })(children1);
                                   };
                               }),
