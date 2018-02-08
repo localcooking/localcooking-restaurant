@@ -105,9 +105,9 @@ spec = T.simpleSpec performAction render
             ]
           , typography
             { "type": Typography.caption
-            , style: createStyles {marginTop: "5em"}
+            , style: createStyles {marginTop: "5em", textAlign: "center"}
             }
-            [ R.text "Copyright &copy; Local Cooking Inc. 2018, All rights reserved" ]
+            [ R.text "Copyright © Local Cooking Inc. 2018, All rights reserved" ]
           ]
         ]
       ]

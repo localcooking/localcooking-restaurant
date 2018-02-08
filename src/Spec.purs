@@ -10,6 +10,7 @@ import React as R
 import React.DOM as R
 import React.DOM.Props as RP
 import MaterialUI.MuiThemeProvider (muiThemeProvider, createMuiTheme)
+import MaterialUI.Reboot (reboot)
 
 
 
@@ -33,6 +34,24 @@ spec = T.simpleSpec performAction render
       ]
       where
         template content =
-          [ muiThemeProvider {theme: createMuiTheme unit}
+          [ reboot
+          , muiThemeProvider
+              { theme: createMuiTheme
+                  { palette:
+                      { primary:
+                        { light: "#ff5f52"
+                        , main: "#c62828"
+                        , dark: "#8e0000"
+                        , contrastText: "#ffffff"
+                        }
+                      , secondary:
+                        { light: "#ffe97d"
+                        , main: "#ffb74d"
+                        , dark: "#c88719"
+                        , contrastText: "#000000"
+                        }
+                      }
+                  }
+              }
               (R.div [] content)
           ]
