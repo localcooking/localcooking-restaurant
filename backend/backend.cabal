@@ -1,0 +1,62 @@
+-- This file has been generated from package.yaml by hpack version 0.21.2.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: da6e445f81e09350d14dd37506a94facc86ca8a83672eee314e6a5693fdec158
+
+name:           backend
+version:        0.1.0.0
+description:    Please see the README on Github at <https://github.com/athanclark/backend#readme>
+homepage:       https://github.com/athanclark/backend#readme
+bug-reports:    https://github.com/athanclark/backend/issues
+author:         Athan Clark
+maintainer:     athan.clark@gmail.com
+copyright:      BSD-3-Clause
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+cabal-version:  >= 1.10
+
+extra-source-files:
+    ChangeLog.md
+    README.md
+
+source-repository head
+  type: git
+  location: https://github.com/athanclark/backend
+
+library
+  exposed-modules:
+      Lib
+  other-modules:
+      Paths_backend
+  hs-source-dirs:
+      src
+  build-depends:
+      base >=4.7 && <5
+  default-language: Haskell2010
+
+executable backend-exe
+  main-is: Main.hs
+  other-modules:
+      Paths_backend
+  hs-source-dirs:
+      app
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      backend
+    , base >=4.7 && <5
+  default-language: Haskell2010
+
+test-suite backend-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Paths_backend
+  hs-source-dirs:
+      test
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      backend
+    , base >=4.7 && <5
+  default-language: Haskell2010
