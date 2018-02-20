@@ -1,6 +1,6 @@
-name:                backend
+name:                localcooking
 version:             0.1.0.0
-github:              "athanclark/backend"
+github:              "athanclark/localcooking"
 license:             BSD3
 author:              "Athan Clark"
 maintainer:          "athan.clark@gmail.com"
@@ -17,16 +17,59 @@ extra-source-files:
 # To avoid duplicated efforts in documentation and dealing with the
 # complications of embedding Haddock markup inside cabal files, it is
 # common to point users to the README.md file.
-description:         Please see the README on Github at <https://github.com/athanclark/backend#readme>
+description:         Please see the README on Github at <https://github.com/athanclark/localcooking#readme>
 
 dependencies:
 - base >= 4.7 && < 5
 
 library:
   source-dirs: src
+  dependencies:
+    - acid-state
+    - aeson
+    - aeson-attoparsec
+    - async
+    - attoparsec
+    - attoparsec-base64
+    - attoparsec-uri
+    - base64-bytestring
+    - bytestring
+    - chan
+    - data-default
+    - extractable-singleton
+    - file-embed
+    - hashable
+    - http-types
+    - ixset
+    - QuickCheck
+    - logging
+    - lucid
+    - markup
+    - monad-control-aligned
+    - mtl
+    - nested-routes
+    - path
+    - path-extra
+    - safecopy
+    - safe-exceptions
+    - saltine
+    - stm
+    - strict
+    - timemap
+    - text
+    - tmapchan
+    - unordered-containers
+    - urlpath
+    - uuid
+    - vector
+    - wai-middleware-content-type
+    - wai-transformers
+    - warp
+    - webpage
+    - websockets
 
 executables:
-  backend-exe:
+  localcooking:
     main:                Main.hs
     source-dirs:         app
     ghc-options:
@@ -34,10 +77,24 @@ executables:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - backend
+    - localcooking
+    - acid-state
+    - aeson
+    - attoparsec
+    - attoparsec-uri
+    - attoparsec-path
+    - bytestring
+    - directory
+    - logging
+    - optparse-applicative
+    - path
+    - safe-exceptions
+    - stm
+    - strict
+    - text
 
 tests:
-  backend-test:
+  localcooking-test:
     main:                Spec.hs
     source-dirs:         test
     ghc-options:
@@ -45,4 +102,4 @@ tests:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - backend
+    - localcooking

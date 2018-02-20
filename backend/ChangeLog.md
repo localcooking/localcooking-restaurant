@@ -1,3 +1,3 @@
-# Changelog for backend
+# Changelog for localcooking
 
 ## Unreleased changes
