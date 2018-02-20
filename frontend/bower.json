@@ -10,7 +10,8 @@
     "purescript-prelude": "^3.1.1",
     "purescript-console": "^3.0.0",
     "purescript-material-ui": "git://github.com/athanclark/purescript-material-ui.git#6056e1151eebf77c4e4167c45ce3702b158c3e39",
-    "purescript-thermite": "git://github.com/jvliwanag/purescript-thermite.git#94299d6832d92f14bef029f35d07bd5e8b062e05"
+    "purescript-thermite": "git://github.com/jvliwanag/purescript-thermite.git#94299d6832d92f14bef029f35d07bd5e8b062e05",
+    "purescript-zeta": "^0.0.3"
   },
   "devDependencies": {
     "purescript-psci-support": "^3.0.0"
