@@ -15,6 +15,7 @@ import React.DOM.Props as RP
 import MaterialUI.Types (createStyles)
 import MaterialUI.Toolbar (toolbar)
 import MaterialUI.AppBar (appBar)
+import MaterialUI.AppBar as AppBar
 import MaterialUI.Typography (typography)
 import MaterialUI.Typography as Typography
 import MaterialUI.Button (button)
@@ -39,7 +40,7 @@ spec {toURI} = T.simpleSpec performAction render
 
     render :: T.Render State Unit Action
     render dispatch props state children =
-      [ appBar {}
+      [ appBar {color: AppBar.default, position: AppBar.static}
         [ toolbar {style: createStyles {display: "flex"}}
           -- [ typography
           --     { "type": Typography.title
