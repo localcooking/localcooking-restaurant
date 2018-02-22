@@ -43,6 +43,7 @@ spec {toURI} = T.simpleSpec performAction render
           --     , color: Typography.inheritColor
           --     } [R.text "Local Cooking"]
           [ R.img [ RP.src $ URI.print $ toURI $ toLocation LogoWhitePng
+                  , RP.style {height: "2.5em"}
                   ] []
           ]
         ]

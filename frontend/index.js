@@ -5461,7 +5461,9 @@ var PS = {};
           return function (props) {
               return function (state) {
                   return function (children) {
-                      return [ MaterialUI_AppBar.appBar(Data_Record_Class.srInst())({})([ MaterialUI_Toolbar.toolbar(Data_Record_Class.srInst())({})([ React_DOM.img([ React_DOM_Props.src(Data_URI_URI.print(v.toURI(Links.toLocation(Links.toLocationLogoLinks)(Links.LogoWhitePng.value)))) ])([  ]) ]) ]) ];
+                      return [ MaterialUI_AppBar.appBar(Data_Record_Class.srInst())({})([ MaterialUI_Toolbar.toolbar(Data_Record_Class.srInst())({})([ React_DOM.img([ React_DOM_Props.src(Data_URI_URI.print(v.toURI(Links.toLocation(Links.toLocationLogoLinks)(Links.LogoWhitePng.value)))), React_DOM_Props.style({
+                          height: "2.5em"
+                      }) ])([  ]) ]) ]) ];
                   };
               };
           };
