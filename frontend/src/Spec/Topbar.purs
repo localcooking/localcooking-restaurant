@@ -12,10 +12,13 @@ import React as R
 import React.DOM as R
 import React.DOM.Props as RP
 
+import MaterialUI.Types (createStyles)
 import MaterialUI.Toolbar (toolbar)
 import MaterialUI.AppBar (appBar)
 import MaterialUI.Typography (typography)
 import MaterialUI.Typography as Typography
+import MaterialUI.Button (button)
+import MaterialUI.Button as Button
 
 
 
@@ -37,7 +40,7 @@ spec {toURI} = T.simpleSpec performAction render
     render :: T.Render State Unit Action
     render dispatch props state children =
       [ appBar {}
-        [ toolbar {}
+        [ toolbar {style: createStyles {display: "flex"}}
           -- [ typography
           --     { "type": Typography.title
           --     , color: Typography.inheritColor
@@ -45,6 +48,18 @@ spec {toURI} = T.simpleSpec performAction render
           [ R.img [ RP.src $ URI.print $ toURI $ toLocation LogoWhite40Png
                   , RP.style {height: "2.5em"}
                   ] []
+          , button
+            { color: Button.inherit
+            , disabled: true
+            } [R.text "About"]
+          , button
+            { color: Button.inherit
+            } [R.text "Menu"]
+          , R.div [RP.style {flex: 1, display: "flex", flexDirection: "row-reverse"}]
+            [ button
+              { color: Button.inherit
+              } [R.text "Login"]
+            ]
           ]
         ]
       ]
