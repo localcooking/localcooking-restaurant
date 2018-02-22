@@ -11,6 +11,7 @@ import Data.URI (Scheme (..), Host (..), Port (..), Authority (..))
 import Data.URI.Location (toURI)
 import Data.Int.Parse (parseInt, toRadix)
 import Data.Typelevel.Undefined (undefined)
+import Data.String (takeWhile) as String
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Timer (TIMER)
 import Control.Monad.Eff.Ref (REF, newRef, readRef, writeRef)
@@ -43,7 +44,7 @@ main = do
 
   w <- window
   l <- location w
-  scheme <- Just <<< Scheme <$> protocol l
+  scheme <- Just <<< Scheme <<< String.takeWhile (\c -> c /= ':') <$> protocol l
   authority <- do
     host <- hostname l
     p' <- port l

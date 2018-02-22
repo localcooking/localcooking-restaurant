@@ -4,6 +4,7 @@ import Links (toLocation, LogoLinks (LogoWhitePng))
 
 import Prelude
 import Data.URI (URI)
+import Data.URI.URI (print) as URI
 import Data.URI.Location (Location)
 
 import Thermite as T
@@ -41,7 +42,7 @@ spec {toURI} = T.simpleSpec performAction render
           --     { "type": Typography.title
           --     , color: Typography.inheritColor
           --     } [R.text "Local Cooking"]
-          [ R.img [ RP.src $ show $ toURI $ toLocation LogoWhitePng
+          [ R.img [ RP.src $ URI.print $ toURI $ toLocation LogoWhitePng
                   ] []
           ]
         ]
