@@ -9,6 +9,7 @@
 module Server.HTTP where
 
 import Server.HTTP.WebSocket (websocket)
+import Server.Assets (favicons)
 import Types (AppM, runAppM, HTTPException (..), LoginException (..))
 import Types.Env (Env (..), Database (..))
 import Template (html)
@@ -17,9 +18,12 @@ import LocalCooking.Auth (UserID, SessionID, sessionID, ChallengeID (..), Signed
 import LocalCooking.WebSocket (LocalCookingInput (..), LocalCookingOutput (..), LocalCookingLoginResult (..))
 
 import Web.Routes.Nested (RouterT, match, matchHere, action, post, get, json, l_, (</>), o_, route)
+import Network.Wai.Middleware.ContentType (bytestring, FileExt (Other))
 import Network.Wai.Trans (MiddlewareT, strictRequestBody, queryString, websocketsOrT)
 import Network.WebSockets (defaultConnectionOptions)
+import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
+import qualified Data.ByteString.Lazy as LBS
 import Data.Aeson (FromJSON (..), (.:))
 import Data.Aeson.Types (typeMismatch, Value (String, Object))
 import qualified Data.Aeson as Aeson
@@ -30,7 +34,7 @@ import Data.TimeMap.Multi (TimeMultiMap)
 import qualified Data.TimeMap.Multi as TimeMultiMap
 import qualified Data.Attoparsec.Text as Atto
 import qualified Data.IxSet as IxSet
-import Control.Monad (join, when)
+import Control.Monad (join, when, forM_)
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Reader (ask)
 import Control.Monad.Trans (lift)
@@ -76,6 +80,11 @@ router
   loginRefs
   = do
   matchHere $ action $ get $ html ""
+
+  forM_ favicons $ \(file, content) -> do
+    let (file', ext) = T.breakOn "." (T.pack file)
+    match (l_ file' </> o_) $ action $ get $
+      bytestring (Other (T.dropWhile (== '.') ext)) (LBS.fromStrict content)
 
   match (l_ "register" </> o_) $ \app req respond -> do
     body <- liftIO $ strictRequestBody req

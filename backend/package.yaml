@@ -39,6 +39,7 @@ library:
     - extractable-singleton
     - file-embed
     - hashable
+    - heredoc
     - http-types
     - ixset
     - QuickCheck
