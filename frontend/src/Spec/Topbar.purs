@@ -1,6 +1,6 @@
 module Spec.Topbar where
 
-import Links (toLocation, LogoLinks (Logo40Png))
+import Links (toLocation, LogoLinks (..))
 
 import Prelude
 import Data.URI (URI)
@@ -40,13 +40,13 @@ spec {toURI} = T.simpleSpec performAction render
 
     render :: T.Render State Unit Action
     render dispatch props state children =
-      [ appBar {color: AppBar.default, position: AppBar.fixed}
+      [ appBar {color: AppBar.primary, position: AppBar.fixed}
         [ toolbar {style: createStyles {display: "flex"}}
           -- [ typography
           --     { "type": Typography.title
           --     , color: Typography.inheritColor
           --     } [R.text "Local Cooking"]
-          [ R.img [ RP.src $ URI.print $ toURI $ toLocation Logo40Png
+          [ R.img [ RP.src $ URI.print $ toURI $ toLocation LogoWhite40Png
                   , RP.style {height: "2.5em"}
                   ] []
           , button

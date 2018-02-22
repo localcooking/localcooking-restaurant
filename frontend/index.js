@@ -5449,13 +5449,13 @@ var PS = {};
   var React = PS["React"];
   var Type_Row = PS["Type.Row"];
   var Unsafe_Coerce = PS["Unsafe.Coerce"];
+  var primary = "primary";
   var fixed = "fixed";
-  var $$default = "default";
   var appBar = function (dictSubrow) {
       return React.createElement($foreign.appBarImpl);
   };
   exports["appBar"] = appBar;
-  exports["default"] = $$default;
+  exports["primary"] = primary;
   exports["fixed"] = fixed;
 })(PS["MaterialUI.AppBar"] = PS["MaterialUI.AppBar"] || {});
 (function(exports) {
@@ -5534,13 +5534,13 @@ var PS = {};
               return function (state) {
                   return function (children) {
                       return [ MaterialUI_AppBar.appBar(Data_Record_Class.srInst())({
-                          color: MaterialUI_AppBar["default"],
+                          color: MaterialUI_AppBar.primary,
                           position: MaterialUI_AppBar.fixed
                       })([ MaterialUI_Toolbar.toolbar(Data_Record_Class.srInst())({
                           style: MaterialUI_Types.createStyles({
                               display: "flex"
                           })
-                      })([ React_DOM.img([ React_DOM_Props.src(Data_URI_URI.print(v.toURI(Links.toLocation(Links.toLocationLogoLinks)(Links.Logo40Png.value)))), React_DOM_Props.style({
+                      })([ React_DOM.img([ React_DOM_Props.src(Data_URI_URI.print(v.toURI(Links.toLocation(Links.toLocationLogoLinks)(Links.LogoWhite40Png.value)))), React_DOM_Props.style({
                           height: "2.5em"
                       }) ])([  ]), MaterialUI_Button.button(Data_Record_Class.srInst())({
                           color: MaterialUI_Button.inherit,

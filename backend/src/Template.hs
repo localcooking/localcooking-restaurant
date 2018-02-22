@@ -90,7 +90,7 @@ a:visited {
   color: #8e0000;
 }
 body {
-  background-color: #8e0000 !important;
+  /* background-color: #8e0000 !important; */
   padding-bottom: 5em;
 }|] :: T.Text)
 
