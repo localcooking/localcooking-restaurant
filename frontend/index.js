@@ -5449,14 +5449,14 @@ var PS = {};
   var React = PS["React"];
   var Type_Row = PS["Type.Row"];
   var Unsafe_Coerce = PS["Unsafe.Coerce"];
-  var $$static = "static";
+  var fixed = "fixed";
   var $$default = "default";
   var appBar = function (dictSubrow) {
       return React.createElement($foreign.appBarImpl);
   };
   exports["appBar"] = appBar;
   exports["default"] = $$default;
-  exports["static"] = $$static;
+  exports["fixed"] = fixed;
 })(PS["MaterialUI.AppBar"] = PS["MaterialUI.AppBar"] || {});
 (function(exports) {
     "use strict";
@@ -5535,7 +5535,7 @@ var PS = {};
                   return function (children) {
                       return [ MaterialUI_AppBar.appBar(Data_Record_Class.srInst())({
                           color: MaterialUI_AppBar["default"],
-                          position: MaterialUI_AppBar["static"]
+                          position: MaterialUI_AppBar.fixed
                       })([ MaterialUI_Toolbar.toolbar(Data_Record_Class.srInst())({
                           style: MaterialUI_Types.createStyles({
                               display: "flex"

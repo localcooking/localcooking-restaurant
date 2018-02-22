@@ -40,7 +40,7 @@ spec {toURI} = T.simpleSpec performAction render
 
     render :: T.Render State Unit Action
     render dispatch props state children =
-      [ appBar {color: AppBar.default, position: AppBar.static}
+      [ appBar {color: AppBar.default, position: AppBar.fixed}
         [ toolbar {style: createStyles {display: "flex"}}
           -- [ typography
           --     { "type": Typography.title
