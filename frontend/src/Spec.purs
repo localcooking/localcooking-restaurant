@@ -2,6 +2,7 @@ module Spec where
 
 import Spec.Topbar (topbar)
 import Spec.Content (content)
+import Colors (palette)
 
 import Prelude
 import Data.URI (URI)
@@ -41,22 +42,7 @@ spec params = T.simpleSpec performAction render
         template content =
           [ reboot
           , muiThemeProvider
-              { theme: createMuiTheme
-                  { palette:
-                      { primary:
-                        { light: "#ff5f52"
-                        , main: "#c62828"
-                        , dark: "#8e0000"
-                        , contrastText: "#ffffff"
-                        }
-                      , secondary:
-                        { light: "#ffe97d"
-                        , main: "#ffb74d"
-                        , dark: "#c88719"
-                        , contrastText: "#000000"
-                        }
-                      }
-                  }
+              { theme: createMuiTheme {palette}
               }
               (R.div [] content)
           ]
