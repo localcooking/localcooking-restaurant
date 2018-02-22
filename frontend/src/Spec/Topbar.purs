@@ -1,6 +1,6 @@
 module Spec.Topbar where
 
-import Links (toLocation, LogoLinks (LogoWhitePng))
+import Links (toLocation, LogoLinks (LogoWhite40Png))
 
 import Prelude
 import Data.URI (URI)
@@ -42,7 +42,7 @@ spec {toURI} = T.simpleSpec performAction render
           --     { "type": Typography.title
           --     , color: Typography.inheritColor
           --     } [R.text "Local Cooking"]
-          [ R.img [ RP.src $ URI.print $ toURI $ toLocation LogoWhitePng
+          [ R.img [ RP.src $ URI.print $ toURI $ toLocation LogoWhite40Png
                   , RP.style {height: "2.5em"}
                   ] []
           ]

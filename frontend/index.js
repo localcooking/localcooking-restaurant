@@ -4155,6 +4155,13 @@ var PS = {};
       LogoWhitePng.value = new LogoWhitePng();
       return LogoWhitePng;
   })();
+  var LogoWhite40Png = (function () {
+      function LogoWhite40Png() {
+
+      };
+      LogoWhite40Png.value = new LogoWhite40Png();
+      return LogoWhite40Png;
+  })();
   var IconPng = (function () {
       function IconPng() {
 
@@ -4179,13 +4186,16 @@ var PS = {};
       if (x instanceof LogoWhitePng) {
           return new Data_URI_Location.Location(Data_Either.Right.create(Data_Path_Pathy.appendPath(Data_Path_Pathy.appendPath(Data_Path_Pathy.appendPath(Data_Path_Pathy.rootDir)(Data_Path_Pathy.dir("static")))(Data_Path_Pathy.dir("images")))(Data_Path_Pathy.file("logo-white.png"))), Data_Maybe.Nothing.value, Data_Maybe.Nothing.value);
       };
+      if (x instanceof LogoWhite40Png) {
+          return new Data_URI_Location.Location(Data_Either.Right.create(Data_Path_Pathy.appendPath(Data_Path_Pathy.appendPath(Data_Path_Pathy.appendPath(Data_Path_Pathy.rootDir)(Data_Path_Pathy.dir("static")))(Data_Path_Pathy.dir("images")))(Data_Path_Pathy.file("logo-white-40.png"))), Data_Maybe.Nothing.value, Data_Maybe.Nothing.value);
+      };
       if (x instanceof IconPng) {
           return new Data_URI_Location.Location(Data_Either.Right.create(Data_Path_Pathy.appendPath(Data_Path_Pathy.appendPath(Data_Path_Pathy.appendPath(Data_Path_Pathy.rootDir)(Data_Path_Pathy.dir("static")))(Data_Path_Pathy.dir("images")))(Data_Path_Pathy.file("icon.png"))), Data_Maybe.Nothing.value, Data_Maybe.Nothing.value);
       };
       if (x instanceof IconSvg) {
           return new Data_URI_Location.Location(Data_Either.Right.create(Data_Path_Pathy.appendPath(Data_Path_Pathy.appendPath(Data_Path_Pathy.appendPath(Data_Path_Pathy.rootDir)(Data_Path_Pathy.dir("static")))(Data_Path_Pathy.dir("images")))(Data_Path_Pathy.file("icon.svg"))), Data_Maybe.Nothing.value, Data_Maybe.Nothing.value);
       };
-      throw new Error("Failed pattern match at Links line 22, column 18 - line 26, column 105: " + [ x.constructor.name ]);
+      throw new Error("Failed pattern match at Links line 23, column 18 - line 28, column 105: " + [ x.constructor.name ]);
   });
   var toLocation = function (dict) {
       return dict.toLocation;
@@ -4194,6 +4204,7 @@ var PS = {};
   exports["ToLocation"] = ToLocation;
   exports["LogoPng"] = LogoPng;
   exports["LogoWhitePng"] = LogoWhitePng;
+  exports["LogoWhite40Png"] = LogoWhite40Png;
   exports["IconPng"] = IconPng;
   exports["IconSvg"] = IconSvg;
   exports["toLocationLogoLinks"] = toLocationLogoLinks;
@@ -5461,7 +5472,7 @@ var PS = {};
           return function (props) {
               return function (state) {
                   return function (children) {
-                      return [ MaterialUI_AppBar.appBar(Data_Record_Class.srInst())({})([ MaterialUI_Toolbar.toolbar(Data_Record_Class.srInst())({})([ React_DOM.img([ React_DOM_Props.src(Data_URI_URI.print(v.toURI(Links.toLocation(Links.toLocationLogoLinks)(Links.LogoWhitePng.value)))), React_DOM_Props.style({
+                      return [ MaterialUI_AppBar.appBar(Data_Record_Class.srInst())({})([ MaterialUI_Toolbar.toolbar(Data_Record_Class.srInst())({})([ React_DOM.img([ React_DOM_Props.src(Data_URI_URI.print(v.toURI(Links.toLocation(Links.toLocationLogoLinks)(Links.LogoWhite40Png.value)))), React_DOM_Props.style({
                           height: "2.5em"
                       }) ])([  ]) ]) ]) ];
                   };
