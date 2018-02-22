@@ -4,6 +4,8 @@ import Spec.Topbar (topbar)
 import Spec.Content (content)
 
 import Prelude
+import Data.URI (URI)
+import Data.URI.Location (Location)
 
 import Thermite as T
 import React as R
@@ -22,14 +24,17 @@ initialState = unit
 
 type Action = Unit
 
-spec :: T.Spec _ State _ Action
-spec = T.simpleSpec performAction render
+spec :: forall eff
+      . { toURI :: Location -> URI
+        }
+     -> T.Spec eff State Unit Action
+spec params = T.simpleSpec performAction render
   where
-    performAction _ _ _ = pure unit
+    performAction action props state = pure unit
 
-    render :: T.Render State _ Action
-    render _ _ _ _ = template
-      [ topbar
+    render :: T.Render State Unit Action
+    render dispatch props state children = template
+      [ topbar params
       , content
       ]
       where

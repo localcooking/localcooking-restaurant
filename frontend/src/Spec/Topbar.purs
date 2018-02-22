@@ -1,6 +1,10 @@
 module Spec.Topbar where
 
+import Links (toLocation, LogoLinks (LogoWhitePng))
+
 import Prelude
+import Data.URI (URI)
+import Data.URI.Location (Location)
 
 import Thermite as T
 import React as R
@@ -21,26 +25,32 @@ initialState = unit
 
 type Action = Unit
 
-spec :: T.Spec _ State _ Action
-spec = T.simpleSpec performAction render
+spec :: forall eff
+      . { toURI :: Location -> URI
+        }
+     -> T.Spec eff State Unit Action
+spec {toURI} = T.simpleSpec performAction render
   where
-    performAction _ _ _ = pure unit
+    performAction action props state = pure unit
 
-    render :: T.Render State _ Action
-    render _ _ _ _ =
+    render :: T.Render State Unit Action
+    render dispatch props state children =
       [ appBar {}
         [ toolbar {}
-          [ typography
-              { "type": Typography.title
-              , color: Typography.inheritColor
-              } [R.text "Local Cooking"]
+          -- [ typography
+          --     { "type": Typography.title
+          --     , color: Typography.inheritColor
+          --     } [R.text "Local Cooking"]
+          [ R.img [ RP.src $ show $ toURI $ toLocation LogoWhitePng
+                  ] []
           ]
         ]
       ]
 
 
 
-topbar :: R.ReactElement
-topbar =
-  let {spec: reactSpec, dispatcher} = T.createReactSpec spec initialState
+topbar :: { toURI :: Location -> URI
+          } -> R.ReactElement
+topbar params =
+  let {spec: reactSpec, dispatcher} = T.createReactSpec (spec params) initialState
   in  R.createElement (R.createClass reactSpec) unit []
