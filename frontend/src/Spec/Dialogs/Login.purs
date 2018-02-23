@@ -13,6 +13,7 @@ import React as R
 import React.DOM as R
 import React.DOM.Props as RP
 import React.Queue.WhileMounted (whileMountedOne)
+import React.Icons (facebookIcon, twitterIcon, googleIcon)
 
 import MaterialUI.Types (createStyles)
 import MaterialUI.Toolbar (toolbar)
@@ -63,16 +64,46 @@ spec = T.simpleSpec performAction render
       [ dialog
         { open: state.open
         , fullWidth: true
+        , onClose: mkEffFn1 \_ -> dispatch Close
         }
         [ dialogTitle {} [R.text "Login"]
-        , dialogContent {}
-          [ R.text "Foo"
+        , dialogContent {style: createStyles {display: "flex", justifyContent: "space-evenly", paddingTop: "2em"}}
+          [ Button.withStyles
+            (\theme ->
+              { root: createStyles
+                { backgroundColor: "#3b5998"
+                , color: "#ffffff"
+                , "&:hover": {backgroundColor: "#1e3f82"}
+                }
+              }
+            )
+            (\{classes} ->
+              button
+                { variant: Button.fab
+                , classes: Button.createClasses {root: classes.root}
+                } [facebookIcon]
+            )
+          , Button.withStyles
+            (\theme ->
+              { root: createStyles
+                { backgroundColor: "#1da1f3"
+                , color: "#ffffff"
+                , "&:hover": {backgroundColor: "#0f8cdb"}
+                }
+              }
+            )
+            (\{classes} ->
+              button
+              { variant: Button.fab
+              , classes: Button.createClasses {root: classes.root}
+              } [twitterIcon]
+            )
+          , button
+            { variant: Button.fab
+            } [googleIcon]
           ]
         , dialogActions {}
           [ button
-            { color: Button.primary
-            } [R.text "Submit"]
-          , button
             { color: Button.default
             , onTouchTap: mkEffFn1 \_ -> dispatch Close
             } [R.text "Cancel"]
