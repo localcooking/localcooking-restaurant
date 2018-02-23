@@ -40,7 +40,7 @@ spec {toURI} = T.simpleSpec performAction render
 
     render :: T.Render State Unit Action
     render dispatch props state children =
-      [ appBar {color: AppBar.primary, position: AppBar.fixed}
+      [ appBar {color: AppBar.default, position: AppBar.fixed}
         [ toolbar {style: createStyles {display: "flex"}}
           -- [ typography
           --     { "type": Typography.title
@@ -54,7 +54,8 @@ spec {toURI} = T.simpleSpec performAction render
             , disabled: true
             } [R.text "About"]
           , button
-            { color: Button.inherit
+            { color: Button.primary
+            , variant: Button.raised
             } [R.text "Menu"]
           , R.div [RP.style {flex: 1, display: "flex", flexDirection: "row-reverse"}]
             [ button

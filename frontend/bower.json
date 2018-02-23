@@ -9,7 +9,7 @@
   "dependencies": {
     "purescript-prelude": "^3.1.1",
     "purescript-console": "^3.0.0",
-    "purescript-material-ui": "git://github.com/athanclark/purescript-material-ui.git#863e5a45192e7cca6ba0b95ebde4084acbe0587d",
+    "purescript-material-ui": "git://github.com/athanclark/purescript-material-ui.git#ce50ca9e856b9366aa3fda70ecefddde3f907fed",
     "purescript-thermite": "git://github.com/jvliwanag/purescript-thermite.git#94299d6832d92f14bef029f35d07bd5e8b062e05",
     "purescript-zeta": "^0.0.3",
     "purescript-uri-extra": "^0.0.1",
