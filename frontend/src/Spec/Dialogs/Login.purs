@@ -26,6 +26,9 @@ import MaterialUI.Typography (typography)
 import MaterialUI.Typography as Typography
 import MaterialUI.Button (button)
 import MaterialUI.Button as Button
+import MaterialUI.TextField (textField)
+import MaterialUI.TextField as TextField
+import MaterialUI.Input as Input
 
 import Queue.One (READ, Queue)
 
@@ -68,7 +71,11 @@ spec = T.simpleSpec performAction render
         }
         [ dialogTitle {} [R.text "Login"]
         , dialogContent {style: createStyles {display: "flex", justifyContent: "space-evenly", paddingTop: "2em"}}
-          [ Button.withStyles
+          [ typography {variant: Typography.headline} [R.text "Email"]
+          , textField {label: R.text "Email", fullWidth: true}
+          , textField {label: R.text "Password", fullWidth: true, "type": Input.passwordType}
+          , typography {variant: Typography.headline} [R.text "Social Media"]
+          , Button.withStyles
             (\theme ->
               { root: createStyles
                 { backgroundColor: "#3b5998"
