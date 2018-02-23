@@ -98,9 +98,21 @@ spec = T.simpleSpec performAction render
               , classes: Button.createClasses {root: classes.root}
               } [twitterIcon]
             )
-          , button
-            { variant: Button.fab
-            } [googleIcon]
+          , Button.withStyles
+            (\theme ->
+              { root: createStyles
+                { backgroundColor: "#dd4e40"
+                , color: "#ffffff"
+                , "&:hover": {backgroundColor: "#c13627"}
+                }
+              }
+            )
+            (\{classes} ->
+              button
+              { variant: Button.fab
+              , classes: Button.createClasses {root: classes.root}
+              } [googleIcon]
+            )
           ]
         , dialogActions {}
           [ button

@@ -5930,9 +5930,24 @@ var PS = {};
                                   root: v.classes.root
                               })
                           })([ React_Icons.twitterIcon ]);
-                      }), MaterialUI_Button.button(Data_Record_Class.srInst())({
-                          variant: MaterialUI_Button.fab
-                      })([ React_Icons.googleIcon ]) ]), MaterialUI_DialogActions.dialogActions(Data_Record_Class.srInst())({})([ MaterialUI_Button.button(Data_Record_Class.srInst())({
+                      }), MaterialUI_Button.withStyles(Data_Record_Class.srInst())()(MaterialUI_Types.compileStylesCons(MaterialUI_Types.compileStylesNil))(Type_Row.listToRowCons(Type_Row.listToRowNil)())(function (theme) {
+                          return {
+                              root: MaterialUI_Types.createStyles({
+                                  backgroundColor: "#dd4e40",
+                                  color: "#ffffff",
+                                  "&:hover": {
+                                      backgroundColor: "#c13627"
+                                  }
+                              })
+                          };
+                      })(function (v) {
+                          return MaterialUI_Button.button(Data_Record_Class.srInst())({
+                              variant: MaterialUI_Button.fab,
+                              classes: MaterialUI_Button.createClasses(Data_Record_Class.srInst())({
+                                  root: v.classes.root
+                              })
+                          })([ React_Icons.googleIcon ]);
+                      }) ]), MaterialUI_DialogActions.dialogActions(Data_Record_Class.srInst())({})([ MaterialUI_Button.button(Data_Record_Class.srInst())({
                           color: MaterialUI_Button["default"],
                           onTouchTap: Control_Monad_Eff_Uncurried.mkEffFn1(function (v) {
                               return dispatch(Close.value);
@@ -5947,26 +5962,26 @@ var PS = {};
               return function (state) {
                   if (action instanceof Open) {
                       return Data_Functor["void"](Control_Monad_Free_Trans.functorFreeT(Control_Coroutine.functorCoTransform)(Control_Monad_Aff.functorAff))(Control_Coroutine.cotransform(Control_Monad_Aff.monadAff)(function (v) {
-                          var $14 = {};
-                          for (var $15 in v) {
-                              if ({}.hasOwnProperty.call(v, $15)) {
-                                  $14[$15] = v[$15];
-                              };
-                          };
-                          $14.open = true;
-                          return $14;
-                      }));
-                  };
-                  if (action instanceof Close) {
-                      return Data_Functor["void"](Control_Monad_Free_Trans.functorFreeT(Control_Coroutine.functorCoTransform)(Control_Monad_Aff.functorAff))(Control_Coroutine.cotransform(Control_Monad_Aff.monadAff)(function (v) {
                           var $17 = {};
                           for (var $18 in v) {
                               if ({}.hasOwnProperty.call(v, $18)) {
                                   $17[$18] = v[$18];
                               };
                           };
-                          $17.open = false;
+                          $17.open = true;
                           return $17;
+                      }));
+                  };
+                  if (action instanceof Close) {
+                      return Data_Functor["void"](Control_Monad_Free_Trans.functorFreeT(Control_Coroutine.functorCoTransform)(Control_Monad_Aff.functorAff))(Control_Coroutine.cotransform(Control_Monad_Aff.monadAff)(function (v) {
+                          var $20 = {};
+                          for (var $21 in v) {
+                              if ({}.hasOwnProperty.call(v, $21)) {
+                                  $20[$21] = v[$21];
+                              };
+                          };
+                          $20.open = false;
+                          return $20;
                       }));
                   };
                   throw new Error("Failed pattern match at Spec.Dialogs.Login line 58, column 40 - line 60, column 55: " + [ action.constructor.name ]);
