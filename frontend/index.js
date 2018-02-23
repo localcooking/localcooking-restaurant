@@ -5632,7 +5632,8 @@ var PS = {};
               };
           };
       };
-  };                          
+  };                  
+  var secondary = "secondary";
   var raised = "raised";
   var primary = "primary";
   var inherit = "inherit";
@@ -5646,6 +5647,7 @@ var PS = {};
   };
   exports["button"] = button;
   exports["primary"] = primary;
+  exports["secondary"] = secondary;
   exports["default"] = $$default;
   exports["inherit"] = inherit;
   exports["raised"] = raised;
@@ -5945,75 +5947,48 @@ var PS = {};
                           onClose: Control_Monad_Eff_Uncurried.mkEffFn1(function (v) {
                               return dispatch(Close.value);
                           })
-                      })([ MaterialUI_DialogTitle.dialogTitle(Data_Record_Class.srInst())({})([ React_DOM.text("Login") ]), MaterialUI_DialogContent.dialogContent(Data_Record_Class.srInst())({
-                          style: MaterialUI_Types.createStyles({
-                              display: "flex",
-                              justifyContent: "space-evenly",
-                              paddingTop: "2em"
-                          })
-                      })([ MaterialUI_Typography.typography(Data_Record_Class.srInst())({
-                          variant: MaterialUI_Typography.headline
-                      })([ React_DOM.text("Email") ]), MaterialUI_TextField.textField(Data_Record_Class.srInst())()({
+                      })([ MaterialUI_DialogTitle.dialogTitle(Data_Record_Class.srInst())({})([ React_DOM.text("Login") ]), MaterialUI_DialogContent.dialogContent(Data_Record_Class.srInst())({})([ MaterialUI_TextField.textField(Data_Record_Class.srInst())()({
                           label: React_DOM.text("Email"),
                           fullWidth: true
                       }), MaterialUI_TextField.textField(Data_Record_Class.srInst())()({
                           label: React_DOM.text("Password"),
                           fullWidth: true,
                           type: MaterialUI_Input.passwordType
-                      }), MaterialUI_Typography.typography(Data_Record_Class.srInst())({
-                          variant: MaterialUI_Typography.headline
-                      })([ React_DOM.text("Social Media") ]), MaterialUI_Button.withStyles(Data_Record_Class.srInst())()(MaterialUI_Types.compileStylesCons(MaterialUI_Types.compileStylesNil))(Type_Row.listToRowCons(Type_Row.listToRowNil)())(function (theme) {
-                          return {
-                              root: MaterialUI_Types.createStyles({
-                                  backgroundColor: "#3b5998",
-                                  color: "#ffffff",
-                                  "&:hover": {
-                                      backgroundColor: "#1e3f82"
-                                  }
-                              })
+                      }), React_DOM.div([ React_DOM_Props.style({
+                          display: "flex",
+                          justifyContent: "space-evenly",
+                          paddingTop: "2em"
+                      }) ])((function () {
+                          var mkFab = function (mainColor) {
+                              return function (darkColor) {
+                                  return function (icon) {
+                                      return MaterialUI_Button.withStyles(Data_Record_Class.srInst())()(MaterialUI_Types.compileStylesCons(MaterialUI_Types.compileStylesNil))(Type_Row.listToRowCons(Type_Row.listToRowNil)())(function (theme) {
+                                          return {
+                                              root: MaterialUI_Types.createStyles({
+                                                  backgroundColor: mainColor,
+                                                  color: "#ffffff",
+                                                  "&:hover": {
+                                                      backgroundColor: darkColor
+                                                  }
+                                              })
+                                          };
+                                      })(function (v) {
+                                          return MaterialUI_Button.button(Data_Record_Class.srInst())({
+                                              variant: MaterialUI_Button.fab,
+                                              classes: MaterialUI_Button.createClasses(Data_Record_Class.srInst())({
+                                                  root: v.classes.root
+                                              })
+                                          })([ icon ]);
+                                      });
+                                  };
+                              };
                           };
-                      })(function (v) {
-                          return MaterialUI_Button.button(Data_Record_Class.srInst())({
-                              variant: MaterialUI_Button.fab,
-                              classes: MaterialUI_Button.createClasses(Data_Record_Class.srInst())({
-                                  root: v.classes.root
-                              })
-                          })([ React_Icons.facebookIcon ]);
-                      }), MaterialUI_Button.withStyles(Data_Record_Class.srInst())()(MaterialUI_Types.compileStylesCons(MaterialUI_Types.compileStylesNil))(Type_Row.listToRowCons(Type_Row.listToRowNil)())(function (theme) {
-                          return {
-                              root: MaterialUI_Types.createStyles({
-                                  backgroundColor: "#1da1f3",
-                                  color: "#ffffff",
-                                  "&:hover": {
-                                      backgroundColor: "#0f8cdb"
-                                  }
-                              })
-                          };
-                      })(function (v) {
-                          return MaterialUI_Button.button(Data_Record_Class.srInst())({
-                              variant: MaterialUI_Button.fab,
-                              classes: MaterialUI_Button.createClasses(Data_Record_Class.srInst())({
-                                  root: v.classes.root
-                              })
-                          })([ React_Icons.twitterIcon ]);
-                      }), MaterialUI_Button.withStyles(Data_Record_Class.srInst())()(MaterialUI_Types.compileStylesCons(MaterialUI_Types.compileStylesNil))(Type_Row.listToRowCons(Type_Row.listToRowNil)())(function (theme) {
-                          return {
-                              root: MaterialUI_Types.createStyles({
-                                  backgroundColor: "#dd4e40",
-                                  color: "#ffffff",
-                                  "&:hover": {
-                                      backgroundColor: "#c13627"
-                                  }
-                              })
-                          };
-                      })(function (v) {
-                          return MaterialUI_Button.button(Data_Record_Class.srInst())({
-                              variant: MaterialUI_Button.fab,
-                              classes: MaterialUI_Button.createClasses(Data_Record_Class.srInst())({
-                                  root: v.classes.root
-                              })
-                          })([ React_Icons.googleIcon ]);
-                      }) ]), MaterialUI_DialogActions.dialogActions(Data_Record_Class.srInst())({})([ MaterialUI_Button.button(Data_Record_Class.srInst())({
+                          return [ mkFab("#3b5998")("#1e3f82")(React_Icons.facebookIcon), mkFab("#1da1f3")("#0f8cdb")(React_Icons.twitterIcon), mkFab("#dd4e40")("#c13627")(React_Icons.googleIcon) ];
+                      })()) ]), MaterialUI_DialogActions.dialogActions(Data_Record_Class.srInst())({})([ MaterialUI_Button.button(Data_Record_Class.srInst())({
+                          color: MaterialUI_Button.secondary
+                      })([ React_DOM.text("Register") ]), MaterialUI_Button.button(Data_Record_Class.srInst())({
+                          color: MaterialUI_Button.primary
+                      })([ React_DOM.text("Submit") ]), MaterialUI_Button.button(Data_Record_Class.srInst())({
                           color: MaterialUI_Button["default"],
                           onTouchTap: Control_Monad_Eff_Uncurried.mkEffFn1(function (v) {
                               return dispatch(Close.value);
@@ -6028,26 +6003,26 @@ var PS = {};
               return function (state) {
                   if (action instanceof Open) {
                       return Data_Functor["void"](Control_Monad_Free_Trans.functorFreeT(Control_Coroutine.functorCoTransform)(Control_Monad_Aff.functorAff))(Control_Coroutine.cotransform(Control_Monad_Aff.monadAff)(function (v) {
-                          var $17 = {};
-                          for (var $18 in v) {
-                              if ({}.hasOwnProperty.call(v, $18)) {
-                                  $17[$18] = v[$18];
+                          var $11 = {};
+                          for (var $12 in v) {
+                              if ({}.hasOwnProperty.call(v, $12)) {
+                                  $11[$12] = v[$12];
                               };
                           };
-                          $17.open = true;
-                          return $17;
+                          $11.open = true;
+                          return $11;
                       }));
                   };
                   if (action instanceof Close) {
                       return Data_Functor["void"](Control_Monad_Free_Trans.functorFreeT(Control_Coroutine.functorCoTransform)(Control_Monad_Aff.functorAff))(Control_Coroutine.cotransform(Control_Monad_Aff.monadAff)(function (v) {
-                          var $20 = {};
-                          for (var $21 in v) {
-                              if ({}.hasOwnProperty.call(v, $21)) {
-                                  $20[$21] = v[$21];
+                          var $14 = {};
+                          for (var $15 in v) {
+                              if ({}.hasOwnProperty.call(v, $15)) {
+                                  $14[$15] = v[$15];
                               };
                           };
-                          $20.open = false;
-                          return $20;
+                          $14.open = false;
+                          return $14;
                       }));
                   };
                   throw new Error("Failed pattern match at Spec.Dialogs.Login line 61, column 40 - line 63, column 55: " + [ action.constructor.name ]);

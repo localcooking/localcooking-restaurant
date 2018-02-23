@@ -70,59 +70,41 @@ spec = T.simpleSpec performAction render
         , onClose: mkEffFn1 \_ -> dispatch Close
         }
         [ dialogTitle {} [R.text "Login"]
-        , dialogContent {style: createStyles {display: "flex", justifyContent: "space-evenly", paddingTop: "2em"}}
-          [ typography {variant: Typography.headline} [R.text "Email"]
-          , textField {label: R.text "Email", fullWidth: true}
+        , dialogContent {}
+          [ textField {label: R.text "Email", fullWidth: true}
           , textField {label: R.text "Password", fullWidth: true, "type": Input.passwordType}
-          , typography {variant: Typography.headline} [R.text "Social Media"]
-          , Button.withStyles
-            (\theme ->
-              { root: createStyles
-                { backgroundColor: "#3b5998"
-                , color: "#ffffff"
-                , "&:hover": {backgroundColor: "#1e3f82"}
-                }
-              }
-            )
-            (\{classes} ->
-              button
-                { variant: Button.fab
-                , classes: Button.createClasses {root: classes.root}
-                } [facebookIcon]
-            )
-          , Button.withStyles
-            (\theme ->
-              { root: createStyles
-                { backgroundColor: "#1da1f3"
-                , color: "#ffffff"
-                , "&:hover": {backgroundColor: "#0f8cdb"}
-                }
-              }
-            )
-            (\{classes} ->
-              button
-              { variant: Button.fab
-              , classes: Button.createClasses {root: classes.root}
-              } [twitterIcon]
-            )
-          , Button.withStyles
-            (\theme ->
-              { root: createStyles
-                { backgroundColor: "#dd4e40"
-                , color: "#ffffff"
-                , "&:hover": {backgroundColor: "#c13627"}
-                }
-              }
-            )
-            (\{classes} ->
-              button
-              { variant: Button.fab
-              , classes: Button.createClasses {root: classes.root}
-              } [googleIcon]
-            )
+          , R.div [RP.style {display: "flex", justifyContent: "space-evenly", paddingTop: "2em"}] $
+              let mkFab mainColor darkColor icon =
+                    Button.withStyles
+                      (\theme ->
+                        { root: createStyles
+                          { backgroundColor: mainColor
+                          , color: "#ffffff"
+                          , "&:hover": {backgroundColor: darkColor}
+                          }
+                        }
+                      )
+                      (\{classes} ->
+                        button
+                          { variant: Button.fab
+                          , classes: Button.createClasses {root: classes.root}
+                          } [icon]
+                      )
+              in  [ mkFab "#3b5998" "#1e3f82" facebookIcon
+                  , mkFab "#1da1f3" "#0f8cdb" twitterIcon
+                  , mkFab "#dd4e40" "#c13627" googleIcon
+                  ]
           ]
         , dialogActions {}
           [ button
+            { color: Button.secondary
+            -- , onTouchTap: mkEffFn1 \_ -> dispatch Close
+            } [R.text "Register"]
+          , button
+            { color: Button.primary
+            -- , onTouchTap: mkEffFn1 \_ -> dispatch Close
+            } [R.text "Submit"]
+          , button
             { color: Button.default
             , onTouchTap: mkEffFn1 \_ -> dispatch Close
             } [R.text "Cancel"]
