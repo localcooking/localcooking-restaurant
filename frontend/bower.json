@@ -14,7 +14,8 @@
     "purescript-zeta": "^0.0.3",
     "purescript-uri-extra": "^0.0.1",
     "purescript-parseint": "^0.0.0",
-    "purescript-typelevel": "^3.0.0"
+    "purescript-typelevel": "^3.0.0",
+    "purescript-react-queue": "^0.0.1"
   },
   "devDependencies": {
     "purescript-psci-support": "^3.0.0"
