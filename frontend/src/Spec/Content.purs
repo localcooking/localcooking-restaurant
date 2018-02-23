@@ -79,26 +79,26 @@ spec = T.simpleSpec performAction render
               , renderers:
                 { heading: R.createClassStateless' \{level} children ->
                     typography
-                      { "type": if level == 1 then Typography.display4
-                                else if level == 2 then Typography.display3
-                                else if level == 3 then Typography.display2
-                                else if level == 4 then Typography.display1
-                                else if level == 5 then Typography.headline
-                                else Typography.subheading
+                      { variant:  if level == 1 then Typography.display4
+                                  else if level == 2 then Typography.display3
+                                  else if level == 3 then Typography.display2
+                                  else if level == 4 then Typography.display1
+                                  else if level == 5 then Typography.headline
+                                  else Typography.subheading
                       , style: createStyles {marginLeft: "1em"}
                       } children
                 , blockquote: R.createClassStateless' \_ children ->
                     typography
-                      { "type": Typography.caption
+                      { variant: Typography.caption
                       } children
                 , paragraph: R.createClassStateless' \_ children ->
                     typography
-                      { "type": Typography.body1
+                      { variant: Typography.body1
                       , style: createStyles {margin: "1em", textIndent: "2em"}
                       } children
                 , strong: R.createClassStateless' \_ children ->
                     typography
-                      { "type": Typography.body2
+                      { variant: Typography.body2
                       } children
                 , thematicBreak: R.createClassStateless' \_ children ->
                     divider {}
@@ -106,7 +106,7 @@ spec = T.simpleSpec performAction render
               }
             ]
           , typography
-            { "type": Typography.caption
+            { variant: Typography.caption
             , style: createStyles {marginTop: "5em", textAlign: "center"}
             }
             [ R.text "Copyright © Local Cooking Inc. 2018, All rights reserved" ]

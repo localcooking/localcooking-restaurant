@@ -4992,7 +4992,7 @@ var PS = {};
   var Unsafe_Coerce = PS["Unsafe.Coerce"];
   var typography = function (dictSubrow) {
       return React.createElement($foreign.typographyImpl);
-  };                  
+  };                                  
   var subheading = "subheading";
   var headline = "headline";
   var display4 = "display4";
@@ -5325,7 +5325,7 @@ var PS = {};
                               heading: React["createClassStateless'"](React.reactElementReactRender)(function (v) {
                                   return function (children1) {
                                       return MaterialUI_Typography.typography(Data_Record_Class.srInst())({
-                                          type: (function () {
+                                          variant: (function () {
                                               var $13 = v.level === 1;
                                               if ($13) {
                                                   return MaterialUI_Typography.display4;
@@ -5357,14 +5357,14 @@ var PS = {};
                               blockquote: React["createClassStateless'"](React.reactElementReactRender)(function (v) {
                                   return function (children1) {
                                       return MaterialUI_Typography.typography(Data_Record_Class.srInst())({
-                                          type: MaterialUI_Typography.caption
+                                          variant: MaterialUI_Typography.caption
                                       })(children1);
                                   };
                               }),
                               paragraph: React["createClassStateless'"](React.reactElementReactRender)(function (v) {
                                   return function (children1) {
                                       return MaterialUI_Typography.typography(Data_Record_Class.srInst())({
-                                          type: MaterialUI_Typography.body1,
+                                          variant: MaterialUI_Typography.body1,
                                           style: MaterialUI_Types.createStyles({
                                               margin: "1em",
                                               textIndent: "2em"
@@ -5375,7 +5375,7 @@ var PS = {};
                               strong: React["createClassStateless'"](React.reactElementReactRender)(function (v) {
                                   return function (children1) {
                                       return MaterialUI_Typography.typography(Data_Record_Class.srInst())({
-                                          type: MaterialUI_Typography.body2
+                                          variant: MaterialUI_Typography.body2
                                       })(children1);
                                   };
                               }),
@@ -5386,7 +5386,7 @@ var PS = {};
                               })
                           }
                       }) ]), MaterialUI_Typography.typography(Data_Record_Class.srInst())({
-                          type: MaterialUI_Typography.caption,
+                          variant: MaterialUI_Typography.caption,
                           style: MaterialUI_Types.createStyles({
                               marginTop: "5em",
                               textAlign: "center"
@@ -5544,7 +5544,7 @@ var PS = {};
                           style: MaterialUI_Types.createStyles({
                               display: "flex"
                           })
-                      })([ React_DOM.img([ React_DOM_Props.src(Data_URI_URI.print(v.toURI(Links.toLocation(Links.toLocationLogoLinks)(Links.LogoWhite40Png.value)))), React_DOM_Props.style({
+                      })([ React_DOM.img([ React_DOM_Props.src(Data_URI_URI.print(v.toURI(Links.toLocation(Links.toLocationLogoLinks)(Links.Logo40Png.value)))), React_DOM_Props.style({
                           height: "2.5em"
                       }) ])([  ]), MaterialUI_Button.button(Data_Record_Class.srInst())({
                           color: MaterialUI_Button.inherit,
