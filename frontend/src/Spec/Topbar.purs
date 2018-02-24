@@ -15,6 +15,7 @@ import Control.Monad.Eff.Exception (EXCEPTION)
 import Control.Monad.Eff.Class (liftEff)
 
 import Thermite as T
+import Thermite.Window as WindowT
 import React as R
 import React.DOM as R
 import React.DOM.Props as RP
@@ -37,18 +38,13 @@ import IxSignal.Internal (IxSignal)
 
 
 
-type State =
-  { windowSize :: WindowSize
-  }
+type State = Unit
 
 initialState :: State
-initialState =
-  { windowSize: Pager
-  }
+initialState = unit
 
 data Action
   = OpenLogin
-  | ChangedWindowSize WindowSize
 
 type Effects eff =
   ( ref :: REF
@@ -61,18 +57,17 @@ spec :: forall eff
       . { toURI :: Location -> URI
         , openSignal :: Queue (write :: WRITE) (Effects eff) Unit
         }
-     -> T.Spec (Effects eff) State Unit Action
-spec {toURI,openSignal} = T.simpleSpec performAction render
+     -> T.Spec (Effects eff) (WindowT.State State) Unit (WindowT.Action Action)
+spec {toURI,openSignal} = T.simpleSpec (WindowT.performAction performAction) render
   where
     performAction action props state = case action of
       OpenLogin -> liftEff (putQueue openSignal unit)
-      ChangedWindowSize w -> void $ T.cotransform _ { windowSize = w }
 
-    render :: T.Render State Unit Action
-    render dispatch props state children =
+    render :: T.Render (WindowT.State State) Unit (WindowT.Action Action)
+    render dispatch props {windowSize,state} children =
       [ appBar {color: AppBar.default, position: AppBar.fixed}
         [ toolbar {style: createStyles {display: "flex"}} $
-          ( if state.windowSize < Laptop
+          ( if windowSize < Laptop
             then
               [ iconButton
                 { color: IconButton.inherit
@@ -95,7 +90,7 @@ spec {toURI,openSignal} = T.simpleSpec performAction render
           [ R.div [RP.style {flex: 1, display: "flex", flexDirection: "row-reverse"}]
             [ button
               { color: Button.inherit
-              , onTouchTap: mkEffFn1 \_ -> dispatch OpenLogin
+              , onTouchTap: mkEffFn1 \_ -> dispatch $ WindowT.Action OpenLogin
               } [R.text "Login"]
             ]
           ]
@@ -110,7 +105,6 @@ topbar :: forall eff
           , windowSizeSignal :: IxSignal (Effects eff) WindowSize
           } -> R.ReactElement
 topbar {toURI,openSignal,windowSizeSignal} =
-  let {spec: reactSpec, dispatcher} = T.createReactSpec (spec {toURI,openSignal}) initialState
-      reactSpec' = whileMountedIxUUID windowSizeSignal (\this x -> unsafeCoerceEff $ dispatcher this (ChangedWindowSize x))
-                   reactSpec
+  let {spec:reactSpec,dispatcher} = T.createReactSpec (spec {toURI,openSignal}) (WindowT.initialState initialState)
+      reactSpec' = WindowT.listening windowSizeSignal {spec:reactSpec,dispatcher}
   in  R.createElement (R.createClass reactSpec') unit []
