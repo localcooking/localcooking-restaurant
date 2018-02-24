@@ -12,22 +12,29 @@ import Data.URI.Location (toURI)
 import Data.Int.Parse (parseInt, toRadix)
 import Data.Typelevel.Undefined (undefined)
 import Data.String (takeWhile) as String
+import Data.UUID (GENUUID)
+import Data.Traversable (traverse_)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Timer (TIMER)
+import Control.Monad.Eff.Exception (EXCEPTION)
 import Control.Monad.Eff.Ref (REF, newRef, readRef, writeRef)
 import Control.Monad.Eff.Console (CONSOLE, log, error)
 
-import Signal.Internal (subscribe)
 import Signal.Internal as Signal
+import IxSignal.Internal as IxSignal
 import Signal.Time (debounce)
 import Signal.DOM (windowDimensions)
 
+import React as R
+import ReactDOM (render)
 import Thermite as T
 import MaterialUI.InjectTapEvent (INJECT_TAP_EVENT, injectTapEvent)
 import DOM (DOM)
 import DOM.HTML (window)
-import DOM.HTML.Window (location)
+import DOM.HTML.Window (location, document)
+import DOM.HTML.Document (body)
 import DOM.HTML.Location (hostname, protocol, port)
+import DOM.HTML.Types (htmlElementToElement)
 
 
 main :: Eff ( console        :: CONSOLE
@@ -35,6 +42,8 @@ main :: Eff ( console        :: CONSOLE
             , ref            :: REF
             , dom            :: DOM
             , timer          :: TIMER
+            , uuid           :: GENUUID
+            , exception      :: EXCEPTION
             ) Unit
 main = do
   log "Starting Local Cooking"
@@ -57,21 +66,22 @@ main = do
     sig <- debounce (Milliseconds 100.0) =<< windowDimensions
     initWidth <- (\w' -> w'.w) <$> Signal.get sig
     windowWidthRef <- newRef initWidth
-    out <- Signal.make initWidth
-    flip subscribe sig \w' -> do
+    out <- IxSignal.make (widthToWindowSize initWidth)
+    flip Signal.subscribe sig \w' -> do
       lastWindowWidth <- readRef windowWidthRef
       when (w'.w /= lastWindowWidth) $ do
         writeRef windowWidthRef w'.w
-        Signal.set w'.w out
+        IxSignal.set (widthToWindowSize w'.w) out
     pure out
 
-  flip subscribe windowSizeSignal \windowWidth -> do
 
-    let windowSize = widthToWindowSize windowWidth
 
-    T.defaultMain
-      ( spec
-          { toURI : \location -> toURI {scheme, authority, location}
-          }
-      )
-      initialState unit
+  let props = unit
+      {spec: reactSpec, dispatcher} =
+        let x = spec
+                  { toURI : \location -> toURI {scheme, authority, location}
+                  , windowSizeSignal
+                  }
+        in  T.createReactSpec x initialState
+      component = R.createClass reactSpec
+  traverse_ (render (R.createFactory component props) <<< htmlElementToElement) =<< body =<< document w

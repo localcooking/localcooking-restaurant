@@ -1,17 +1,41 @@
 module Window where
 
 import Prelude
-import Control.Monad.Eff (Eff)
+import Data.Tuple (Tuple (..))
+import Data.Generic (class Generic, gEq, gCompare)
 
 
 data WindowSize
-  = Pager
-  | Phone
-  | Tablet
+  = Desktop
   | Laptop
-  | Desktop
+  | Tablet
+  | Phone
+  | Pager
 
+derive instance genericWindowSize :: Generic WindowSize
 
+instance eqWindowSize :: Eq WindowSize where
+  eq = gEq
+
+instance ordWindowSize :: Ord WindowSize where
+  compare x y =
+    if x == y
+      then EQ
+      else case Tuple x y of
+        Tuple Pager _ -> LT
+        Tuple _ Desktop -> LT
+        Tuple Desktop _ -> GT
+        Tuple _ Pager -> GT
+        Tuple Phone _ -> case y of
+          Pager -> GT
+          _ -> LT
+        Tuple Tablet _ -> case y of
+          Pager -> GT
+          Phone -> GT
+          _ -> LT
+        Tuple Laptop _ -> case y of
+          Desktop -> LT
+          _ -> GT
 
 widthToWindowSize :: Int -> WindowSize
 widthToWindowSize s
