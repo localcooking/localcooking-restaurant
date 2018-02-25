@@ -38,20 +38,17 @@ instance toLocationLogoLinks :: ToLocation LogoLinks where
 data SiteLinks
   = RootLink
   | AboutLink
-  | LoginLink
 
 instance showSiteLinks :: Show SiteLinks where
   show x = case x of
     RootLink -> printPath rootDir
     AboutLink -> printPath $ rootDir </> file "about"
-    LoginLink -> printPath $ rootDir </> file "login"
 
 
 siteLinksToDocumentTitle :: SiteLinks -> DocumentTitle
 siteLinksToDocumentTitle x = DocumentTitle $ case x of
   RootLink -> "Local Cooking"
   AboutLink -> "About - Local Cooking"
-  LoginLink -> "Login - Local Cooking"
 
 siteLinksParser :: Parser SiteLinks
 siteLinksParser = do
@@ -59,11 +56,7 @@ siteLinksParser = do
       about = do
         void divider
         AboutLink <$ string "about"
-      login = do
-        void divider
-        LoginLink <$ string "login"
   try about
-    <|> try login
     <|> root
   where
     divider = char '/'

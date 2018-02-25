@@ -37,11 +37,6 @@ import MaterialUI.Button as Button
 import MaterialUI.TextField (textField)
 import MaterialUI.TextField as TextField
 import MaterialUI.Input as Input
-import DOM (DOM)
-import DOM.HTML (window)
-import DOM.HTML.Window (history)
-import DOM.HTML.History (back)
-import DOM.HTML.Types (HISTORY)
 
 import Queue.One (READ, Queue)
 import IxSignal.Internal (IxSignal)
@@ -51,7 +46,6 @@ import IxSignal.Internal (IxSignal)
 type State =
   { open :: Boolean
   , windowSize :: WindowSize
-  , currentPage :: SiteLinks
   }
 
 
@@ -59,7 +53,6 @@ initialState :: State
 initialState =
   { open: false
   , windowSize: Pager
-  , currentPage: RootLink
   }
 
 
@@ -67,41 +60,22 @@ data Action
   = Open
   | Close
   | ChangedWindowSize WindowSize
-  | ChangedCurrentPage SiteLinks
 
 type Effects eff =
   ( ref :: REF
   , uuid :: GENUUID
   , exception :: EXCEPTION
-  , history :: HISTORY
-  , dom :: DOM
   | eff)
 
 
 spec :: forall eff
-      . T.Spec (history :: HISTORY, dom :: DOM | eff) State Unit Action
+      . T.Spec eff State Unit Action
 spec = T.simpleSpec performAction render
   where
     performAction action props state = case action of
       Open -> void $ T.cotransform _ { open = true }
-      Close -> -- void $ T.cotransform _ { open = false }
-        liftEff $ do
-          h <- history =<< window
-          back h
+      Close -> void $ T.cotransform _ { open = false }
       ChangedWindowSize w -> void $ T.cotransform _ { windowSize = w }
-      ChangedCurrentPage p -> do
-        mState <- T.cotransform _ { currentPage = p }
-        case state.currentPage of
-          LoginLink -> case p of
-            LoginLink -> pure unit
-            _ -> case mState of
-              Nothing -> pure unit
-              Just s -> performAction Close props s
-          _ -> case p of
-            LoginLink -> case mState of
-              Nothing -> pure unit
-              Just s -> performAction Open props s
-            _ -> pure unit
 
     render :: T.Render State Unit Action
     render dispatch props state children =
@@ -167,18 +141,14 @@ spec = T.simpleSpec performAction render
 loginDialog :: forall eff
              . { openSignal :: Queue (read :: READ) (Effects eff) Unit
                , windowSizeSignal :: IxSignal (Effects eff) WindowSize
-               , currentPageSignal :: IxSignal (Effects eff) SiteLinks
                }
             -> R.ReactElement
-loginDialog {openSignal,windowSizeSignal,currentPageSignal} =
+loginDialog {openSignal,windowSizeSignal} =
   let {spec: reactSpec, dispatcher} = T.createReactSpec spec initialState
       reactSpecLogin =
           Signal.whileMountedIxUUID
             windowSizeSignal
             (\this x -> unsafeCoerceEff $ dispatcher this (ChangedWindowSize x))
-        $ Signal.whileMountedIxUUID
-            currentPageSignal
-            (\this x -> unsafeCoerceEff $ dispatcher this (ChangedCurrentPage x))
         $ Queue.whileMountedOne
             openSignal
             (\this _ -> unsafeCoerceEff $ dispatcher this Open)

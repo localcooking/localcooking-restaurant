@@ -68,7 +68,6 @@ spec {toURI,windowSizeSignal,siteLinks,currentPageSignal} = T.simpleSpec perform
       , loginDialog
         { openSignal: readOnly openSignal
         , windowSizeSignal
-        , currentPageSignal
         }
       ]
       where
