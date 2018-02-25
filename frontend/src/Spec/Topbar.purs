@@ -130,10 +130,10 @@ spec
 topbar :: forall eff
         . { toURI :: Location -> URI
           , openSignal :: Queue (write :: WRITE) (Effects eff) Unit
-          , windowSizeSignal :: IxSignal (Effects eff) WindowSize
-          , siteLinks :: SiteLinks -> Eff (Effects eff) Unit
           , mobileMenuButtonSignal :: Queue (write :: WRITE) (Effects eff) Unit
+          , windowSizeSignal :: IxSignal (Effects eff) WindowSize
           , currentPageSignal :: IxSignal (Effects eff) Page
+          , siteLinks :: SiteLinks -> Eff (Effects eff) Unit
           } -> R.ReactElement
 topbar
   { toURI

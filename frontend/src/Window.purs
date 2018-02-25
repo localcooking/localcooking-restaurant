@@ -2,7 +2,7 @@ module Window where
 
 import Prelude
 import Data.Tuple (Tuple (..))
-import Data.Generic (class Generic, gEq, gCompare)
+import Data.Generic (class Generic, gEq, gCompare, gShow)
 
 
 data WindowSize
@@ -36,6 +36,10 @@ instance ordWindowSize :: Ord WindowSize where
         Tuple Laptop _ -> case y of
           Desktop -> LT
           _ -> GT
+
+instance showWindowSize :: Show WindowSize where
+  show = gShow
+
 
 widthToWindowSize :: Int -> WindowSize
 widthToWindowSize s

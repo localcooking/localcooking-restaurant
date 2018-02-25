@@ -84,12 +84,16 @@ main = do
     sig <- debounce (Milliseconds 100.0) =<< windowDimensions
     initWidth <- (\w' -> w'.w) <$> Signal.get sig
     windowWidthRef <- newRef initWidth
-    out <- IxSignal.make (widthToWindowSize initWidth)
+    let initWindowSize = widthToWindowSize initWidth
+    log $ "Window width: " <> show initWindowSize
+    out <- IxSignal.make initWindowSize
     flip Signal.subscribe sig \w' -> do
       lastWindowWidth <- readRef windowWidthRef
       when (w'.w /= lastWindowWidth) $ do
         writeRef windowWidthRef w'.w
-        IxSignal.set (widthToWindowSize w'.w) out
+        let size = widthToWindowSize w'.w
+        log $ "Window width changed: " <> show size
+        IxSignal.set size out
     pure out
 
   currentPageSignal <- do
