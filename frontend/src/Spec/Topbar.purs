@@ -1,6 +1,6 @@
 module Spec.Topbar where
 
-import Links (toLocation, LogoLinks (..))
+import Links (toLocation, SiteLinks (..), LogoLinks (..))
 import Window (WindowSize (..))
 
 import Prelude
@@ -8,6 +8,7 @@ import Data.URI (URI)
 import Data.URI.URI (print) as URI
 import Data.URI.Location (Location)
 import Data.UUID (GENUUID)
+import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Uncurried (mkEffFn1)
 import Control.Monad.Eff.Unsafe (unsafeCoerceEff)
 import Control.Monad.Eff.Ref (REF)
@@ -56,9 +57,10 @@ type Effects eff =
 spec :: forall eff
       . { toURI :: Location -> URI
         , openSignal :: Queue (write :: WRITE) (Effects eff) Unit
+        , siteLinks :: SiteLinks -> Eff (Effects eff) Unit
         }
      -> T.Spec (Effects eff) (WindowT.State State) Unit (WindowT.Action Action)
-spec {toURI,openSignal} = T.simpleSpec (WindowT.performAction performAction) render
+spec {toURI,openSignal,siteLinks} = T.simpleSpec (WindowT.performAction performAction) render
   where
     performAction action props state = case action of
       OpenLogin -> liftEff (putQueue openSignal unit)
@@ -103,8 +105,9 @@ topbar :: forall eff
         . { toURI :: Location -> URI
           , openSignal :: Queue (write :: WRITE) (Effects eff) Unit
           , windowSizeSignal :: IxSignal (Effects eff) WindowSize
+          , siteLinks :: SiteLinks -> Eff (Effects eff) Unit
           } -> R.ReactElement
-topbar {toURI,openSignal,windowSizeSignal} =
-  let {spec:reactSpec,dispatcher} = T.createReactSpec (spec {toURI,openSignal}) (WindowT.initialState initialState)
+topbar {toURI,openSignal,windowSizeSignal,siteLinks} =
+  let {spec:reactSpec,dispatcher} = T.createReactSpec (spec {toURI,openSignal,siteLinks}) (WindowT.initialState initialState)
       reactSpec' = WindowT.listening windowSizeSignal {spec:reactSpec,dispatcher}
   in  R.createElement (R.createClass reactSpec') unit []
