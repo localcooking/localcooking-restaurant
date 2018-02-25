@@ -9019,7 +9019,7 @@ var PS = {};
                               return Control_Monad_Eff_Class.liftEff(Control_Monad_Free_Trans.monadEffFreeT(Control_Coroutine.functorCoTransform)(Control_Monad_Aff.monadEffAff))(Control_Monad_Eff_Unsafe.unsafeCoerceEff(Control_Monad_Eff_Console.log("wtf?1")));
                           };
                           if (v1 instanceof Data_Maybe.Just) {
-                              if (Data_Ord.greaterThan(Data_Time_Duration.ordMilliseconds)(Data_Ring.sub(Data_Time_Duration.ringMilliseconds)(v1.value0.value0)(v1.value0.value1))(100.0)) {
+                              if (Data_Ord.greaterThan(Data_Time_Duration.ordMilliseconds)(Data_Ring.sub(Data_Time_Duration.ringMilliseconds)(v1.value0.value0)(v1.value0.value1))(1000.0)) {
                                   return Control_Bind.discard(Control_Bind.discardUnit)(Control_Monad_Free_Trans.bindFreeT(Control_Coroutine.functorCoTransform)(Control_Monad_Aff.monadAff))(Control_Monad_Eff_Class.liftEff(Control_Monad_Free_Trans.monadEffFreeT(Control_Coroutine.functorCoTransform)(Control_Monad_Aff.monadEffAff))(Control_Monad_Eff_Ref.writeRef(lastOpen)(Data_Maybe.Nothing.value)))(function () {
                                       return Data_Functor["void"](Control_Monad_Free_Trans.functorFreeT(Control_Coroutine.functorCoTransform)(Control_Monad_Aff.functorAff))(Control_Coroutine.cotransform(Control_Monad_Aff.monadAff)(function (v2) {
                                           var $30 = {};
