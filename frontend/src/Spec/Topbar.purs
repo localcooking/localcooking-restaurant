@@ -1,6 +1,7 @@
 module Spec.Topbar where
 
 import Links (toLocation, SiteLinks (..), LogoLinks (..))
+import Page (Page (..), initPage)
 import Window (WindowSize (..))
 
 import Prelude
@@ -40,17 +41,22 @@ import IxSignal.Internal (IxSignal)
 
 type State =
   { windowSize :: WindowSize
+  , currentPage :: Page
   }
 
 initialState :: State
 initialState =
   { windowSize: Pager
+  , currentPage: initPage
   }
 
 data Action
   = OpenLogin
   | ClickedMobileMenuButton
   | ChangedWindowSize WindowSize
+  | ChangedCurrentPage Page
+  | ClickedAboutLink
+  | ClickedMenuLink
 
 type Effects eff =
   ( ref :: REF
@@ -77,6 +83,9 @@ spec
       OpenLogin -> liftEff (putQueue openSignal unit)
       ClickedMobileMenuButton -> liftEff (putQueue mobileMenuButtonSignal unit)
       ChangedWindowSize w -> void $ T.cotransform _ { windowSize = w }
+      ChangedCurrentPage x -> void $ T.cotransform _ { currentPage = x }
+      ClickedAboutLink -> liftEff (siteLinks AboutLink)
+      ClickedMenuLink -> liftEff (siteLinks RootLink)
 
     render :: T.Render State Unit Action
     render dispatch props state children =
@@ -95,11 +104,14 @@ spec
                       ] []
               , button
                 { color: Button.inherit
-                , disabled: true
+                , disabled: state.currentPage == AboutPage
+                , onTouchTap: mkEffFn1 \_ -> dispatch ClickedAboutLink
                 } [R.text "About"]
               , button
                 { color: Button.primary
                 , variant: Button.raised
+                , disabled: state.currentPage == MenuPage
+                , onTouchTap: mkEffFn1 \_ -> dispatch ClickedMenuLink
                 } [R.text "Menu"]
               ]
           ) <>
@@ -121,8 +133,16 @@ topbar :: forall eff
           , windowSizeSignal :: IxSignal (Effects eff) WindowSize
           , siteLinks :: SiteLinks -> Eff (Effects eff) Unit
           , mobileMenuButtonSignal :: Queue (write :: WRITE) (Effects eff) Unit
+          , currentPageSignal :: IxSignal (Effects eff) Page
           } -> R.ReactElement
-topbar {toURI,openSignal,windowSizeSignal,siteLinks,mobileMenuButtonSignal} =
+topbar
+  { toURI
+  , openSignal
+  , windowSizeSignal
+  , siteLinks
+  , mobileMenuButtonSignal
+  , currentPageSignal
+  } =
   let {spec:reactSpec,dispatcher} = T.createReactSpec
         ( spec
           { toURI
@@ -132,8 +152,11 @@ topbar {toURI,openSignal,windowSizeSignal,siteLinks,mobileMenuButtonSignal} =
           }
         ) initialState
       reactSpec' =
-        Signal.whileMountedIxUUID
-          windowSizeSignal
-          (\this x -> unsafeCoerceEff $ dispatcher this (ChangedWindowSize x))
-          reactSpec
+          Signal.whileMountedIxUUID
+            windowSizeSignal
+            (\this x -> unsafeCoerceEff $ dispatcher this (ChangedWindowSize x))
+        $ Signal.whileMountedIxUUID
+            currentPageSignal
+            (\this x -> unsafeCoerceEff $ dispatcher this (ChangedCurrentPage x))
+            reactSpec
   in  R.createElement (R.createClass reactSpec') unit []

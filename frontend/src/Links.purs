@@ -5,6 +5,7 @@ import Data.Maybe (Maybe (..))
 import Data.Either (Either (..))
 import Data.URI.Location (Location (..))
 import Data.Path.Pathy (Path, Abs, File, Sandboxed, (</>), dir, file, rootDir, printPath)
+import Data.Generic (class Generic, gEq)
 import Text.Parsing.StringParser (Parser, try)
 import Text.Parsing.StringParser.String (char, string)
 import Control.Alternative ((<|>))
@@ -39,10 +40,15 @@ data SiteLinks
   = RootLink
   | AboutLink
 
+derive instance genericSiteLinks :: Generic SiteLinks
+
 instance showSiteLinks :: Show SiteLinks where
   show x = case x of
     RootLink -> printPath rootDir
     AboutLink -> printPath $ rootDir </> file "about"
+
+instance eqSiteLinks :: Eq SiteLinks where
+  eq = gEq
 
 
 siteLinksToDocumentTitle :: SiteLinks -> DocumentTitle

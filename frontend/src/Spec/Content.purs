@@ -3,6 +3,7 @@ module Spec.Content where
 import Spec.Content.About (about)
 import Spec.Content.Menu (menu)
 import Links (SiteLinks (..))
+import Page (Page (..), initPage)
 
 import Prelude
 
@@ -30,18 +31,13 @@ import IxSignal.Internal (IxSignal)
 
 
 
-data Page
-  = AboutPage
-  | MenuPage
-
-
 type State =
   { page :: Page
   }
 
 initialState :: State
 initialState =
-  { page: MenuPage
+  { page: initPage
   }
 
 data Action
@@ -90,14 +86,11 @@ spec = T.simpleSpec performAction render
 
 
 content :: forall eff
-         . { currentPageSignal :: IxSignal (Effects eff) SiteLinks
+         . { currentPageSignal :: IxSignal (Effects eff) Page
            } -> R.ReactElement
 content {currentPageSignal} =
   let {spec: reactSpec, dispatcher} = T.createReactSpec spec initialState
       reactSpec' = Signal.whileMountedIxUUID
                      currentPageSignal
-                     (\this x -> unsafeCoerceEff $ dispatcher this $ ChangedCurrentPage $ case x of
-                         RootLink -> MenuPage
-                         AboutLink -> AboutPage
-                     ) reactSpec
+                     (\this x -> unsafeCoerceEff $ dispatcher this (ChangedCurrentPage x)) reactSpec
   in  R.createElement (R.createClass reactSpec') unit []

@@ -5,7 +5,8 @@ import Spec.Content (content)
 import Spec.Dialogs.Login (loginDialog)
 import Colors (palette)
 import Window (WindowSize)
-import Links (SiteLinks (..))
+import Page (Page)
+import Links (SiteLinks)
 
 import Prelude
 import Data.URI (URI)
@@ -48,7 +49,7 @@ type Effects eff =
 spec :: forall eff
       . { toURI :: Location -> URI
         , windowSizeSignal :: IxSignal (Effects eff) WindowSize
-        , currentPageSignal :: IxSignal (Effects eff) SiteLinks
+        , currentPageSignal :: IxSignal (Effects eff) Page
         , siteLinks :: SiteLinks -> Eff (Effects eff) Unit
         }
      -> T.Spec (Effects eff) State Unit Action
@@ -64,6 +65,7 @@ spec {toURI,windowSizeSignal,siteLinks,currentPageSignal} = T.simpleSpec perform
         , windowSizeSignal
         , siteLinks
         , mobileMenuButtonSignal: writeOnly mobileMenuButtonSignal
+        , currentPageSignal
         }
       , content
         { currentPageSignal
@@ -90,7 +92,7 @@ spec {toURI,windowSizeSignal,siteLinks,currentPageSignal} = T.simpleSpec perform
 app :: forall eff
      . { toURI :: Location -> URI
        , windowSizeSignal :: IxSignal (Effects eff) WindowSize
-       , currentPageSignal :: IxSignal (Effects eff) SiteLinks
+       , currentPageSignal :: IxSignal (Effects eff) Page
        , siteLinks :: SiteLinks -> Eff (Effects eff) Unit
        }
     -> { spec :: R.ReactSpec Unit State (Array R.ReactElement) (Effects eff)

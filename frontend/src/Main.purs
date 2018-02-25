@@ -3,6 +3,7 @@ module Main where
 import Spec (app)
 import Window (widthToWindowSize)
 import Links (SiteLinks (..), siteLinksParser, siteLinksToDocumentTitle)
+import Page (makePage)
 
 import Prelude
 import Data.Maybe (Maybe (..))
@@ -18,9 +19,10 @@ import Data.UUID (GENUUID)
 import Data.Traversable (traverse_)
 import Data.Foreign (toForeign, unsafeFromForeign)
 import Text.Parsing.StringParser (runParser)
+import Control.Monad.Aff (runAff_)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Timer (TIMER)
-import Control.Monad.Eff.Exception (EXCEPTION, throw)
+import Control.Monad.Eff.Exception (EXCEPTION, throw, throwException)
 import Control.Monad.Eff.Ref (REF, newRef, readRef, writeRef)
 import Control.Monad.Eff.Console (CONSOLE, log, error)
 
@@ -98,8 +100,19 @@ main = do
         else case runParser siteLinksParser p of
           Left e -> throw (show e)
           Right x -> pure x
-    sig <- IxSignal.make initSiteLink
-    onPopState (\x -> IxSignal.set (unsafeFromForeign x) sig) w
+    let {immediate,loadDetails} = makePage initSiteLink
+    sig <- IxSignal.make immediate
+    flip runAff_ loadDetails \eX -> case eX of
+      Left e -> throwException e
+      Right x -> IxSignal.set x sig
+    onPopState
+      (\x -> do
+        let {immediate,loadDetails} = makePage (unsafeFromForeign x)
+        IxSignal.set immediate sig
+        flip runAff_ loadDetails \eX -> case eX of
+          Left e -> throwException e
+          Right x' -> IxSignal.set x' sig
+      ) w
     pure sig
 
 
