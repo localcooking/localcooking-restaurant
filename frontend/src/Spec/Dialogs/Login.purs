@@ -1,6 +1,6 @@
 module Spec.Dialogs.Login where
 
-import Window (WindowSize (..))
+import Window (WindowSize (..), initialWindowSize)
 import Links (SiteLinks (..))
 
 import Prelude
@@ -10,7 +10,7 @@ import Data.URI.URI (print) as URI
 import Data.URI.Location (Location)
 import Data.UUID (GENUUID)
 import Control.Monad.Eff.Uncurried (mkEffFn1)
-import Control.Monad.Eff.Unsafe (unsafeCoerceEff)
+import Control.Monad.Eff.Unsafe (unsafeCoerceEff, unsafePerformEff)
 import Control.Monad.Eff.Ref (REF)
 import Control.Monad.Eff.Exception (EXCEPTION)
 import Control.Monad.Eff.Class (liftEff)
@@ -52,7 +52,7 @@ type State =
 initialState :: State
 initialState =
   { open: false
-  , windowSize: Pager
+  , windowSize: unsafePerformEff initialWindowSize
   }
 
 
