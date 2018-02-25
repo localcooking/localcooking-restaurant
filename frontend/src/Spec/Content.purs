@@ -2,6 +2,8 @@ module Spec.Content where
 
 import Spec.Content.About (about)
 import Spec.Content.Menu (menu)
+import Links (SiteLinks (..))
+
 import Prelude
 
 import Thermite as T
@@ -9,7 +11,12 @@ import React as R
 import React.DOM as R
 import React.DOM.Props as RP
 import React.Markdown (markdown)
+import React.Signal.WhileMounted as Signal
+import Data.UUID (GENUUID)
 import Control.Monad.Eff.Uncurried (mkEffFn2)
+import Control.Monad.Eff.Unsafe (unsafeCoerceEff)
+import Control.Monad.Eff.Ref (REF)
+import Control.Monad.Eff.Exception (EXCEPTION)
 
 import MaterialUI.Types (createStyles)
 import MaterialUI.Paper (paper)
@@ -18,6 +25,8 @@ import MaterialUI.Typography (typography)
 import MaterialUI.Typography as Typography
 import MaterialUI.Tabs (tabs, tab)
 import MaterialUI.Tabs as Tabs
+
+import IxSignal.Internal (IxSignal)
 
 
 
@@ -36,14 +45,21 @@ initialState =
   }
 
 data Action
-  = ChangedPage Page
+  = ChangedCurrentPage Page
+
+
+type Effects eff =
+  ( ref :: REF
+  , exception :: EXCEPTION
+  , uuid :: GENUUID
+  | eff)
 
 
 spec :: forall eff. T.Spec eff State Unit Action
 spec = T.simpleSpec performAction render
   where
     performAction action props state = case action of
-      ChangedPage p -> void $ T.cotransform _ { page = p }
+      ChangedCurrentPage p -> void $ T.cotransform _ { page = p }
 
     render :: T.Render State Unit Action
     render dispatch props state children =
@@ -73,7 +89,15 @@ spec = T.simpleSpec performAction render
 
 
 
-content :: R.ReactElement
-content =
+content :: forall eff
+         . { currentPageSignal :: IxSignal (Effects eff) SiteLinks
+           } -> R.ReactElement
+content {currentPageSignal} =
   let {spec: reactSpec, dispatcher} = T.createReactSpec spec initialState
-  in  R.createElement (R.createClass reactSpec) unit []
+      reactSpec' = Signal.whileMountedIxUUID
+                     currentPageSignal
+                     (\this x -> unsafeCoerceEff $ dispatcher this $ ChangedCurrentPage $ case x of
+                         RootLink -> MenuPage
+                         AboutLink -> AboutPage
+                     ) reactSpec
+  in  R.createElement (R.createClass reactSpec') unit []
