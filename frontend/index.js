@@ -7984,16 +7984,18 @@ var PS = {};
                       return Control_Monad_Eff_Class.liftEff(Control_Monad_Free_Trans.monadEffFreeT(Control_Coroutine.functorCoTransform)(Control_Monad_Aff.monadEffAff))(Queue_One.putQueue(v.mobileMenuButtonSignal)(Data_Unit.unit));
                   };
                   if (action instanceof ChangedWindowSize) {
-                      return Data_Functor["void"](Control_Monad_Free_Trans.functorFreeT(Control_Coroutine.functorCoTransform)(Control_Monad_Aff.functorAff))(Control_Coroutine.cotransform(Control_Monad_Aff.monadAff)(function (v1) {
-                          var $12 = {};
-                          for (var $13 in v1) {
-                              if ({}.hasOwnProperty.call(v1, $13)) {
-                                  $12[$13] = v1[$13];
+                      return Control_Bind.discard(Control_Bind.discardUnit)(Control_Monad_Free_Trans.bindFreeT(Control_Coroutine.functorCoTransform)(Control_Monad_Aff.monadAff))(Control_Monad_Eff_Class.liftEff(Control_Monad_Free_Trans.monadEffFreeT(Control_Coroutine.functorCoTransform)(Control_Monad_Aff.monadEffAff))(Control_Monad_Eff_Unsafe.unsafeCoerceEff(Control_Monad_Eff_Console.log("Uh... window size: " + Data_Show.show(Window.showWindowSize)(action.value0)))))(function () {
+                          return Data_Functor["void"](Control_Monad_Free_Trans.functorFreeT(Control_Coroutine.functorCoTransform)(Control_Monad_Aff.functorAff))(Control_Coroutine.cotransform(Control_Monad_Aff.monadAff)(function (v1) {
+                              var $12 = {};
+                              for (var $13 in v1) {
+                                  if ({}.hasOwnProperty.call(v1, $13)) {
+                                      $12[$13] = v1[$13];
+                                  };
                               };
-                          };
-                          $12.windowSize = action.value0;
-                          return $12;
-                      }));
+                              $12.windowSize = action.value0;
+                              return $12;
+                          }));
+                      });
                   };
                   if (action instanceof ChangedCurrentPage) {
                       return Data_Functor["void"](Control_Monad_Free_Trans.functorFreeT(Control_Coroutine.functorCoTransform)(Control_Monad_Aff.functorAff))(Control_Coroutine.cotransform(Control_Monad_Aff.monadAff)(function (v1) {
@@ -8013,7 +8015,7 @@ var PS = {};
                   if (action instanceof ClickedMenuLink) {
                       return Control_Monad_Eff_Class.liftEff(Control_Monad_Free_Trans.monadEffFreeT(Control_Coroutine.functorCoTransform)(Control_Monad_Aff.monadEffAff))(v.siteLinks(Links.RootLink.value));
                   };
-                  throw new Error("Failed pattern match at Spec.Topbar line 83, column 40 - line 89, column 54: " + [ action.constructor.name ]);
+                  throw new Error("Failed pattern match at Spec.Topbar line 83, column 40 - line 91, column 54: " + [ action.constructor.name ]);
               };
           };
       };
@@ -8032,10 +8034,7 @@ var PS = {};
       }))(initialState);
       var reactSpec$prime = React_Signal_WhileMounted.whileMountedIxUUID(v.windowSizeSignal)(function ($$this) {
           return function (x) {
-              return function __do() {
-                  Control_Monad_Eff_Unsafe.unsafeCoerceEff(Control_Monad_Eff_Console.log("topbar got window size: " + Data_Show.show(Window.showWindowSize)(x)))();
-                  return Control_Monad_Eff_Unsafe.unsafeCoerceEff(v1.dispatcher($$this)(new ChangedWindowSize(x)))();
-              };
+              return Control_Monad_Eff_Unsafe.unsafeCoerceEff(v1.dispatcher($$this)(new ChangedWindowSize(x)));
           };
       })(React_Signal_WhileMounted.whileMountedIxUUID(v.currentPageSignal)(function ($$this) {
           return function (x) {

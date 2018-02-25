@@ -83,7 +83,9 @@ spec
     performAction action props state = case action of
       OpenLogin -> liftEff (putQueue openSignal unit)
       ClickedMobileMenuButton -> liftEff (putQueue mobileMenuButtonSignal unit)
-      ChangedWindowSize w -> void $ T.cotransform _ { windowSize = w }
+      ChangedWindowSize w -> do
+        liftEff $ unsafeCoerceEff $ log $ "Uh... window size: " <> show w
+        void $ T.cotransform _ { windowSize = w }
       ChangedCurrentPage x -> void $ T.cotransform _ { currentPage = x }
       ClickedAboutLink -> liftEff (siteLinks AboutLink)
       ClickedMenuLink -> liftEff (siteLinks RootLink)
@@ -155,10 +157,7 @@ topbar
       reactSpec' =
           Signal.whileMountedIxUUID
             windowSizeSignal
-            (\this x -> do
-              unsafeCoerceEff $ log $ "topbar got window size: " <> show x
-              unsafeCoerceEff $ dispatcher this (ChangedWindowSize x)
-            )
+            (\this x -> unsafeCoerceEff $ dispatcher this (ChangedWindowSize x))
         $ Signal.whileMountedIxUUID
             currentPageSignal
             (\this x -> unsafeCoerceEff $ dispatcher this (ChangedCurrentPage x))
