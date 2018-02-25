@@ -1,5 +1,7 @@
 module Spec.Content where
 
+import Spec.Content.About (about)
+import Spec.Content.Menu (menu)
 import Prelude
 
 import Thermite as T
@@ -19,18 +21,29 @@ import MaterialUI.Tabs as Tabs
 
 
 
-type State = Unit
+data Page
+  = AboutPage
+  | MenuPage
+
+
+type State =
+  { page :: Page
+  }
 
 initialState :: State
-initialState = unit
+initialState =
+  { page: MenuPage
+  }
 
-data Action = Unit
+data Action
+  = ChangedPage Page
 
 
-spec :: T.Spec _ State Unit Action
+spec :: forall eff. T.Spec eff State Unit Action
 spec = T.simpleSpec performAction render
   where
-    performAction action props state = pure unit
+    performAction action props state = case action of
+      ChangedPage p -> void $ T.cotransform _ { page = p }
 
     render :: T.Render State Unit Action
     render dispatch props state children =
@@ -45,7 +58,10 @@ spec = T.simpleSpec performAction render
             }
           }
           [ paper {style: createStyles {minHeight: "30em"}}
-            [ R.text "About"]
+            [ case state.page of
+                AboutPage -> about
+                MenuPage -> menu
+            ]
           , typography
             { variant: Typography.caption
             , style: createStyles {marginTop: "5em", textAlign: "center"}
