@@ -6,6 +6,9 @@ import Data.Either (Either (..))
 import Data.URI.Location (Location (..))
 import Data.Path.Pathy (Path, Abs, File, Sandboxed, (</>), dir, file, rootDir, printPath)
 import Data.Generic (class Generic, gEq)
+import Data.Argonaut (class EncodeJson, class DecodeJson)
+import Data.Argonaut.Encode.Generic (gEncodeJson)
+import Data.Argonaut.Decode.Generic (gDecodeJson)
 import Text.Parsing.StringParser (Parser, try)
 import Text.Parsing.StringParser.String (char, string)
 import Control.Alternative ((<|>))
@@ -50,6 +53,11 @@ instance showSiteLinks :: Show SiteLinks where
 instance eqSiteLinks :: Eq SiteLinks where
   eq = gEq
 
+instance encodeJsonSiteLinks :: EncodeJson SiteLinks where
+  encodeJson = gEncodeJson
+
+instance decodeJsonSiteLinks :: DecodeJson SiteLinks where
+  decodeJson = gDecodeJson
 
 siteLinksToDocumentTitle :: SiteLinks -> DocumentTitle
 siteLinksToDocumentTitle x = DocumentTitle $ case x of

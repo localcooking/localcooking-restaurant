@@ -18,6 +18,7 @@ import Data.String (takeWhile) as String
 import Data.UUID (GENUUID)
 import Data.Traversable (traverse_)
 import Data.Foreign (toForeign, unsafeFromForeign)
+import Data.Argonaut (encodeJson, decodeJson)
 import Text.Parsing.StringParser (runParser)
 import Control.Monad.Aff (runAff_)
 import Control.Monad.Eff (Eff)
@@ -88,7 +89,9 @@ main = do
       Right x -> IxSignal.set x sig
     onPopState
       (\x -> do
-        let {immediate,loadDetails} = makePage (unsafeFromForeign x :: SiteLinks)
+        {immediate,loadDetails} <- case decodeJson (unsafeFromForeign x) of
+          Left e -> throw e
+          Right (x :: SiteLinks) -> pure (makePage x)
         IxSignal.set immediate sig
         flip runAff_ loadDetails \eX -> case eX of
           Left e -> throwException e
@@ -99,7 +102,7 @@ main = do
   siteLinksSignal <- do
     q <- One.newQueue
     One.onQueue q \(x :: SiteLinks) -> do
-      pushState (toForeign x) (siteLinksToDocumentTitle x) (URL (show x)) h
+      pushState (toForeign (encodeJson x)) (siteLinksToDocumentTitle x) (URL (show x)) h
       let {immediate,loadDetails} = makePage x
       IxSignal.set immediate currentPageSignal
       flip runAff_ loadDetails \eX -> case eX of
