@@ -18,6 +18,7 @@ import Control.Monad.Eff.Unsafe (unsafeCoerceEff, unsafePerformEff)
 import Control.Monad.Eff.Ref (REF, newRef, readRef, writeRef)
 import Control.Monad.Eff.Exception (EXCEPTION)
 import Control.Monad.Eff.Class (liftEff)
+import Control.Monad.Eff.Console (log)
 import Control.Monad.Eff.Now (NOW, now)
 
 import Thermite as T
@@ -102,12 +103,12 @@ spec {siteLinks} = T.simpleSpec performAction render
             Nothing -> pure Nothing
             Just m -> pure $ Just $ Tuple n m
         case mTuple of
-          Nothing -> pure unit
+          Nothing -> liftEff $ unsafeCoerceEff $ log "wtf?1"
           Just (Tuple n m)
             | n - m > Milliseconds 100.0 -> do
                 liftEff (writeRef lastOpen Nothing)
                 void $ T.cotransform _ { open = false }
-            | otherwise -> pure unit
+            | otherwise -> liftEff $ unsafeCoerceEff $ log "!>?>"
       where
         lastOpen = unsafePerformEff (newRef Nothing)
 

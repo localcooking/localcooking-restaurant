@@ -8847,6 +8847,7 @@ var PS = {};
   var Control_Monad_Aff = PS["Control.Monad.Aff"];
   var Control_Monad_Eff = PS["Control.Monad.Eff"];
   var Control_Monad_Eff_Class = PS["Control.Monad.Eff.Class"];
+  var Control_Monad_Eff_Console = PS["Control.Monad.Eff.Console"];
   var Control_Monad_Eff_Exception = PS["Control.Monad.Eff.Exception"];
   var Control_Monad_Eff_Now = PS["Control.Monad.Eff.Now"];
   var Control_Monad_Eff_Ref = PS["Control.Monad.Eff.Ref"];
@@ -9011,10 +9012,10 @@ var PS = {};
                           if (v2 instanceof Data_Maybe.Just) {
                               return Data_Maybe.Just.create(new Data_Tuple.Tuple(v1, v2.value0));
                           };
-                          throw new Error("Failed pattern match at Spec.Drawers.LeftMenu line 101, column 11 - line 103, column 46: " + [ v2.constructor.name ]);
+                          throw new Error("Failed pattern match at Spec.Drawers.LeftMenu line 102, column 11 - line 104, column 46: " + [ v2.constructor.name ]);
                       }))(function (v1) {
                           if (v1 instanceof Data_Maybe.Nothing) {
-                              return Control_Applicative.pure(Control_Monad_Free_Trans.applicativeFreeT(Control_Coroutine.functorCoTransform)(Control_Monad_Aff.monadAff))(Data_Unit.unit);
+                              return Control_Monad_Eff_Class.liftEff(Control_Monad_Free_Trans.monadEffFreeT(Control_Coroutine.functorCoTransform)(Control_Monad_Aff.monadEffAff))(Control_Monad_Eff_Unsafe.unsafeCoerceEff(Control_Monad_Eff_Console.log("wtf?1")));
                           };
                           if (v1 instanceof Data_Maybe.Just) {
                               if (Data_Ord.greaterThan(Data_Time_Duration.ordMilliseconds)(Data_Ring.sub(Data_Time_Duration.ringMilliseconds)(v1.value0.value0)(v1.value0.value1))(100.0)) {
@@ -9032,13 +9033,13 @@ var PS = {};
                                   });
                               };
                               if (Data_Boolean.otherwise) {
-                                  return Control_Applicative.pure(Control_Monad_Free_Trans.applicativeFreeT(Control_Coroutine.functorCoTransform)(Control_Monad_Aff.monadAff))(Data_Unit.unit);
+                                  return Control_Monad_Eff_Class.liftEff(Control_Monad_Free_Trans.monadEffFreeT(Control_Coroutine.functorCoTransform)(Control_Monad_Aff.monadEffAff))(Control_Monad_Eff_Unsafe.unsafeCoerceEff(Control_Monad_Eff_Console.log("!>?>")));
                               };
                           };
-                          throw new Error("Failed pattern match at Spec.Drawers.LeftMenu line 104, column 9 - line 110, column 37: " + [ v1.constructor.name ]);
+                          throw new Error("Failed pattern match at Spec.Drawers.LeftMenu line 105, column 9 - line 112, column 7: " + [ v1.constructor.name ]);
                       });
                   };
-                  throw new Error("Failed pattern match at Spec.Drawers.LeftMenu line 84, column 40 - line 110, column 37: " + [ action.constructor.name ]);
+                  throw new Error("Failed pattern match at Spec.Drawers.LeftMenu line 85, column 40 - line 112, column 7: " + [ action.constructor.name ]);
               };
           };
       };
