@@ -17,6 +17,7 @@ import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Unsafe (unsafePerformEff)
 import Control.Monad.Eff.Ref (REF)
 import Control.Monad.Eff.Exception (EXCEPTION)
+import Control.Monad.Eff.Now (NOW)
 
 import Thermite as T
 import React as R
@@ -45,6 +46,7 @@ type Effects eff =
   , uuid :: GENUUID
   , dom :: DOM
   , history :: HISTORY
+  , now :: NOW
   | eff)
 
 spec :: forall eff

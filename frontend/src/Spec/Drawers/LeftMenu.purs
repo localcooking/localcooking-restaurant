@@ -4,17 +4,21 @@ import Window (WindowSize, initialWindowSize)
 import Links (SiteLinks (..))
 
 import Prelude
+import Data.Tuple (Tuple (..))
 import Data.Maybe (Maybe (..))
 import Data.URI (URI)
 import Data.URI.URI (print) as URI
 import Data.URI.Location (Location)
 import Data.UUID (GENUUID)
+import Data.Time.Duration (Milliseconds (..))
+import Data.DateTime.Instant (unInstant)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Uncurried (mkEffFn1)
 import Control.Monad.Eff.Unsafe (unsafeCoerceEff, unsafePerformEff)
-import Control.Monad.Eff.Ref (REF)
+import Control.Monad.Eff.Ref (REF, newRef, readRef, writeRef)
 import Control.Monad.Eff.Exception (EXCEPTION)
 import Control.Monad.Eff.Class (liftEff)
+import Control.Monad.Eff.Now (NOW, now)
 
 import Thermite as T
 import React as R
@@ -67,6 +71,7 @@ type Effects eff =
   ( ref :: REF
   , exception :: EXCEPTION
   , uuid :: GENUUID
+  , now :: NOW
   | eff)
 
 
@@ -84,8 +89,27 @@ spec {siteLinks} = T.simpleSpec performAction render
       ClickedMenuLink -> do
         performAction Close props state
         liftEff (siteLinks RootLink)
-      Open -> void $ T.cotransform _ { open = true }
-      Close -> void $ T.cotransform _ { open = false }
+      Open -> do
+        liftEff $ do
+          n <- unInstant <$> now
+          writeRef lastOpen (Just n)
+        void $ T.cotransform _ { open = true }
+      Close -> do
+        mTuple <- liftEff $ do
+          n <- unInstant <$> now
+          mM <- readRef lastOpen
+          case mM of
+            Nothing -> pure Nothing
+            Just m -> pure $ Just $ Tuple n m
+        case mTuple of
+          Nothing -> pure unit
+          Just (Tuple n m)
+            | n - m > Milliseconds 100.0 -> do
+                liftEff (writeRef lastOpen Nothing)
+                void $ T.cotransform _ { open = false }
+            | otherwise -> pure unit
+      where
+        lastOpen = unsafePerformEff (newRef Nothing)
 
     render :: T.Render State Unit Action
     render dispatch props state children =

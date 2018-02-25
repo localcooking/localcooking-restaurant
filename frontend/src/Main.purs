@@ -22,6 +22,7 @@ import Data.Argonaut (encodeJson, decodeJson)
 import Text.Parsing.StringParser (runParser)
 import Control.Monad.Aff (runAff_)
 import Control.Monad.Eff (Eff)
+import Control.Monad.Eff.Now (NOW)
 import Control.Monad.Eff.Timer (TIMER)
 import Control.Monad.Eff.Exception (EXCEPTION, throw, throwException)
 import Control.Monad.Eff.Ref (REF, newRef, readRef, writeRef)
@@ -55,6 +56,7 @@ main :: Eff ( console        :: CONSOLE
             , uuid           :: GENUUID
             , exception      :: EXCEPTION
             , history        :: HISTORY
+            , now            :: NOW
             ) Unit
 main = do
   log "Starting Local Cooking frontend..."
