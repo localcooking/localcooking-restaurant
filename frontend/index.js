@@ -6184,7 +6184,7 @@ var PS = {};
               if (x instanceof Links.AboutLink) {
                   return AboutPage.value;
               };
-              throw new Error("Failed pattern match at Page line 28, column 16 - line 30, column 29: " + [ x.constructor.name ]);
+              throw new Error("Failed pattern match at Page line 31, column 16 - line 33, column 29: " + [ x.constructor.name ]);
           })(),
           loadDetails: (function () {
               if (x instanceof Links.RootLink) {
@@ -6193,7 +6193,7 @@ var PS = {};
               if (x instanceof Links.AboutLink) {
                   return Control_Applicative.pure(Control_Monad_Aff.applicativeAff)(AboutPage.value);
               };
-              throw new Error("Failed pattern match at Page line 31, column 18 - line 33, column 34: " + [ x.constructor.name ]);
+              throw new Error("Failed pattern match at Page line 34, column 18 - line 36, column 34: " + [ x.constructor.name ]);
           })()
       };
   };
@@ -6221,7 +6221,7 @@ var PS = {};
       if (v instanceof MenuPage) {
           return new Data_Generic.SProd("Page.MenuPage", [  ]);
       };
-      throw new Error("Failed pattern match at Page line 15, column 8 - line 15, column 44: " + [ v.constructor.name ]);
+      throw new Error("Failed pattern match at Page line 18, column 8 - line 18, column 44: " + [ v.constructor.name ]);
   });
   var eqPage = new Data_Eq.Eq(Data_Generic.gEq(genericPage));
   exports["AboutPage"] = AboutPage;

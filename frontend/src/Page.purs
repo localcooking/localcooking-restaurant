@@ -4,6 +4,9 @@ import Links (SiteLinks (..))
 
 import Prelude
 import Data.Generic (class Generic, gEq)
+-- import Data.Argonaut (class EncodeJson, class DecodeJson)
+-- import Data.Argonaut.Encode.Generic (gEncodeJson)
+-- import Data.Argonaut.Decode.Generic (gDecodeJson)
 import Control.Monad.Aff (Aff)
 
 

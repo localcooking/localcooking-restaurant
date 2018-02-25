@@ -88,7 +88,7 @@ main = do
       Right x -> IxSignal.set x sig
     onPopState
       (\x -> do
-        let {immediate,loadDetails} = makePage (unsafeFromForeign x)
+        let {immediate,loadDetails} = makePage (unsafeFromForeign x :: SiteLinks)
         IxSignal.set immediate sig
         flip runAff_ loadDetails \eX -> case eX of
           Left e -> throwException e
