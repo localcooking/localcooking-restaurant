@@ -16,11 +16,10 @@ import Control.Monad.Eff.Exception (EXCEPTION)
 import Control.Monad.Eff.Class (liftEff)
 
 import Thermite as T
-import Thermite.Window as WindowT
 import React as R
 import React.DOM as R
 import React.DOM.Props as RP
-import React.Signal.WhileMounted (whileMountedIxUUID)
+import React.Signal.WhileMounted as Signal
 
 import MaterialUI.Types (createStyles)
 import MaterialUI.Toolbar (toolbar)
@@ -39,14 +38,19 @@ import IxSignal.Internal (IxSignal)
 
 
 
-type State = Unit
+type State =
+  { windowSize :: WindowSize
+  }
 
 initialState :: State
-initialState = unit
+initialState =
+  { windowSize: Pager
+  }
 
 data Action
   = OpenLogin
   | ClickedMobileMenuButton
+  | ChangedWindowSize WindowSize
 
 type Effects eff =
   ( ref :: REF
@@ -61,27 +65,28 @@ spec :: forall eff
         , siteLinks :: SiteLinks -> Eff (Effects eff) Unit
         , mobileMenuButtonSignal :: Queue (write :: WRITE) (Effects eff) Unit
         }
-     -> T.Spec (Effects eff) (WindowT.State State) Unit (WindowT.Action Action)
+     -> T.Spec (Effects eff) State Unit Action
 spec
   { toURI
   , openSignal
   , siteLinks
   , mobileMenuButtonSignal
-  } = T.simpleSpec (WindowT.performAction performAction) render
+  } = T.simpleSpec performAction render
   where
     performAction action props state = case action of
       OpenLogin -> liftEff (putQueue openSignal unit)
       ClickedMobileMenuButton -> liftEff (putQueue mobileMenuButtonSignal unit)
+      ChangedWindowSize w -> void $ T.cotransform _ { windowSize = w }
 
-    render :: T.Render (WindowT.State State) Unit (WindowT.Action Action)
-    render dispatch props {windowSize,state} children =
+    render :: T.Render State Unit Action
+    render dispatch props state children =
       [ appBar {color: AppBar.default, position: AppBar.fixed}
         [ toolbar {style: createStyles {display: "flex"}} $
-          ( if windowSize < Laptop
+          ( if state.windowSize < Laptop
             then
               [ iconButton
                 { color: IconButton.inherit
-                , onTouchTap: mkEffFn1 \_ -> dispatch $ WindowT.Action ClickedMobileMenuButton
+                , onTouchTap: mkEffFn1 \_ -> dispatch ClickedMobileMenuButton
                 } menuIcon
               ]
             else
@@ -101,7 +106,7 @@ spec
           [ R.div [RP.style {flex: 1, display: "flex", flexDirection: "row-reverse"}]
             [ button
               { color: Button.inherit
-              , onTouchTap: mkEffFn1 \_ -> dispatch $ WindowT.Action OpenLogin
+              , onTouchTap: mkEffFn1 \_ -> dispatch OpenLogin
               } [R.text "Login"]
             ]
           ]
@@ -125,6 +130,10 @@ topbar {toURI,openSignal,windowSizeSignal,siteLinks,mobileMenuButtonSignal} =
           , siteLinks
           , mobileMenuButtonSignal
           }
-        ) (WindowT.initialState initialState)
-      reactSpec' = WindowT.listening windowSizeSignal {spec:reactSpec,dispatcher}
+        ) initialState
+      reactSpec' =
+        Signal.whileMountedIxUUID
+          windowSizeSignal
+          (\this x -> unsafeCoerceEff $ dispatcher this (ChangedWindowSize x))
+          reactSpec
   in  R.createElement (R.createClass reactSpec') unit []
