@@ -11,7 +11,7 @@ import Data.URI.Location (Location)
 import Data.UUID (GENUUID)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Uncurried (mkEffFn1)
-import Control.Monad.Eff.Unsafe (unsafeCoerceEff)
+import Control.Monad.Eff.Unsafe (unsafeCoerceEff, unsafePerformEff)
 import Control.Monad.Eff.Ref (REF)
 import Control.Monad.Eff.Exception (EXCEPTION)
 import Control.Monad.Eff.Class (liftEff)
@@ -94,7 +94,7 @@ spec
     render dispatch props state children =
       [ appBar {color: AppBar.default, position: AppBar.fixed}
         [ toolbar {style: createStyles {display: "flex"}} $
-          ( if state.windowSize < Laptop
+          ( if (unsafePerformEff $ state.windowSize <$ log ("wtf: " <> show state.windowSize)) < Laptop
             then
               [ iconButton
                 { color: IconButton.inherit

@@ -7935,7 +7935,7 @@ var PS = {};
                               display: "flex"
                           })
                       })(Data_Semigroup.append(Data_Semigroup.semigroupArray)((function () {
-                          var $10 = Data_Ord.lessThan(Window.ordWindowSize)(state.windowSize)(Window.Laptop.value);
+                          var $10 = Data_Ord.lessThan(Window.ordWindowSize)(Control_Monad_Eff_Unsafe.unsafePerformEff(Data_Functor.voidRight(Control_Monad_Eff.functorEff)(state.windowSize)(Control_Monad_Eff_Console.log("wtf: " + Data_Show.show(Window.showWindowSize)(state.windowSize)))))(Window.Laptop.value);
                           if ($10) {
                               return [ MaterialUI_IconButton.iconButton(Data_Record_Class.srInst())({
                                   color: MaterialUI_IconButton.inherit,
@@ -8172,7 +8172,6 @@ var PS = {};
   var Data_Functor = PS["Data.Functor"];
   var Data_Int_Parse = PS["Data.Int.Parse"];
   var Data_Maybe = PS["Data.Maybe"];
-  var Data_Semigroup = PS["Data.Semigroup"];
   var Data_Show = PS["Data.Show"];
   var Data_String = PS["Data.String"];
   var Data_Time_Duration = PS["Data.Time.Duration"];
@@ -8242,7 +8241,6 @@ var PS = {};
           })(Signal_Internal.get(v6))();
           var v8 = Control_Monad_Eff_Ref.newRef(v7)();
           var initWindowSize = Window.widthToWindowSize(v7);
-          Control_Monad_Eff_Console.log("Window width: " + Data_Show.show(Window.showWindowSize)(initWindowSize))();
           var v9 = IxSignal_Internal.make(initWindowSize)();
           Data_Function.flip(Signal_Internal.subscribe)(v6)(function (w$prime) {
               return function __do() {
@@ -8250,7 +8248,6 @@ var PS = {};
                   return Control_Applicative.when(Control_Monad_Eff.applicativeEff)(w$prime.w !== v10)(function __do() {
                       Control_Monad_Eff_Ref.writeRef(v8)(w$prime.w)();
                       var size = Window.widthToWindowSize(w$prime.w);
-                      Control_Monad_Eff_Console.log("Window width changed: " + Data_Show.show(Window.showWindowSize)(size))();
                       return IxSignal_Internal.set(size)(v9)();
                   })();
               };
@@ -8271,7 +8268,7 @@ var PS = {};
               if (v8 instanceof Data_Either.Right) {
                   return v8.value0;
               };
-              throw new Error("Failed pattern match at Main line 104, column 14 - line 106, column 28: " + [ v8.constructor.name ]);
+              throw new Error("Failed pattern match at Main line 102, column 14 - line 104, column 28: " + [ v8.constructor.name ]);
           })();
           var v8 = Page.makePage(v7);
           var v9 = IxSignal_Internal.make(v8.immediate)();
@@ -8282,7 +8279,7 @@ var PS = {};
               if (eX instanceof Data_Either.Right) {
                   return IxSignal_Internal.set(eX.value0)(v9);
               };
-              throw new Error("Failed pattern match at Main line 109, column 37 - line 111, column 36: " + [ eX.constructor.name ]);
+              throw new Error("Failed pattern match at Main line 107, column 37 - line 109, column 36: " + [ eX.constructor.name ]);
           })();
           DOM_HTML_Window_Extra.onPopState(function (x) {
               var v10 = Page.makePage(Data_Foreign.unsafeFromForeign(x));
@@ -8295,7 +8292,7 @@ var PS = {};
                       if (eX instanceof Data_Either.Right) {
                           return IxSignal_Internal.set(eX.value0)(v9);
                       };
-                      throw new Error("Failed pattern match at Main line 116, column 41 - line 118, column 42: " + [ eX.constructor.name ]);
+                      throw new Error("Failed pattern match at Main line 114, column 41 - line 116, column 42: " + [ eX.constructor.name ]);
                   })();
               };
           })(v)();
