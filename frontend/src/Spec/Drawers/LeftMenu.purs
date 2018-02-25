@@ -82,6 +82,8 @@ spec :: forall eff
      -> T.Spec (Effects eff) State Unit Action
 spec {siteLinks} = T.simpleSpec performAction render
   where
+    lastOpen = unsafePerformEff (newRef Nothing)
+
     performAction action props state = case action of
       ChangedWindowSize w -> void $ T.cotransform _ { windowSize = w }
       ClickedAboutLink -> do
@@ -94,6 +96,7 @@ spec {siteLinks} = T.simpleSpec performAction render
         liftEff $ do
           n <- unInstant <$> now
           writeRef lastOpen (Just n)
+          unsafeCoerceEff $ log "Uh...."
         void $ T.cotransform _ { open = true }
       Close -> do
         mTuple <- liftEff $ do
@@ -109,8 +112,7 @@ spec {siteLinks} = T.simpleSpec performAction render
                 liftEff (writeRef lastOpen Nothing)
                 void $ T.cotransform _ { open = false }
             | otherwise -> liftEff $ unsafeCoerceEff $ log "!>?>"
-      where
-        lastOpen = unsafePerformEff (newRef Nothing)
+
 
     render :: T.Render State Unit Action
     render dispatch props state children =
