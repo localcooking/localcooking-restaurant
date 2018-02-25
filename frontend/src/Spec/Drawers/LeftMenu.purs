@@ -35,7 +35,10 @@ import MaterialUI.Button as Button
 import MaterialUI.List (list)
 import MaterialUI.ListItem (listItem)
 import MaterialUI.ListItemText (listItemText)
+import MaterialUI.ListItemIcon (listItemIcon)
 import MaterialUI.Divider (divider)
+import MaterialUI.Icons.PersonPin (personPinIcon)
+import MaterialUI.Icons.RestaurantMenu (restaurantMenuIcon)
 
 import Queue.One (WRITE, READ, Queue, putQueue)
 import IxSignal.Internal (IxSignal)
@@ -93,16 +96,18 @@ spec {siteLinks} = T.simpleSpec performAction render
         [ list {}
           [ listItem
             { button: true
-            , onClick: mkEffFn1 \_ -> dispatch ClickedAboutLink
+            , onClick: mkEffFn1 \_ -> dispatch ClickedMenuLink
             }
-            [ listItemText {primary: "Menu"}
+            [ listItemIcon {} restaurantMenuIcon
+            , listItemText {primary: "Menu"}
             ]
           , divider {}
           , listItem
             { button: true
-            , onClick: mkEffFn1 \_ -> dispatch ClickedMenuLink
+            , onClick: mkEffFn1 \_ -> dispatch ClickedAboutLink
             }
-            [ listItemText {primary: "About"}
+            [ listItemIcon {} personPinIcon
+            , listItemText {primary: "About"}
             ]
           ]
         ]
