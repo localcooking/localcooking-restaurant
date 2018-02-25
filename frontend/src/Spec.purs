@@ -3,6 +3,7 @@ module Spec where
 import Spec.Topbar (topbar)
 import Spec.Content (content)
 import Spec.Dialogs.Login (loginDialog)
+import Spec.Drawers.LeftMenu (leftMenu)
 import Colors (palette)
 import Window (WindowSize)
 import Page (Page)
@@ -61,7 +62,7 @@ spec {toURI,windowSizeSignal,siteLinks,currentPageSignal} = T.simpleSpec perform
     render dispatch props state children = template
       [ topbar
         { toURI
-        , openSignal: writeOnly openSignal
+        , openLoginSignal: writeOnly openLoginSignal
         , windowSizeSignal
         , siteLinks
         , mobileMenuButtonSignal: writeOnly mobileMenuButtonSignal
@@ -71,8 +72,12 @@ spec {toURI,windowSizeSignal,siteLinks,currentPageSignal} = T.simpleSpec perform
         { currentPageSignal
         }
       , loginDialog
-        { openSignal: readOnly openSignal
+        { openLoginSignal: readOnly openLoginSignal
         , windowSizeSignal
+        }
+      , leftMenu
+        { mobileDrawerOpenSignal: readOnly mobileMenuButtonSignal
+        , siteLinks
         }
       ]
       where
@@ -84,7 +89,7 @@ spec {toURI,windowSizeSignal,siteLinks,currentPageSignal} = T.simpleSpec perform
               (R.div [] content)
           ]
 
-        openSignal = unsafePerformEff newQueue
+        openLoginSignal = unsafePerformEff newQueue
         mobileMenuButtonSignal = unsafePerformEff newQueue
 
 

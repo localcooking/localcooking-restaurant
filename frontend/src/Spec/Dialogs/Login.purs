@@ -139,18 +139,18 @@ spec = T.simpleSpec performAction render
 
 
 loginDialog :: forall eff
-             . { openSignal :: Queue (read :: READ) (Effects eff) Unit
+             . { openLoginSignal :: Queue (read :: READ) (Effects eff) Unit
                , windowSizeSignal :: IxSignal (Effects eff) WindowSize
                }
             -> R.ReactElement
-loginDialog {openSignal,windowSizeSignal} =
+loginDialog {openLoginSignal,windowSizeSignal} =
   let {spec: reactSpec, dispatcher} = T.createReactSpec spec initialState
       reactSpecLogin =
           Signal.whileMountedIxUUID
             windowSizeSignal
             (\this x -> unsafeCoerceEff $ dispatcher this (ChangedWindowSize x))
         $ Queue.whileMountedOne
-            openSignal
+            openLoginSignal
             (\this _ -> unsafeCoerceEff $ dispatcher this Open)
             reactSpec
   in  R.createElement (R.createClass reactSpecLogin) unit []

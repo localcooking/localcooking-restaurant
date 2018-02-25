@@ -68,20 +68,20 @@ type Effects eff =
 
 spec :: forall eff
       . { toURI :: Location -> URI
-        , openSignal :: Queue (write :: WRITE) (Effects eff) Unit
+        , openLoginSignal :: Queue (write :: WRITE) (Effects eff) Unit
         , siteLinks :: SiteLinks -> Eff (Effects eff) Unit
         , mobileMenuButtonSignal :: Queue (write :: WRITE) (Effects eff) Unit
         }
      -> T.Spec (Effects eff) State Unit Action
 spec
   { toURI
-  , openSignal
+  , openLoginSignal
   , siteLinks
   , mobileMenuButtonSignal
   } = T.simpleSpec performAction render
   where
     performAction action props state = case action of
-      OpenLogin -> liftEff (putQueue openSignal unit)
+      OpenLogin -> liftEff (putQueue openLoginSignal unit)
       ClickedMobileMenuButton -> liftEff (putQueue mobileMenuButtonSignal unit)
       ChangedWindowSize w -> do
         liftEff $ unsafeCoerceEff $ log $ "Uh... window size: " <> show w
@@ -132,7 +132,7 @@ spec
 
 topbar :: forall eff
         . { toURI :: Location -> URI
-          , openSignal :: Queue (write :: WRITE) (Effects eff) Unit
+          , openLoginSignal :: Queue (write :: WRITE) (Effects eff) Unit
           , mobileMenuButtonSignal :: Queue (write :: WRITE) (Effects eff) Unit
           , windowSizeSignal :: IxSignal (Effects eff) WindowSize
           , currentPageSignal :: IxSignal (Effects eff) Page
@@ -140,7 +140,7 @@ topbar :: forall eff
           } -> R.ReactElement
 topbar
   { toURI
-  , openSignal
+  , openLoginSignal
   , windowSizeSignal
   , siteLinks
   , mobileMenuButtonSignal
@@ -149,7 +149,7 @@ topbar
   let {spec:reactSpec,dispatcher} = T.createReactSpec
         ( spec
           { toURI
-          , openSignal
+          , openLoginSignal
           , siteLinks
           , mobileMenuButtonSignal
           }
