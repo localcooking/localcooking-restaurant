@@ -63,6 +63,7 @@ spec {toURI,windowSizeSignal,siteLinks,currentPageSignal} = T.simpleSpec perform
         , openSignal: writeOnly openSignal
         , windowSizeSignal
         , siteLinks
+        , mobileMenuButtonSignal: writeOnly mobileMenuButtonSignal
         }
       , content
         { currentPageSignal
@@ -82,6 +83,7 @@ spec {toURI,windowSizeSignal,siteLinks,currentPageSignal} = T.simpleSpec perform
           ]
 
         openSignal = unsafePerformEff newQueue
+        mobileMenuButtonSignal = unsafePerformEff newQueue
 
 
 

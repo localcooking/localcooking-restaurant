@@ -46,6 +46,7 @@ initialState = unit
 
 data Action
   = OpenLogin
+  | ClickedMobileMenuButton
 
 type Effects eff =
   ( ref :: REF
@@ -58,12 +59,19 @@ spec :: forall eff
       . { toURI :: Location -> URI
         , openSignal :: Queue (write :: WRITE) (Effects eff) Unit
         , siteLinks :: SiteLinks -> Eff (Effects eff) Unit
+        , mobileMenuButtonSignal :: Queue (write :: WRITE) (Effects eff) Unit
         }
      -> T.Spec (Effects eff) (WindowT.State State) Unit (WindowT.Action Action)
-spec {toURI,openSignal,siteLinks} = T.simpleSpec (WindowT.performAction performAction) render
+spec
+  { toURI
+  , openSignal
+  , siteLinks
+  , mobileMenuButtonSignal
+  } = T.simpleSpec (WindowT.performAction performAction) render
   where
     performAction action props state = case action of
       OpenLogin -> liftEff (putQueue openSignal unit)
+      ClickedMobileMenuButton -> liftEff (putQueue mobileMenuButtonSignal unit)
 
     render :: T.Render (WindowT.State State) Unit (WindowT.Action Action)
     render dispatch props {windowSize,state} children =
@@ -73,6 +81,7 @@ spec {toURI,openSignal,siteLinks} = T.simpleSpec (WindowT.performAction performA
             then
               [ iconButton
                 { color: IconButton.inherit
+                , onTouchTap: mkEffFn1 \_ -> dispatch $ WindowT.Action ClickedMobileMenuButton
                 } menuIcon
               ]
             else
@@ -106,8 +115,16 @@ topbar :: forall eff
           , openSignal :: Queue (write :: WRITE) (Effects eff) Unit
           , windowSizeSignal :: IxSignal (Effects eff) WindowSize
           , siteLinks :: SiteLinks -> Eff (Effects eff) Unit
+          , mobileMenuButtonSignal :: Queue (write :: WRITE) (Effects eff) Unit
           } -> R.ReactElement
-topbar {toURI,openSignal,windowSizeSignal,siteLinks} =
-  let {spec:reactSpec,dispatcher} = T.createReactSpec (spec {toURI,openSignal,siteLinks}) (WindowT.initialState initialState)
+topbar {toURI,openSignal,windowSizeSignal,siteLinks,mobileMenuButtonSignal} =
+  let {spec:reactSpec,dispatcher} = T.createReactSpec
+        ( spec
+          { toURI
+          , openSignal
+          , siteLinks
+          , mobileMenuButtonSignal
+          }
+        ) (WindowT.initialState initialState)
       reactSpec' = WindowT.listening windowSizeSignal {spec:reactSpec,dispatcher}
   in  R.createElement (R.createClass reactSpec') unit []

@@ -8085,6 +8085,13 @@ var PS = {};
       OpenLogin.value = new OpenLogin();
       return OpenLogin;
   })();
+  var ClickedMobileMenuButton = (function () {
+      function ClickedMobileMenuButton() {
+
+      };
+      ClickedMobileMenuButton.value = new ClickedMobileMenuButton();
+      return ClickedMobileMenuButton;
+  })();
   var spec = function (v) {
       var render = function (dispatch) {
           return function (props) {
@@ -8098,10 +8105,13 @@ var PS = {};
                               display: "flex"
                           })
                       })(Data_Semigroup.append(Data_Semigroup.semigroupArray)((function () {
-                          var $10 = Data_Ord.lessThan(Window.ordWindowSize)(v1.windowSize)(Window.Laptop.value);
-                          if ($10) {
+                          var $11 = Data_Ord.lessThan(Window.ordWindowSize)(v1.windowSize)(Window.Laptop.value);
+                          if ($11) {
                               return [ MaterialUI_IconButton.iconButton(Data_Record_Class.srInst())({
-                                  color: MaterialUI_IconButton.inherit
+                                  color: MaterialUI_IconButton.inherit,
+                                  onTouchTap: Control_Monad_Eff_Uncurried.mkEffFn1(function (v2) {
+                                      return dispatch(new Thermite_Window.Action(ClickedMobileMenuButton.value));
+                                  })
                               })(MaterialUI_Icons_Menu.menuIcon) ];
                           };
                           return [ React_DOM.img([ React_DOM_Props.src(Data_URI_URI.print(v.toURI(Links.toLocation(Links.toLocationLogoLinks)(Links.Logo40Png.value)))), React_DOM_Props.style({
@@ -8130,7 +8140,13 @@ var PS = {};
       var performAction = function (action) {
           return function (props) {
               return function (state) {
-                  return Control_Monad_Eff_Class.liftEff(Control_Monad_Free_Trans.monadEffFreeT(Control_Coroutine.functorCoTransform)(Control_Monad_Aff.monadEffAff))(Queue_One.putQueue(v.openSignal)(Data_Unit.unit));
+                  if (action instanceof OpenLogin) {
+                      return Control_Monad_Eff_Class.liftEff(Control_Monad_Free_Trans.monadEffFreeT(Control_Coroutine.functorCoTransform)(Control_Monad_Aff.monadEffAff))(Queue_One.putQueue(v.openSignal)(Data_Unit.unit));
+                  };
+                  if (action instanceof ClickedMobileMenuButton) {
+                      return Control_Monad_Eff_Class.liftEff(Control_Monad_Free_Trans.monadEffFreeT(Control_Coroutine.functorCoTransform)(Control_Monad_Aff.monadEffAff))(Queue_One.putQueue(v.mobileMenuButtonSignal)(Data_Unit.unit));
+                  };
+                  throw new Error("Failed pattern match at Spec.Topbar line 72, column 40 - line 74, column 80: " + [ action.constructor.name ]);
               };
           };
       };
@@ -8141,7 +8157,8 @@ var PS = {};
       var v1 = Thermite.createReactSpec(spec({
           toURI: v.toURI,
           openSignal: v.openSignal,
-          siteLinks: v.siteLinks
+          siteLinks: v.siteLinks,
+          mobileMenuButtonSignal: v.mobileMenuButtonSignal
       }))(Thermite_Window.initialState(initialState));
       var reactSpec$prime = Thermite_Window.listening(v.windowSizeSignal)({
           spec: v1.spec,
@@ -8151,6 +8168,7 @@ var PS = {};
   };
   exports["initialState"] = initialState;
   exports["OpenLogin"] = OpenLogin;
+  exports["ClickedMobileMenuButton"] = ClickedMobileMenuButton;
   exports["spec"] = spec;
   exports["topbar"] = topbar;
 })(PS["Spec.Topbar"] = PS["Spec.Topbar"] || {});
@@ -8200,11 +8218,13 @@ var PS = {};
                           })(React_DOM.div([  ])(content)) ];
                       };
                       var openSignal = Control_Monad_Eff_Unsafe.unsafePerformEff(Queue_One.newQueue);
+                      var mobileMenuButtonSignal = Control_Monad_Eff_Unsafe.unsafePerformEff(Queue_One.newQueue);
                       return template([ Spec_Topbar.topbar({
                           toURI: v.toURI,
                           openSignal: Queue_One.writeOnly(openSignal),
                           windowSizeSignal: v.windowSizeSignal,
-                          siteLinks: v.siteLinks
+                          siteLinks: v.siteLinks,
+                          mobileMenuButtonSignal: Queue_One.writeOnly(mobileMenuButtonSignal)
                       }), Spec_Content.content({
                           currentPageSignal: v.currentPageSignal
                       }), Spec_Dialogs_Login.loginDialog({
