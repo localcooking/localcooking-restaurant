@@ -73,27 +73,6 @@ main = do
       Just x -> pure (Just (Port x))
     pure $ Just $ Authority Nothing [Tuple (NameAddress host) p]
 
-  siteLinksSignal <- do
-    q <- One.newQueue
-    One.onQueue q \(x :: SiteLinks) ->
-      pushState (toForeign x) (siteLinksToDocumentTitle x) (URL (show x)) h
-    pure (One.writeOnly q)
-
-  windowSizeSignal <- do
-    -- debounces and only relays when the window size changes
-    sig <- debounce (Milliseconds 100.0) =<< windowDimensions
-    initWidth <- (\w' -> w'.w) <$> Signal.get sig
-    windowWidthRef <- newRef initWidth
-    let initWindowSize = widthToWindowSize initWidth
-    out <- IxSignal.make initWindowSize
-    flip Signal.subscribe sig \w' -> do
-      lastWindowWidth <- readRef windowWidthRef
-      when (w'.w /= lastWindowWidth) $ do
-        writeRef windowWidthRef w'.w
-        let size = widthToWindowSize w'.w
-        IxSignal.set size out
-    pure out
-
   currentPageSignal <- do
     initSiteLink <- do
       p <- pathname l
@@ -116,6 +95,32 @@ main = do
           Right x' -> IxSignal.set x' sig
       ) w
     pure sig
+
+  siteLinksSignal <- do
+    q <- One.newQueue
+    One.onQueue q \(x :: SiteLinks) -> do
+      pushState (toForeign x) (siteLinksToDocumentTitle x) (URL (show x)) h
+      let {immediate,loadDetails} = makePage x
+      IxSignal.set immediate currentPageSignal
+      flip runAff_ loadDetails \eX -> case eX of
+        Left e -> throwException e
+        Right x -> IxSignal.set x currentPageSignal
+    pure (One.writeOnly q)
+
+  windowSizeSignal <- do
+    -- debounces and only relays when the window size changes
+    sig <- debounce (Milliseconds 100.0) =<< windowDimensions
+    initWidth <- (\w' -> w'.w) <$> Signal.get sig
+    windowWidthRef <- newRef initWidth
+    let initWindowSize = widthToWindowSize initWidth
+    out <- IxSignal.make initWindowSize
+    flip Signal.subscribe sig \w' -> do
+      lastWindowWidth <- readRef windowWidthRef
+      when (w'.w /= lastWindowWidth) $ do
+        writeRef windowWidthRef w'.w
+        let size = widthToWindowSize w'.w
+        IxSignal.set size out
+    pure out
 
 
   let props = unit

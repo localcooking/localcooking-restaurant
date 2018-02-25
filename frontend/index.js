@@ -8215,10 +8215,10 @@ var PS = {};
       var v = DOM_HTML.window();
       var v1 = DOM_HTML_Window.location(v)();
       var v2 = DOM_HTML_Window.history(v)();
-      var v3 = Data_Functor.map(Control_Monad_Eff.functorEff)(function ($68) {
+      var v3 = Data_Functor.map(Control_Monad_Eff.functorEff)(function ($75) {
           return Data_Maybe.Just.create(Data_URI_Scheme.Scheme(Data_String.takeWhile(function (c) {
               return c !== ":";
-          })($68)));
+          })($75)));
       })(DOM_HTML_Location.protocol(v1))();
       var v4 = (function __do() {
           var v4 = DOM_HTML_Location.hostname(v1)();
@@ -8236,75 +8236,88 @@ var PS = {};
           return Data_Maybe.Just.create(new Data_URI_Authority.Authority(Data_Maybe.Nothing.value, [ new Data_Tuple.Tuple(new Data_URI_Host.NameAddress(v4), v6) ]));
       })();
       var v5 = (function __do() {
-          var v5 = Queue_One.newQueue();
-          Queue_One.onQueue(v5)(function (v6) {
-              return DOM_HTML_History.pushState(Data_Foreign.toForeign(v6))(Links.siteLinksToDocumentTitle(v6))(Data_Show.show(Links.showSiteLinks)(v6))(v2);
-          })();
-          return Queue_One.writeOnly(v5);
-      })();
-      var v6 = (function __do() {
-          var v6 = Control_Bind.bindFlipped(Control_Monad_Eff.bindEff)(Signal_Time.debounce(100.0))(Signal_DOM.windowDimensions)();
-          var v7 = Data_Functor.map(Control_Monad_Eff.functorEff)(function (w$prime) {
-              return w$prime.w;
-          })(Signal_Internal.get(v6))();
-          var v8 = Control_Monad_Eff_Ref.newRef(v7)();
-          var initWindowSize = Window.widthToWindowSize(v7);
-          var v9 = IxSignal_Internal.make(initWindowSize)();
-          Data_Function.flip(Signal_Internal.subscribe)(v6)(function (w$prime) {
-              return function __do() {
-                  var v10 = Control_Monad_Eff_Ref.readRef(v8)();
-                  return Control_Applicative.when(Control_Monad_Eff.applicativeEff)(w$prime.w !== v10)(function __do() {
-                      Control_Monad_Eff_Ref.writeRef(v8)(w$prime.w)();
-                      var size = Window.widthToWindowSize(w$prime.w);
-                      return IxSignal_Internal.set(size)(v9)();
-                  })();
-              };
-          })();
-          return v9;
-      })();
-      var v7 = (function __do() {
-          var v7 = (function __do() {
-              var v7 = DOM_HTML_Location.pathname(v1)();
-              var $46 = v7 === "";
-              if ($46) {
+          var v5 = (function __do() {
+              var v5 = DOM_HTML_Location.pathname(v1)();
+              var $38 = v5 === "";
+              if ($38) {
                   return Links.RootLink.value;
               };
-              var v8 = Text_Parsing_StringParser.runParser(Links.siteLinksParser)(v7);
-              if (v8 instanceof Data_Either.Left) {
-                  return Control_Monad_Eff_Exception["throw"](Data_Show.show(Text_Parsing_StringParser.showParseError)(v8.value0))();
+              var v6 = Text_Parsing_StringParser.runParser(Links.siteLinksParser)(v5);
+              if (v6 instanceof Data_Either.Left) {
+                  return Control_Monad_Eff_Exception["throw"](Data_Show.show(Text_Parsing_StringParser.showParseError)(v6.value0))();
               };
-              if (v8 instanceof Data_Either.Right) {
-                  return v8.value0;
+              if (v6 instanceof Data_Either.Right) {
+                  return v6.value0;
               };
-              throw new Error("Failed pattern match at Main line 102, column 14 - line 104, column 28: " + [ v8.constructor.name ]);
+              throw new Error("Failed pattern match at Main line 81, column 14 - line 83, column 28: " + [ v6.constructor.name ]);
           })();
-          var v8 = Page.makePage(v7);
-          var v9 = IxSignal_Internal.make(v8.immediate)();
-          Data_Function.flip(Control_Monad_Aff.runAff_)(v8.loadDetails)(function (eX) {
+          var v6 = Page.makePage(v5);
+          var v7 = IxSignal_Internal.make(v6.immediate)();
+          Data_Function.flip(Control_Monad_Aff.runAff_)(v6.loadDetails)(function (eX) {
               if (eX instanceof Data_Either.Left) {
                   return Control_Monad_Eff_Exception.throwException(eX.value0);
               };
               if (eX instanceof Data_Either.Right) {
-                  return IxSignal_Internal.set(eX.value0)(v9);
+                  return IxSignal_Internal.set(eX.value0)(v7);
               };
-              throw new Error("Failed pattern match at Main line 107, column 37 - line 109, column 36: " + [ eX.constructor.name ]);
+              throw new Error("Failed pattern match at Main line 86, column 37 - line 88, column 36: " + [ eX.constructor.name ]);
           })();
           DOM_HTML_Window_Extra.onPopState(function (x) {
-              var v10 = Page.makePage(Data_Foreign.unsafeFromForeign(x));
+              var v8 = Page.makePage(Data_Foreign.unsafeFromForeign(x));
               return function __do() {
-                  IxSignal_Internal.set(v10.immediate)(v9)();
-                  return Data_Function.flip(Control_Monad_Aff.runAff_)(v10.loadDetails)(function (eX) {
+                  IxSignal_Internal.set(v8.immediate)(v7)();
+                  return Data_Function.flip(Control_Monad_Aff.runAff_)(v8.loadDetails)(function (eX) {
                       if (eX instanceof Data_Either.Left) {
                           return Control_Monad_Eff_Exception.throwException(eX.value0);
                       };
                       if (eX instanceof Data_Either.Right) {
-                          return IxSignal_Internal.set(eX.value0)(v9);
+                          return IxSignal_Internal.set(eX.value0)(v7);
                       };
-                      throw new Error("Failed pattern match at Main line 114, column 41 - line 116, column 42: " + [ eX.constructor.name ]);
+                      throw new Error("Failed pattern match at Main line 93, column 41 - line 95, column 42: " + [ eX.constructor.name ]);
                   })();
               };
           })(v)();
-          return v9;
+          return v7;
+      })();
+      var v6 = (function __do() {
+          var v6 = Queue_One.newQueue();
+          Queue_One.onQueue(v6)(function (v7) {
+              return function __do() {
+                  DOM_HTML_History.pushState(Data_Foreign.toForeign(v7))(Links.siteLinksToDocumentTitle(v7))(Data_Show.show(Links.showSiteLinks)(v7))(v2)();
+                  var v8 = Page.makePage(v7);
+                  IxSignal_Internal.set(v8.immediate)(v5)();
+                  return Data_Function.flip(Control_Monad_Aff.runAff_)(v8.loadDetails)(function (eX) {
+                      if (eX instanceof Data_Either.Left) {
+                          return Control_Monad_Eff_Exception.throwException(eX.value0);
+                      };
+                      if (eX instanceof Data_Either.Right) {
+                          return IxSignal_Internal.set(eX.value0)(v5);
+                      };
+                      throw new Error("Failed pattern match at Main line 105, column 39 - line 107, column 52: " + [ eX.constructor.name ]);
+                  })();
+              };
+          })();
+          return Queue_One.writeOnly(v6);
+      })();
+      var v7 = (function __do() {
+          var v7 = Control_Bind.bindFlipped(Control_Monad_Eff.bindEff)(Signal_Time.debounce(100.0))(Signal_DOM.windowDimensions)();
+          var v8 = Data_Functor.map(Control_Monad_Eff.functorEff)(function (w$prime) {
+              return w$prime.w;
+          })(Signal_Internal.get(v7))();
+          var v9 = Control_Monad_Eff_Ref.newRef(v8)();
+          var initWindowSize = Window.widthToWindowSize(v8);
+          var v10 = IxSignal_Internal.make(initWindowSize)();
+          Data_Function.flip(Signal_Internal.subscribe)(v7)(function (w$prime) {
+              return function __do() {
+                  var v11 = Control_Monad_Eff_Ref.readRef(v9)();
+                  return Control_Applicative.when(Control_Monad_Eff.applicativeEff)(w$prime.w !== v11)(function __do() {
+                      Control_Monad_Eff_Ref.writeRef(v9)(w$prime.w)();
+                      var size = Window.widthToWindowSize(w$prime.w);
+                      return IxSignal_Internal.set(size)(v10)();
+                  })();
+              };
+          })();
+          return v10;
       })();
       var v8 = Spec.app({
           toURI: function (location) {
@@ -8314,13 +8327,13 @@ var PS = {};
                   location: location
               });
           },
-          windowSizeSignal: v6,
-          currentPageSignal: v7,
-          siteLinks: Queue_One.putQueue(v5)
+          windowSizeSignal: v7,
+          currentPageSignal: v5,
+          siteLinks: Queue_One.putQueue(v6)
       });
       var component = React.createClass(v8.spec);
-      return Control_Bind.bindFlipped(Control_Monad_Eff.bindEff)(Data_Foldable.traverse_(Control_Monad_Eff.applicativeEff)(Data_Foldable.foldableMaybe)(function ($69) {
-          return ReactDOM.render(React.createFactory(component)(Data_Unit.unit))(DOM_HTML_Types.htmlElementToElement($69));
+      return Control_Bind.bindFlipped(Control_Monad_Eff.bindEff)(Data_Foldable.traverse_(Control_Monad_Eff.applicativeEff)(Data_Foldable.foldableMaybe)(function ($76) {
+          return ReactDOM.render(React.createFactory(component)(Data_Unit.unit))(DOM_HTML_Types.htmlElementToElement($76));
       }))(Control_Bind.bindFlipped(Control_Monad_Eff.bindEff)(DOM_HTML_Document.body)(DOM_HTML_Window.document(v)))();
   };
   exports["main"] = main;
