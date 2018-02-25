@@ -15,6 +15,7 @@ import Control.Monad.Eff.Unsafe (unsafeCoerceEff)
 import Control.Monad.Eff.Ref (REF)
 import Control.Monad.Eff.Exception (EXCEPTION)
 import Control.Monad.Eff.Class (liftEff)
+import Control.Monad.Eff.Console (log)
 
 import Thermite as T
 import React as R
@@ -154,7 +155,10 @@ topbar
       reactSpec' =
           Signal.whileMountedIxUUID
             windowSizeSignal
-            (\this x -> unsafeCoerceEff $ dispatcher this (ChangedWindowSize x))
+            (\this x -> do
+              unsafeCoerceEff $ log $ "topbar got window size: " <> show x
+              unsafeCoerceEff $ dispatcher this (ChangedWindowSize x)
+            )
         $ Signal.whileMountedIxUUID
             currentPageSignal
             (\this x -> unsafeCoerceEff $ dispatcher this (ChangedCurrentPage x))
