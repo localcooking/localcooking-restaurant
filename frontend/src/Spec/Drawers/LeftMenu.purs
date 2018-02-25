@@ -35,7 +35,7 @@ import MaterialUI.Button as Button
 import MaterialUI.List (list)
 import MaterialUI.ListItem (listItem)
 import MaterialUI.ListItemText (listItemText)
-import MaterialUI.Input as Input
+import MaterialUI.Divider (divider)
 
 import Queue.One (WRITE, READ, Queue, putQueue)
 import IxSignal.Internal (IxSignal)
@@ -75,8 +75,12 @@ spec {siteLinks} = T.simpleSpec performAction render
   where
     performAction action props state = case action of
       ChangedWindowSize w -> void $ T.cotransform _ { windowSize = w }
-      ClickedAboutLink -> liftEff (siteLinks AboutLink)
-      ClickedMenuLink -> liftEff (siteLinks RootLink)
+      ClickedAboutLink -> do
+        performAction Close props state
+        liftEff (siteLinks AboutLink)
+      ClickedMenuLink -> do
+        performAction Close props state
+        liftEff (siteLinks RootLink)
       Open -> void $ T.cotransform _ { open = true }
       Close -> void $ T.cotransform _ { open = false }
 
@@ -93,6 +97,7 @@ spec {siteLinks} = T.simpleSpec performAction render
             }
             [ listItemText {primary: "Menu"}
             ]
+          , divider {}
           , listItem
             { button: true
             , onClick: mkEffFn1 \_ -> dispatch ClickedMenuLink
