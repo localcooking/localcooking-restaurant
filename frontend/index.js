@@ -6288,7 +6288,7 @@ var PS = {};
       var about = Control_Bind.discard(Control_Bind.discardUnit)(Text_Parsing_StringParser.bindParser)(Data_Functor["void"](Text_Parsing_StringParser.functorParser)(divider))(function () {
           return Data_Functor.voidRight(Text_Parsing_StringParser.functorParser)(AboutLink.value)(Text_Parsing_StringParser_String.string("about"));
       });
-      return Control_Alt.alt(Text_Parsing_StringParser.altParser)(Control_Alt.alt(Text_Parsing_StringParser.altParser)(about)(login))(root);
+      return Control_Alt.alt(Text_Parsing_StringParser.altParser)(Control_Alt.alt(Text_Parsing_StringParser.altParser)(Text_Parsing_StringParser["try"](about))(Text_Parsing_StringParser["try"](login)))(root);
   })();
   var showSiteLinks = new Data_Show.Show(function (x) {
       if (x instanceof RootLink) {

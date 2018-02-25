@@ -5,7 +5,7 @@ import Data.Maybe (Maybe (..))
 import Data.Either (Either (..))
 import Data.URI.Location (Location (..))
 import Data.Path.Pathy (Path, Abs, File, Sandboxed, (</>), dir, file, rootDir, printPath)
-import Text.Parsing.StringParser (Parser)
+import Text.Parsing.StringParser (Parser, try)
 import Text.Parsing.StringParser.String (char, string)
 import Control.Alternative ((<|>))
 import DOM.HTML.History (DocumentTitle (..))
@@ -62,8 +62,8 @@ siteLinksParser = do
       login = do
         void divider
         LoginLink <$ string "login"
-  about
-    <|> login
+  try about
+    <|> try login
     <|> root
   where
     divider = char '/'
