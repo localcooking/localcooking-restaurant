@@ -80,6 +80,7 @@ router
   loginRefs
   = do
   matchHere $ action $ get $ html ""
+  match (l_ "about" </> o_) $ action $ get $ html "" -- FIXME SEO
 
   forM_ favicons $ \(file, content) -> do
     let (file', ext) = T.breakOn "." (T.pack file)
