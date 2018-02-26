@@ -1,17 +1,21 @@
 module Client where
 
 import LocalCooking.Auth (SessionID (..))
+import LocalCooking.WebSocket (LocalCookingOutput (..))
 
 import Prelude
 
 import Data.Maybe (Maybe (..))
+import Data.Either (Either (..))
 import Data.Time.Duration (Milliseconds (..))
 import Data.UUID (GENUUID, genUUID)
 import Data.URI.URI (URI, print) as URI
+import Data.Argonaut (decodeJson, encodeJson, jsonParser)
 import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.Timer (TIMER, setTimeout, clearTimeout)
+import Control.Monad.Eff.Timer (TIMER, setTimeout, clearTimeout, setInterval, clearInterval)
 import Control.Monad.Eff.Ref (REF, newRef, writeRef, readRef)
 import Control.Monad.Eff.Console (CONSOLE, log, warn)
+import Control.Monad.Eff.Exception (EXCEPTION, throw)
 import WebSocket (newWebSocket, WEBSOCKET)
 import Queue.One (newQueue, onQueue, putQueue)
 
@@ -20,17 +24,19 @@ import Queue.One (newQueue, onQueue, putQueue)
 client :: forall eff
         . { uri :: SessionID -> URI.URI
           }
-       -> Eff ( ws :: WEBSOCKET
-              , console :: CONSOLE
-              , uuid :: GENUUID
-              , timer :: TIMER
-              , ref :: REF
+       -> Eff ( ws        :: WEBSOCKET
+              , console   :: CONSOLE
+              , uuid      :: GENUUID
+              , timer     :: TIMER
+              , ref       :: REF
+              , exception :: EXCEPTION
               | eff) Unit
 client {uri} = do
   backoffSignal <- newQueue
 
   waitingThread <- newRef Nothing
   waitedSoFar <- newRef Nothing
+  pingingThread <- newRef Nothing
 
   onQueue backoffSignal \delay -> do
     sessionID <- SessionID <$> genUUID
@@ -47,6 +53,10 @@ client {uri} = do
         , protocols: []
         , continue: \_ ->
             { onclose: \{code,reason,wasClean} -> do
+                mPinger <- takeRef pingingThread
+                case mPinger of
+                  Nothing -> pure unit
+                  Just pinger -> clearInterval pinger
                 delay' <- readRef0 waitedSoFar
                 let delay'' = delay' * 2
                 warn $ "Connection to WebSocket lost. Code: "
@@ -58,16 +68,28 @@ client {uri} = do
                     <> ", reconnecting in " <> show delay'' <> " seconds."
                 putQueue backoffSignal delay''
             , onerror: \error -> do
+                mPinger <- takeRef pingingThread
+                case mPinger of
+                  Nothing -> pure unit
+                  Just pinger -> clearInterval pinger
                 delay' <- readRef0 waitedSoFar
                 let delay'' = delay' * 2
                 warn $ "Connection to WebSocket errored - reason: "
                     <> error
                     <> ", reconnecting in " <> show delay'' <> " seconds."
                 putQueue backoffSignal delay''
-            , onmessage: \{send,close} msg -> pure unit
+            , onmessage: \{send,close} msg ->
+                if msg == "\"pong\""
+                  then pure unit
+                  else case jsonParser msg >>= decodeJson of
+                    Left e -> throw e
+                    Right (x :: LocalCookingOutput) -> pure unit
             , onopen: \{send,close} -> do
                 log "Connected to WebSocket"
                 writeRef waitedSoFar Nothing
+                pinger <- setInterval 3000 $ do -- FIXME lock pinging with output queue for throttling
+                  send $ show $ encodeJson "ping"
+                writeRef pingingThread (Just pinger)
             }
         }
     writeRef waitingThread (Just thread)
