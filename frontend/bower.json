@@ -17,10 +17,15 @@
     "purescript-typelevel": "^3.0.0",
     "purescript-react-queue": "^0.0.2",
     "purescript-react": "5.x",
+    "purescript-crypt-nacl": "git://github.com/athanclark/purescript-crypt-nacl.git#b57328882f27a9a46dcd437d89ec09ccde118d19",
     "purescript-argonaut-generic": "^1.2.0",
-    "purescript-websocket-moderate": "^2.0.1"
+    "purescript-websocket-moderate": "^2.0.1",
+    "purescript-base64": "purescript-base64-2#^1.0.1"
   },
   "devDependencies": {
     "purescript-psci-support": "^3.0.0"
+  },
+  "resolutions": {
+    "purescript-arraybuffer-types": "^2.0.0"
   }
 }

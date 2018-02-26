@@ -1,10 +1,15 @@
 module Links where
 
+import LocalCooking.Auth (SessionID)
+
 import Prelude
 import Data.Maybe (Maybe (..))
+import Data.Tuple (Tuple (..))
 import Data.Either (Either (..))
+import Data.URI.Query (Query (..))
 import Data.URI.Location (Location (..))
 import Data.Path.Pathy (Path, Abs, File, Sandboxed, (</>), dir, file, rootDir, printPath)
+import Data.List (List (..))
 import Data.Generic (class Generic, gEq)
 import Data.Argonaut (class EncodeJson, class DecodeJson)
 import Data.Argonaut.Encode.Generic (gEncodeJson)
@@ -38,11 +43,11 @@ instance toLocationLogoLinks :: ToLocation LogoLinks where
     IconSvg -> Location (Right $ rootDir </> dir "static" </> dir "images" </> file "icon.svg") Nothing Nothing
 
 data WebSocketLinks
-  = Realtime
+  = Realtime SessionID
 
 instance toLocationWebSocketLinks :: ToLocation WebSocketLinks where
-  toLocation Realtime =
-    Location (Right $ rootDir </> file "realtime") Nothing Nothing
+  toLocation (Realtime sessionID) =
+    Location (Right $ rootDir </> file "realtime") (Just $ Query $ Cons (Tuple "sessionID" $ Just $ show sessionID) Nil) Nothing
 
 
 data SiteLinks

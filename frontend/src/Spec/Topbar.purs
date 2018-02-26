@@ -83,9 +83,7 @@ spec
     performAction action props state = case action of
       OpenLogin -> liftEff (putQueue openLoginSignal unit)
       ClickedMobileMenuButton -> liftEff (putQueue mobileMenuButtonSignal unit)
-      ChangedWindowSize w -> do
-        liftEff $ unsafeCoerceEff $ log $ "Uh... window size: " <> show w
-        void $ T.cotransform _ { windowSize = w }
+      ChangedWindowSize w -> void $ T.cotransform _ { windowSize = w }
       ChangedCurrentPage x -> void $ T.cotransform _ { currentPage = x }
       ClickedAboutLink -> liftEff (siteLinks AboutLink)
       ClickedMenuLink -> liftEff (siteLinks RootLink)
@@ -94,7 +92,7 @@ spec
     render dispatch props state children =
       [ appBar {color: AppBar.default, position: AppBar.fixed}
         [ toolbar {style: createStyles {display: "flex"}} $
-          ( if (unsafePerformEff $ state.windowSize <$ log ("wtf: " <> show state.windowSize)) < Laptop
+          ( if state.windowSize < Laptop
             then
               [ iconButton
                 { color: IconButton.inherit

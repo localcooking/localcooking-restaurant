@@ -129,7 +129,12 @@ main = do
     pure out
 
   client
-    { uri: toURI {scheme: Just (Scheme "wss"), authority, location: toLocation Realtime}
+    { uri: \sessionID ->
+        toURI
+          { scheme: Just (Scheme "wss")
+          , authority
+          , location: toLocation (Realtime sessionID)
+          }
     }
 
 
