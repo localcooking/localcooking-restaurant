@@ -12,43 +12,14 @@ import Control.Applicative ((<|>))
 
 
 data SubsInput
-  = CandleStickInput CandleStickInput
-  deriving (Show)
+  -- = CandleStickInput CandleStickInput
 
 instance FromJSON SubsInput where
-  parseJSON x = CandleStickInput <$> parseJSON x
+  parseJSON x = fail "D:" -- CandleStickInput <$> parseJSON x
 
 data SubsOutput
-  = CandleStickOutput CandleStickOutput
+  -- = CandleStickOutput CandleStickOutput
 
 instance ToJSON SubsOutput where
-  toJSON x = case x of
-    CandleStickOutput x' -> toJSON x'
-
-
-data CandleStickInput
-  = CandleStickSubscribe
-  | CandleStickUnsubscribe
-  deriving (Show)
-
-instance FromJSON CandleStickInput where
-  parseJSON (Object o) = do
-    let sub = do
-          x <- o .: "subscribe"
-          unless (x == String "candlestick") $
-            fail "Not a candlestick"
-          pure CandleStickSubscribe
-        unsub = do
-          x <- o .: "unsubscribe"
-          unless (x == String "candlestick") $
-            fail "Not a candlestick"
-          pure CandleStickUnsubscribe
-    sub <|> unsub
-  parseJSON x = typeMismatch "CandleStickInput" x
-
-
-
-data CandleStickOutput
-
-instance ToJSON CandleStickOutput where
-  toJSON x = toJSON (String "D:")
+  toJSON x = String "D:" -- case x of
+    -- CandleStickOutput x' -> toJSON x'
