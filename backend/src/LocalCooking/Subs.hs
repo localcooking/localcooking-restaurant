@@ -14,6 +14,9 @@ import Control.Applicative ((<|>))
 data SubsInput
   -- = CandleStickInput CandleStickInput
 
+instance Show SubsInput where
+  show _ = "D:"
+
 instance FromJSON SubsInput where
   parseJSON x = fail "D:" -- CandleStickInput <$> parseJSON x
 

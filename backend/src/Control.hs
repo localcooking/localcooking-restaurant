@@ -11,7 +11,7 @@ import Types (AppM)
 import Types.Env (Env (..), Database (..), Threads (..))
 import LocalCooking.Auth (UserID, SessionID)
 import LocalCooking.WebSocket (LocalCookingInput (..), LocalCookingOutput (..))
-import LocalCooking.Subs (SubsInput (..), CandleStickInput (..), SubsOutput (..), CandleStickOutput (..))
+import LocalCooking.Subs (SubsInput (..), SubsOutput (..))
 
 import Data.Monoid ((<>))
 import qualified Data.Text as T
@@ -52,22 +52,7 @@ control ControlSenders{controlOutgoingUnauth,controlOutgoingAuth} = do
           --     xs <- atomically $ readTVar statsDB
           --     atomically $ TMapChan.insert controlOutgoingUnauth sid $
           --       LocalCookingOpResult $ LocalCookingOpResultChartData xs
-          LocalCookingSubsInput x' -> case x' of
-            CandleStickInput x'' -> case x'' of
-              CandleStickSubscribe -> do
-                when envDevelopment $ liftIO $ log' $ "Got CandleStick subscription from: " <> T.pack (show sid)
-                -- xs <- liftIO $ atomically $ readTVar statsDB
-                -- when envDevelopment $ liftIO $ log' $ "Writing init... " <> T.pack (show xs)
-                -- controlOutgoingUnauth sid $ LocalCookingSubsOutput $ CandleStickOutput $ CandleStickInit xs
-                when envDevelopment $ liftIO $ log' "Wrote init"
-                -- subscribeCandleStick sid $ \x -> do
-                --   when envDevelopment $ liftIO $ log' "Writing insert..."
-                --   controlOutgoingUnauth sid $ LocalCookingSubsOutput $ CandleStickOutput $ CandleStickAdd x
-                --   when envDevelopment $ liftIO $ log' "Wrote insert..."
-                when envDevelopment $ liftIO $ log' "Subscribed candlestick"
-              CandleStickUnsubscribe -> do
-                when envDevelopment $ liftIO $ log' $ "Got CandleStick unsubscription from: " <> T.pack (show sid)
-                -- unsubscribeCandleStick sid
+          -- LocalCookingSubsInput x' -> case x' of
           _ -> when envDevelopment $ liftIO $ log' $ "Got input that's not handled: " <> T.pack (show input) <> ", from session: " <> T.pack (show sid)
         when envDevelopment $ liftIO $ log' "Finished reading controlIncomingUnauth"
     , controlIncomingAuth = \_ _ -> pure ()
