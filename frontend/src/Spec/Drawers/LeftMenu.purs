@@ -96,7 +96,6 @@ spec {siteLinks} = T.simpleSpec performAction render
         liftEff $ do
           n <- unInstant <$> now
           writeRef lastOpen (Just n)
-          unsafeCoerceEff $ log "Uh...."
         void $ T.cotransform _ { open = true }
       Close -> do
         mTuple <- liftEff $ do
@@ -106,12 +105,12 @@ spec {siteLinks} = T.simpleSpec performAction render
             Nothing -> pure Nothing
             Just m -> pure $ Just $ Tuple n m
         case mTuple of
-          Nothing -> liftEff $ unsafeCoerceEff $ log "wtf?1"
+          Nothing -> pure unit
           Just (Tuple n m)
             | n - m > Milliseconds 1000.0 -> do
                 liftEff (writeRef lastOpen Nothing)
                 void $ T.cotransform _ { open = false }
-            | otherwise -> liftEff $ unsafeCoerceEff $ log "!>?>"
+            | otherwise -> pure unit
 
 
     render :: T.Render State Unit Action

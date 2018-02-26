@@ -37,6 +37,12 @@ instance toLocationLogoLinks :: ToLocation LogoLinks where
     IconPng -> Location (Right $ rootDir </> dir "static" </> dir "images" </> file "icon.png") Nothing Nothing
     IconSvg -> Location (Right $ rootDir </> dir "static" </> dir "images" </> file "icon.svg") Nothing Nothing
 
+data WebSocketLinks
+  = Realtime
+
+instance toLocationWebSocketLinks :: ToLocation WebSocketLinks where
+  toLocation Realtime =
+    Location (Right $ rootDir </> file "realtime") Nothing Nothing
 
 
 data SiteLinks

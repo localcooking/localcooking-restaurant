@@ -2,8 +2,9 @@ module Main where
 
 import Spec (app)
 import Window (widthToWindowSize)
-import Links (SiteLinks (..), siteLinksParser, siteLinksToDocumentTitle)
+import Links (SiteLinks (..), siteLinksParser, siteLinksToDocumentTitle, WebSocketLinks (..), toLocation)
 import Page (makePage)
+import Client (client)
 
 import Prelude
 import Data.Maybe (Maybe (..))
@@ -13,7 +14,6 @@ import Data.Time.Duration (Milliseconds (..))
 import Data.URI (Scheme (..), Host (..), Port (..), Authority (..))
 import Data.URI.Location (toURI)
 import Data.Int.Parse (parseInt, toRadix)
-import Data.Typelevel.Undefined (undefined)
 import Data.String (takeWhile) as String
 import Data.UUID (GENUUID)
 import Data.Traversable (traverse_)
@@ -36,7 +36,6 @@ import Signal.DOM (windowDimensions)
 
 import React as R
 import ReactDOM (render)
-import Thermite as T
 import MaterialUI.InjectTapEvent (INJECT_TAP_EVENT, injectTapEvent)
 import DOM (DOM)
 import DOM.HTML (window)
@@ -46,6 +45,7 @@ import DOM.HTML.Document (body)
 import DOM.HTML.History (pushState, URL (..), DocumentTitle (..))
 import DOM.HTML.Location (hostname, protocol, port, pathname)
 import DOM.HTML.Types (HISTORY, htmlElementToElement)
+import WebSocket (WEBSOCKET)
 
 
 main :: Eff ( console        :: CONSOLE
@@ -57,6 +57,7 @@ main :: Eff ( console        :: CONSOLE
             , exception      :: EXCEPTION
             , history        :: HISTORY
             , now            :: NOW
+            , ws             :: WEBSOCKET
             ) Unit
 main = do
   log "Starting Local Cooking frontend..."
@@ -126,6 +127,10 @@ main = do
         let size = widthToWindowSize w'.w
         IxSignal.set size out
     pure out
+
+  client
+    { uri: toURI {scheme: Just (Scheme "wss"), authority, location: toLocation Realtime}
+    }
 
 
   let props = unit
