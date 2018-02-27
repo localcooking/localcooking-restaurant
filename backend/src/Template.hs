@@ -83,13 +83,13 @@ masterPage =
   where
     inlineStyles =
       deploy M.Css Inline ([here|
-a:link, a:active {
+a:link:not(.MuiButton-root-38), a:active:not(.MuiButton-root-38) {
   color: #c62828;
 }
-a:hover {
+a:hover:not(.MuiButton-root-38) {
   color: #ff5f52;
 }
-a:visited {
+a:visited:not(.MuiButton-root-38) {
   color: #8e0000;
 }
 body {

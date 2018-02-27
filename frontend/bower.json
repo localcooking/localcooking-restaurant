@@ -20,7 +20,8 @@
     "purescript-crypt-nacl": "git://github.com/athanclark/purescript-crypt-nacl.git#b57328882f27a9a46dcd437d89ec09ccde118d19",
     "purescript-argonaut-generic": "^1.2.0",
     "purescript-websocket-moderate": "^2.0.1",
-    "purescript-base64": "purescript-base64-2#^1.0.1"
+    "purescript-base64": "purescript-base64-2#^1.0.1",
+    "purescript-globals": "^3.0.0"
   },
   "devDependencies": {
     "purescript-psci-support": "^3.0.0"

@@ -7809,6 +7809,7 @@ var PS = {};
   var Data_URI_Scheme = PS["Data.URI.Scheme"];
   var Data_URI_URI = PS["Data.URI.URI"];
   var Env = PS["Env"];
+  var Global = PS["Global"];
   var LocalCooking_Auth = PS["LocalCooking.Auth"];
   var Prelude = PS["Prelude"];
   var Text_Parsing_StringParser = PS["Text.Parsing.StringParser"];
@@ -7922,14 +7923,14 @@ var PS = {};
       if (x instanceof IconSvg) {
           return new Data_URI_Location.Location(Data_Either.Right.create(Data_Path_Pathy.appendPath(Data_Path_Pathy.appendPath(Data_Path_Pathy.appendPath(Data_Path_Pathy.rootDir)(Data_Path_Pathy.dir("static")))(Data_Path_Pathy.dir("images")))(Data_Path_Pathy.file("icon.svg"))), Data_Maybe.Nothing.value, Data_Maybe.Nothing.value);
       };
-      throw new Error("Failed pattern match at Links line 40, column 18 - line 46, column 112: " + [ x.constructor.name ]);
+      throw new Error("Failed pattern match at Links line 41, column 18 - line 47, column 112: " + [ x.constructor.name ]);
   });
   var toLocation = function (dict) {
       return dict.toLocation;
   };
   var thirdPartyLoginLinksToURI = function (dictEncodeJson) {
       return function (x) {
-          return new Data_URI_URI.URI(Data_Maybe.Just.create("https"), new Data_URI_HierarchicalPart.HierarchicalPart(Data_Maybe.Just.create(new Data_URI_Authority.Authority(Data_Maybe.Nothing.value, [ new Data_Tuple.Tuple(new Data_URI_Host.NameAddress("www.facebook.com"), Data_Maybe.Nothing.value) ])), Data_Maybe.Just.create(Data_Either.Right.create(Data_Path_Pathy.appendPath(Data_Path_Pathy.appendPath(Data_Path_Pathy.appendPath(Data_Path_Pathy.rootDir)(Data_Path_Pathy.dir("v2.12")))(Data_Path_Pathy.dir("dialog")))(Data_Path_Pathy.file("oauth"))))), Data_Maybe.Just.create(Data_URI_Query.Query(Data_List_Types.Cons.create(Data_Tuple.Tuple.create("client_id")(new Data_Maybe.Just(Env.env.facebookClientID)))(Data_List_Types.Cons.create(Data_Tuple.Tuple.create("redirect_url")(Data_Maybe.Just.create(Data_URI_URI.print(x.value0.redirectURL))))(new Data_List_Types.Cons(Data_Tuple.Tuple.create("state")(Data_Maybe.Just.create(Data_Show.show(Data_Argonaut_Core.showJson)(Data_Argonaut_Encode_Class.encodeJson(dictEncodeJson)(x.value0.state)))), Data_List_Types.Nil.value))))), Data_Maybe.Nothing.value);
+          return new Data_URI_URI.URI(Data_Maybe.Just.create("https"), new Data_URI_HierarchicalPart.HierarchicalPart(Data_Maybe.Just.create(new Data_URI_Authority.Authority(Data_Maybe.Nothing.value, [ new Data_Tuple.Tuple(new Data_URI_Host.NameAddress("www.facebook.com"), Data_Maybe.Nothing.value) ])), Data_Maybe.Just.create(Data_Either.Right.create(Data_Path_Pathy.appendPath(Data_Path_Pathy.appendPath(Data_Path_Pathy.appendPath(Data_Path_Pathy.rootDir)(Data_Path_Pathy.dir("v2.12")))(Data_Path_Pathy.dir("dialog")))(Data_Path_Pathy.file("oauth"))))), Data_Maybe.Just.create(Data_URI_Query.Query(Data_List_Types.Cons.create(Data_Tuple.Tuple.create("client_id")(new Data_Maybe.Just(Env.env.facebookClientID)))(Data_List_Types.Cons.create(Data_Tuple.Tuple.create("redirect_url")(Data_Maybe.Just.create(Global["encodeURI"](Data_URI_URI.print(x.value0.redirectURL)))))(new Data_List_Types.Cons(Data_Tuple.Tuple.create("state")(Data_Maybe.Just.create(Data_Show.show(Data_Argonaut_Core.showJson)(Data_Argonaut_Encode_Class.encodeJson(dictEncodeJson)(x.value0.state)))), Data_List_Types.Nil.value))))), Data_Maybe.Nothing.value);
       };
   };
   var siteLinksToDocumentTitle = function (x) {
@@ -7940,7 +7941,7 @@ var PS = {};
           if (x instanceof AboutLink) {
               return "About - Local Cooking";
           };
-          throw new Error("Failed pattern match at Links line 77, column 46 - line 81, column 1: " + [ x.constructor.name ]);
+          throw new Error("Failed pattern match at Links line 78, column 46 - line 82, column 1: " + [ x.constructor.name ]);
       })());
   };
   var siteLinksParser = (function () {
@@ -7958,7 +7959,7 @@ var PS = {};
       if (x instanceof AboutLink) {
           return Data_Path_Pathy.printPath(Data_Path_Pathy.appendPath(Data_Path_Pathy.rootDir)(Data_Path_Pathy.file("about")));
       };
-      throw new Error("Failed pattern match at Links line 63, column 12 - line 67, column 1: " + [ x.constructor.name ]);
+      throw new Error("Failed pattern match at Links line 64, column 12 - line 68, column 1: " + [ x.constructor.name ]);
   });
   var genericSiteLinks = new Data_Generic.Generic(function (v) {
       if (v instanceof Data_Generic.SProd && (v.value0 === "Links.RootLink" && v.value1.length === 0)) {
@@ -7983,7 +7984,7 @@ var PS = {};
       if (v instanceof AboutLink) {
           return new Data_Generic.SProd("Links.AboutLink", [  ]);
       };
-      throw new Error("Failed pattern match at Links line 60, column 8 - line 60, column 54: " + [ v.constructor.name ]);
+      throw new Error("Failed pattern match at Links line 61, column 8 - line 61, column 54: " + [ v.constructor.name ]);
   });                                                                  
   var encodeJsonSiteLinks = new Data_Argonaut_Encode_Class.EncodeJson(Data_Argonaut_Encode_Generic.gEncodeJson(genericSiteLinks));
   var decodeJsonSiteLinks = new Data_Argonaut_Decode_Class.DecodeJson(Data_Argonaut_Decode_Generic.gDecodeJson(genericSiteLinks));
