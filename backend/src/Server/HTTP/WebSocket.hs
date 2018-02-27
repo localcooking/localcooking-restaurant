@@ -77,7 +77,9 @@ websocket
             case Aeson.eitherDecode msg' of
               Left e -> when envDevelopment $ debug' $ "Couldn't decode LocalCooking input: " <> T.pack (show (LT.decodeUtf8 msg')) <> T.pack e
               Right (x :: LocalCookingInput) -> do
-                when envDevelopment $ log' $ "Got koredex input: " <> T.pack (show x)
+                when envDevelopment $ case x of
+                  LocalCookingPing -> pure ()
+                  _ -> log' $ "Got koredex input: " <> T.pack (show x)
                 mUser <- atomically $ tryReadTMVar userIDRef
                 case mUser of
                   Nothing ->
