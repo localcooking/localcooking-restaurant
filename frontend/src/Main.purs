@@ -5,6 +5,7 @@ import Window (widthToWindowSize)
 import Links (SiteLinks (..), siteLinksParser, siteLinksToDocumentTitle, WebSocketLinks (..), toLocation)
 import Page (makePage)
 import Client (client)
+import Env (env)
 
 import Prelude
 import Data.Maybe (Maybe (..))
@@ -152,6 +153,7 @@ main = do
           , windowSizeSignal
           , currentPageSignal
           , siteLinks: One.putQueue siteLinksSignal
+          , development: env.development
           }
       component = R.createClass reactSpec
   traverse_ (render (R.createFactory component props) <<< htmlElementToElement) =<< body =<< document w

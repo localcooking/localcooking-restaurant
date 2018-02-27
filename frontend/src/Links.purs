@@ -1,15 +1,18 @@
 module Links where
 
 import LocalCooking.Auth (SessionID)
+import Env (env)
 
 import Prelude
 import Data.Maybe (Maybe (..))
 import Data.Tuple (Tuple (..))
 import Data.Either (Either (..))
-import Data.URI.Query (Query (..))
-import Data.URI.Location (Location (..))
-import Data.Path.Pathy (Path, Abs, File, Sandboxed, (</>), dir, file, rootDir, printPath)
 import Data.List (List (..))
+import Data.URI (URI (..), Scheme (..), HierarchicalPart (..), Query (..), Host (..), Authority (..))
+import Data.URI.URI (print) as URI
+import Data.URI.Location (Location (..))
+import Data.Argonaut (encodeJson)
+import Data.Path.Pathy (Path, Abs, File, Sandboxed, (</>), dir, file, rootDir, printPath)
 import Data.Generic (class Generic, gEq)
 import Data.Argonaut (class EncodeJson, class DecodeJson)
 import Data.Argonaut.Encode.Generic (gEncodeJson)
@@ -86,3 +89,37 @@ siteLinksParser = do
   where
     divider = char '/'
 
+
+data ThirdPartyLoginLinks a
+  = FacebookLoginLink
+    { redirectURL :: URI
+    , state :: a
+    }
+
+thirdPartyLoginLinksToURI :: forall a. EncodeJson a => ThirdPartyLoginLinks a -> URI
+thirdPartyLoginLinksToURI x = case x of
+  FacebookLoginLink {redirectURL,state} ->
+    URI
+      (Just $ Scheme "https")
+      ( HierarchicalPart
+        (Just $ Authority Nothing [Tuple (NameAddress "www.facebook.com") Nothing])
+        (Just $ Right $ rootDir </> dir "v2.12" </> dir "dialog" </> file "oauth")
+      )
+      ( Just $ Query
+        $ Cons
+          (Tuple "client_id" $ Just env.facebookClientID)
+        $ Cons
+          (Tuple "redirect_url" $ Just $ URI.print redirectURL)
+        $ Cons
+          (Tuple "state" $ Just $ show $ encodeJson state)
+          Nil
+      )
+      Nothing
+
+
+data ThirdPartyLoginReturnLinks
+  = FacebookLoginReturn
+
+instance toLocationThirdPartyLoginReturnLinks :: ToLocation ThirdPartyLoginReturnLinks where
+  toLocation x = case x of
+    FacebookLoginReturn -> Location (Right $ rootDir </> file "facebookLoginReturn") Nothing Nothing

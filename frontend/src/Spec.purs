@@ -54,9 +54,10 @@ spec :: forall eff
         , windowSizeSignal :: IxSignal (Effects eff) WindowSize
         , currentPageSignal :: IxSignal (Effects eff) Page
         , siteLinks :: SiteLinks -> Eff (Effects eff) Unit
+        , development :: Boolean
         }
      -> T.Spec (Effects eff) State Unit Action
-spec {toURI,windowSizeSignal,siteLinks,currentPageSignal} = T.simpleSpec performAction render
+spec {toURI,windowSizeSignal,siteLinks,currentPageSignal,development} = T.simpleSpec performAction render
   where
     performAction action props state = pure unit
 
@@ -76,6 +77,7 @@ spec {toURI,windowSizeSignal,siteLinks,currentPageSignal} = T.simpleSpec perform
       , loginDialog
         { openLoginSignal: readOnly openLoginSignal
         , windowSizeSignal
+        , toURI
         }
       , leftMenu
         { mobileDrawerOpenSignal: readOnly mobileMenuButtonSignal
@@ -101,12 +103,13 @@ app :: forall eff
        , windowSizeSignal :: IxSignal (Effects eff) WindowSize
        , currentPageSignal :: IxSignal (Effects eff) Page
        , siteLinks :: SiteLinks -> Eff (Effects eff) Unit
+       , development :: Boolean
        }
     -> { spec :: R.ReactSpec Unit State (Array R.ReactElement) (Effects eff)
        , dispatcher :: R.ReactThis Unit State -> Action -> T.EventHandler
        }
-app {toURI,windowSizeSignal,currentPageSignal,siteLinks} =
+app {toURI,windowSizeSignal,currentPageSignal,siteLinks,development} =
   let {spec: reactSpec, dispatcher} =
-        T.createReactSpec (spec {toURI,windowSizeSignal,currentPageSignal,siteLinks}) initialState
+        T.createReactSpec (spec {toURI,windowSizeSignal,currentPageSignal,siteLinks,development}) initialState
 
   in  {spec: reactSpec, dispatcher}

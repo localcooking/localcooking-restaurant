@@ -1,7 +1,7 @@
 module Spec.Dialogs.Login where
 
 import Window (WindowSize (..), initialWindowSize)
-import Links (SiteLinks (..))
+import Links (SiteLinks (..), ThirdPartyLoginLinks (..), thirdPartyLoginLinksToURI, ThirdPartyLoginReturnLinks (..), toLocation)
 
 import Prelude
 import Data.Maybe (Maybe (..))
@@ -69,8 +69,10 @@ type Effects eff =
 
 
 spec :: forall eff
-      . T.Spec eff State Unit Action
-spec = T.simpleSpec performAction render
+      . { toURI :: Location -> URI
+        }
+     -> T.Spec eff State Unit Action
+spec {toURI} = T.simpleSpec performAction render
   where
     performAction action props state = case action of
       Open -> void $ T.cotransform _ { open = true }
@@ -98,7 +100,7 @@ spec = T.simpleSpec performAction render
               [ textField {label: R.text "Email", fullWidth: true}
               , textField {label: R.text "Password", fullWidth: true, "type": Input.passwordType}
               , R.div [RP.style {display: "flex", justifyContent: "space-evenly", paddingTop: "2em"}] $
-                  let mkFab mainColor darkColor icon =
+                  let mkFab mainColor darkColor icon mLink =
                         Button.withStyles
                           (\theme ->
                             { root: createStyles
@@ -112,11 +114,21 @@ spec = T.simpleSpec performAction render
                             button
                               { variant: Button.fab
                               , classes: Button.createClasses {root: classes.root}
+                              , disabled: case mLink of
+                                Nothing -> true
+                                _ -> false
+                              , href: case mLink of
+                                Nothing -> ""
+                                Just link -> URI.print $ thirdPartyLoginLinksToURI link
                               } [icon]
                           )
-                  in  [ mkFab "#3b5998" "#1e3f82" facebookIcon
-                      , mkFab "#1da1f3" "#0f8cdb" twitterIcon
-                      , mkFab "#dd4e40" "#c13627" googleIcon
+                  in  [ mkFab "#3b5998" "#1e3f82" facebookIcon $
+                         Just $ FacebookLoginLink
+                         { redirectURL: toURI (toLocation FacebookLoginReturn)
+                         , state: unit
+                         }
+                      , mkFab "#1da1f3" "#0f8cdb" twitterIcon Nothing
+                      , mkFab "#dd4e40" "#c13627" googleIcon Nothing
                       ]
               ]
             , dialogActions {}
@@ -141,10 +153,11 @@ spec = T.simpleSpec performAction render
 loginDialog :: forall eff
              . { openLoginSignal :: Queue (read :: READ) (Effects eff) Unit
                , windowSizeSignal :: IxSignal (Effects eff) WindowSize
+               , toURI :: Location -> URI
                }
             -> R.ReactElement
-loginDialog {openLoginSignal,windowSizeSignal} =
-  let {spec: reactSpec, dispatcher} = T.createReactSpec spec initialState
+loginDialog {openLoginSignal,windowSizeSignal,toURI} =
+  let {spec: reactSpec, dispatcher} = T.createReactSpec (spec {toURI}) initialState
       reactSpecLogin =
           Signal.whileMountedIxUUID
             windowSizeSignal
