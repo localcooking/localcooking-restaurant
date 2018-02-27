@@ -21,7 +21,7 @@ import Text.Parsing.StringParser (Parser, try)
 import Text.Parsing.StringParser.String (char, string)
 import Control.Alternative ((<|>))
 import DOM.HTML.History (DocumentTitle (..))
-import Global (encodeURI)
+import Global (encodeURIComponent)
 
 
 class ToLocation sym where
@@ -110,7 +110,7 @@ thirdPartyLoginLinksToURI x = case x of
         $ Cons
           (Tuple "client_id" $ Just env.facebookClientID)
         $ Cons
-          (Tuple "redirect_url" $ Just $ encodeURI $ URI.print redirectURL)
+          (Tuple "redirect_url" $ Just $ encodeURIComponent $ URI.print redirectURL)
         $ Cons
           (Tuple "state" $ Just $ show $ encodeJson state)
           Nil
