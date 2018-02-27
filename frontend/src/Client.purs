@@ -1,7 +1,7 @@
 module Client where
 
 import LocalCooking.Auth (SessionID (..))
-import LocalCooking.WebSocket (LocalCookingOutput (..))
+import LocalCooking.WebSocket (LocalCookingOutput (..), LocalCookingInput (..))
 
 import Prelude
 
@@ -17,21 +17,26 @@ import Control.Monad.Eff.Ref (REF, newRef, writeRef, readRef)
 import Control.Monad.Eff.Console (CONSOLE, log, warn)
 import Control.Monad.Eff.Exception (EXCEPTION, throw)
 import WebSocket (newWebSocket, WEBSOCKET)
-import Queue.One (newQueue, onQueue, putQueue)
+import Queue.One (Queue, READ, newQueue, onQueue, putQueue, delQueue)
 
+
+
+type Effects eff =
+  ( ws        :: WEBSOCKET
+  , console   :: CONSOLE
+  , uuid      :: GENUUID
+  , timer     :: TIMER
+  , ref       :: REF
+  , exception :: EXCEPTION
+  | eff)
 
 
 client :: forall eff
         . { uri :: SessionID -> URI.URI
+          , toLocalCooking :: Queue (read :: READ) (Effects eff) LocalCookingInput
           }
-       -> Eff ( ws        :: WEBSOCKET
-              , console   :: CONSOLE
-              , uuid      :: GENUUID
-              , timer     :: TIMER
-              , ref       :: REF
-              , exception :: EXCEPTION
-              | eff) Unit
-client {uri} = do
+       -> Eff (Effects eff) Unit
+client {uri,toLocalCooking} = do
   backoffSignal <- newQueue
 
   waitingThread <- newRef Nothing
@@ -57,6 +62,7 @@ client {uri} = do
                 case mPinger of
                   Nothing -> pure unit
                   Just pinger -> clearInterval pinger
+                delQueue toLocalCooking
                 delay' <- readRef0 waitedSoFar
                 let delay'' = delay' * 2
                 warn $ "Connection to WebSocket lost. Code: "
@@ -72,6 +78,7 @@ client {uri} = do
                 case mPinger of
                   Nothing -> pure unit
                   Just pinger -> clearInterval pinger
+                delQueue toLocalCooking
                 delay' <- readRef0 waitedSoFar
                 let delay'' = delay' * 2
                 warn $ "Connection to WebSocket errored - reason: "
@@ -90,6 +97,7 @@ client {uri} = do
                 pinger <- setInterval 3000 $ do -- FIXME lock pinging with output queue for throttling
                   send $ show $ encodeJson "ping"
                 writeRef pingingThread (Just pinger)
+                onQueue toLocalCooking (send <<< show <<< encodeJson)
             }
         }
     writeRef waitingThread (Just thread)

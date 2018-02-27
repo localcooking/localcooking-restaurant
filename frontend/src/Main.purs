@@ -128,6 +128,12 @@ main = do
         IxSignal.set size out
     pure out
 
+  toLocalCooking <- One.newQueue
+
+
+
+
+
   client
     { uri: \sessionID ->
         toURI
@@ -135,6 +141,7 @@ main = do
           , authority
           , location: toLocation (Realtime sessionID)
           }
+    , toLocalCooking: One.readOnly toLocalCooking
     }
 
 
