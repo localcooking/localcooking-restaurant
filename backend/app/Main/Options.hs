@@ -77,15 +77,15 @@ mkEnv
     , argsImplSMTPHost
     , argsImplProduction
     } = do
-  -- envKeys <- case parseOnly absFilePath (T.pack argsImplSecretKey) of
-  --   Left e -> errorL $ "Secret key path not absolute: " <> T.pack e
-  --   Right f -> do
-  --     exists <- doesDirectoryExist $ toFilePath $ parent f
-  --     unless exists $ createDirectory $ toFilePath $ parent f
-  --     x <- LBS.readFile (toFilePath f)
-  --     case Aeson.decode x of
-  --       Nothing -> errorL "Secret key file contents cannot be parsed"
-  --       Just y -> pure y
+  envKeys <- case parseOnly absFilePath (T.pack argsImplSecretKey) of
+    Left e -> errorL $ "Secret key path not absolute: " <> T.pack e
+    Right f -> do
+      exists <- doesDirectoryExist $ toFilePath $ parent f
+      unless exists $ createDirectory $ toFilePath $ parent f
+      x <- LBS.readFile (toFilePath f)
+      case Aeson.decode x of
+        Nothing -> errorL "Secret key file contents cannot be parsed"
+        Just y -> pure y
   (envHostname, boundPort) <- case parseOnly parseURIAuth (T.pack argsImplHostname) of
     Left e -> errorL $ "Can't parse hostname: " <> T.pack e
     Right (URIAuth a h mPort) -> pure
@@ -123,6 +123,7 @@ mkEnv
       , envDatabase
       , envThreads
       , envDevelopment = not argsImplProduction
+      , envKeys
       }
     , fromIntegral boundPort
     )

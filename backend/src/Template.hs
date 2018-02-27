@@ -10,6 +10,7 @@ module Template where
 
 import           Types (AppM)
 import           Types.Env (Env (..))
+import           Types.Keys (Keys (..))
 import           Server.Assets (frontend)
 
 import           Lucid (renderBST, HtmlT, Attribute, content_, name_, meta_, httpEquiv_, charset_, link_, rel_, type_, href_, sizes_)
@@ -25,8 +26,10 @@ import           Data.Default
 import qualified Data.HashMap.Strict                      as HM
 import           Data.Markup                              as M
 import           Data.Url (AbsoluteUrlT (..), fromLocation)
+import           Data.URI.Auth (URIAuth)
 import           Data.Aeson (ToJSON (..), (.=), object)
 import qualified Data.Aeson as Aeson
+import qualified Data.ByteString                          as BS
 import qualified Data.ByteString.Lazy                     as LBS
 import           Data.Monoid ((<>))
 import           Text.Heredoc (here)
@@ -95,10 +98,17 @@ body {
 }|] :: T.Text)
 
     inlineBodyScripts = do
-      Env{envDevelopment} <- lift ask
+      Env{envDevelopment,envKeys = Keys{keysFacebookClientID}} <- lift ask
       deploy M.JavaScript Inline $
         "var frontendEnv = "
-        <> T.decodeUtf8 (LBS.toStrict $ Aeson.encode FrontendEnv{frontendEnvDevelopment = envDevelopment})
+        <> T.decodeUtf8
+           ( LBS.toStrict $
+               Aeson.encode
+                 FrontendEnv
+                  { frontendEnvDevelopment = envDevelopment
+                  , frontendEnvFacebookClientID = keysFacebookClientID
+                  }
+           )
       deploy M.JavaScript Inline $ T.decodeUtf8 frontend
 
 -- | Inject some HTML into the @<body>@ tag of our template
@@ -110,9 +120,15 @@ mainTemplate = template masterPage
 
 data FrontendEnv = FrontendEnv
   { frontendEnvDevelopment :: Bool
+  , frontendEnvFacebookClientID :: T.Text
   }
 
 instance ToJSON FrontendEnv where
-  toJSON FrontendEnv{frontendEnvDevelopment} = object
+  toJSON
+    FrontendEnv
+      { frontendEnvDevelopment
+      , frontendEnvFacebookClientID
+      } = object
     [ "development" .= frontendEnvDevelopment
+    , "facebookClientID" .= frontendEnvFacebookClientID
     ]

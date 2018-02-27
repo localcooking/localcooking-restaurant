@@ -6,6 +6,7 @@
 
 module Types.Env where
 
+import Types.Keys (Keys)
 import LocalCooking.Auth (SessionID)
 import Database (Users, initialUsers)
 
@@ -71,6 +72,7 @@ data Env = Env
   , envHostname    :: URIAuth
   , envSMTPHost    :: URIAuthHost
   , envDevelopment :: Bool
+  , envKeys        :: Keys
   }
 
 instance Default Env where
@@ -80,6 +82,7 @@ instance Default Env where
     , envHostname    = URIAuth Strict.Nothing Localhost (Strict.Just 3000)
     , envSMTPHost    = Localhost
     , envDevelopment = True
+    , envKeys        = error "No access to secret keys in default environment"
     }
 
 
