@@ -239,10 +239,13 @@ router
             resp' <- liftIO $ httpLbs req' managersFacebook
 
             case Aeson.decode (responseBody resp') of
-              Nothing -> fail $ "Somehow couldn't parse facebook verify output: " <> show (responseBody resp') <> ", url: " <> url
+              Nothing -> fail $ "Somehow couldn't parse facebook verify output: " <> show (responseBody resp')
               Just x -> do
                 case x of
-                  FacebookLoginGetTokenError{} -> log' $ "Couldn't verify facebook code due to formatting error: " <> T.pack (show x) <> ", from: " <> T.pack url
+                  FacebookLoginGetTokenError{} ->
+                    when envDevelopment $ warn' $
+                      "Couldn't verify facebook code due to formatting error: "
+                      <> T.pack (show x) <> ", from: " <> T.pack url
                   _ -> pure ()
                 log' $ "Got facebook access token: " <> T.pack (show x)
           _ -> pure ()
@@ -250,7 +253,7 @@ router
         (action $ get $ text "Good!") app req resp
 
   match (l_ "facebookLoginDeauthorize" </> o_) $ \app req resp -> do
-    log' $ "Got deauthorized: " <> T.pack (show (queryString req))
+    log' $ "Got deauthorized: " <> T.pack (show req)
     (action $ get $ text "") app req resp
 
 data FacebookLoginReturn a
