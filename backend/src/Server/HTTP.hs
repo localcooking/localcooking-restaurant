@@ -48,7 +48,7 @@ import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Reader (ask)
 import Control.Monad.Trans (lift)
 import Control.Exception.Safe (throwM)
-import Control.Logging (log')
+import Control.Logging (log', warn')
 import Control.Concurrent.STM (atomically)
 import Control.Concurrent.STM.TMapChan (TMapChan, newTMapChan)
 import qualified Control.Concurrent.STM.TMapChan as TMapChan
@@ -228,18 +228,22 @@ router
               , envHostname
               } <- ask
 
-            req <- liftIO $ parseRequest $ show $ facebookLoginVerifyToURI FacebookLoginVerify
-              { facebookLoginVerifyClientID = keysFacebookClientID
-              , facebookLoginVerifyClientSecret = keysFacebookClientSecret
-              , facebookLoginVerifyRedirectURI = URI (Strict.Just "https") True envHostname ["facebookLoginReturn"] [] Strict.Nothing
-              , facebookLoginVerifyCode = facebookLoginGoodCode
-              }
+            let url = show $ facebookLoginVerifyToURI FacebookLoginVerify
+                  { facebookLoginVerifyClientID = keysFacebookClientID
+                  , facebookLoginVerifyClientSecret = keysFacebookClientSecret
+                  , facebookLoginVerifyRedirectURI = URI (Strict.Just "https") True envHostname ["facebookLoginReturn"] [] Strict.Nothing
+                  , facebookLoginVerifyCode = facebookLoginGoodCode
+                  }
 
-            resp <- liftIO $ httpLbs req managersFacebook
+            req' <- liftIO $ parseRequest url
+            resp' <- liftIO $ httpLbs req' managersFacebook
 
-            case Aeson.decode (responseBody resp) of
-              Nothing -> fail $ "Somehow couldn't parse facebook verify output: " <> show (responseBody resp)
-              Just (x :: FacebookLoginGetToken) -> do
+            case Aeson.decode (responseBody resp') of
+              Nothing -> fail $ "Somehow couldn't parse facebook verify output: " <> show (responseBody resp') <> ", url: " <> url
+              Just x -> do
+                case x of
+                  FacebookLoginGetTokenError{} -> log' $ "Couldn't verify facebook code due to formatting error: " <> T.pack (show x) <> ", from: " <> T.pack url
+                  _ -> pure ()
                 log' $ "Got facebook access token: " <> T.pack (show x)
           _ -> pure ()
         log' $ "Got facebook login return: " <> T.pack (show x)
@@ -264,22 +268,44 @@ data FacebookLoginReturn a
   deriving (Show)
 
 
-data FacebookLoginGetToken = FacebookLoginGetToken
-  { facebookLoginGetTokenAccessToken :: T.Text
-  , facebookLoginGetTokenTokenType :: T.Text
-  , facebookLoginGetTokenExpiresIn :: Int
-  } deriving (Show)
+data FacebookLoginGetToken
+  = FacebookLoginGetToken
+    { facebookLoginGetTokenAccessToken :: T.Text
+    , facebookLoginGetTokenTokenType :: T.Text
+    , facebookLoginGetTokenExpiresIn :: Int
+    }
+  | FacebookLoginGetTokenError
+    { facebookLoginGetTokenErrorMessage :: T.Text
+    , facebookLoginGetTokenErrorType :: T.Text
+    , facebookLoginGetTokenErrorCode :: Int
+    , facebookLoginGetTokenErrorFbTraceID :: T.Text
+    }
+  deriving (Show)
 
 instance FromJSON FacebookLoginGetToken where
   parseJSON (Object o) = do
-    facebookLoginGetTokenAccessToken <- o .: "access_token"
-    facebookLoginGetTokenTokenType <- o .: "token_type"
-    facebookLoginGetTokenExpiresIn <- o .: "expires_in"
-    pure FacebookLoginGetToken
-      { facebookLoginGetTokenAccessToken
-      , facebookLoginGetTokenTokenType
-      , facebookLoginGetTokenExpiresIn
-      }
+    let good = do
+          facebookLoginGetTokenAccessToken <- o .: "access_token"
+          facebookLoginGetTokenTokenType <- o .: "token_type"
+          facebookLoginGetTokenExpiresIn <- o .: "expires_in"
+          pure FacebookLoginGetToken
+            { facebookLoginGetTokenAccessToken
+            , facebookLoginGetTokenTokenType
+            , facebookLoginGetTokenExpiresIn
+            }
+        error' = do
+          o' <- o .: "error"
+          facebookLoginGetTokenErrorMessage <- o' .: "message"
+          facebookLoginGetTokenErrorType <- o' .: "type"
+          facebookLoginGetTokenErrorCode <- o' .: "code"
+          facebookLoginGetTokenErrorFbTraceID <- o' .: "fbtrace_id"
+          pure FacebookLoginGetTokenError
+            { facebookLoginGetTokenErrorMessage
+            , facebookLoginGetTokenErrorType
+            , facebookLoginGetTokenErrorCode
+            , facebookLoginGetTokenErrorFbTraceID
+            }
+    good <|> error'
   parseJSON x = typeMismatch "FacebookLoginGetToken" x
 
 
