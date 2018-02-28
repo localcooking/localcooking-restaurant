@@ -201,13 +201,20 @@ router
                 good = do
                   Nothing
             bad <|> good of
-      Nothing -> fail "No parameters"
+      Nothing -> fail $ "No parameters: " <> show (queryString req)
       Just x -> do
         log' $ "Got facebook login return: " <> T.pack (show x)
         (action $ get $ text "Good!") app req resp
 
+  match (l_ "facebookLoginDeauthorize" </> o_) $ \app req resp -> do
+    log' $ "Got deauthorized: " <> T.pack (show (queryString req))
+    (action $ get $ text "") app req resp
+
 data FacebookLoginReturn
-  = FacebookLoginReturnBad BS.ByteString BS.ByteString
+  = FacebookLoginReturnBad
+      { facebookLoginBadErrorCode :: BS.ByteString
+      , facebookLoginBadErrorMessage :: BS.ByteString
+      }
   | FacebookLoginReturnGood
   deriving (Show)
 
