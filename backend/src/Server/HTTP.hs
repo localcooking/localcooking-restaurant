@@ -253,8 +253,9 @@ router
         (action $ get $ text "Good!") app req resp
 
   match (l_ "facebookLoginDeauthorize" </> o_) $ \app req resp -> do
-    log' $ "Got deauthorized: " <> T.pack (show req)
-    (action $ get $ text "") app req resp
+    body <- liftIO $ strictRequestBody req
+    log' $ "Got deauthorized: " <> T.pack (show body)
+    (action $ post $ text "") app req resp
 
 data FacebookLoginReturn a
   = FacebookLoginReturnBad
