@@ -17,12 +17,13 @@ import Database (User (..), Users (..), Username (..), Email (..), Salt (..), In
 import LocalCooking.Auth (UserID, SessionID, sessionID, ChallengeID (..), SignedChallenge, verifySignedChallenge)
 import LocalCooking.WebSocket (LocalCookingInput (..), LocalCookingOutput (..), LocalCookingLoginResult (..))
 
-import Web.Routes.Nested (RouterT, match, matchHere, action, post, get, json, l_, (</>), o_, route)
+import Web.Routes.Nested (RouterT, match, matchHere, action, post, get, json, text, l_, (</>), o_, route)
 import Network.Wai.Middleware.ContentType (bytestring, FileExt (Other))
 import Network.Wai.Trans (MiddlewareT, strictRequestBody, queryString, websocketsOrT)
 import Network.WebSockets (defaultConnectionOptions)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
+import qualified Data.ByteString      as BS
 import qualified Data.ByteString.Lazy as LBS
 import Data.Aeson (FromJSON (..), (.:))
 import Data.Aeson.Types (typeMismatch, Value (String, Object))
@@ -34,11 +35,14 @@ import Data.TimeMap.Multi (TimeMultiMap)
 import qualified Data.TimeMap.Multi as TimeMultiMap
 import qualified Data.Attoparsec.Text as Atto
 import qualified Data.IxSet as IxSet
+import Data.Monoid ((<>))
+import Control.Applicative ((<|>))
 import Control.Monad (join, when, forM_)
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Reader (ask)
 import Control.Monad.Trans (lift)
 import Control.Exception.Safe (throwM)
+import Control.Logging (log')
 import Control.Concurrent.STM (atomically)
 import Control.Concurrent.STM.TMapChan (TMapChan, newTMapChan)
 import qualified Control.Concurrent.STM.TMapChan as TMapChan
@@ -187,6 +191,25 @@ router
   -- match (l_ "confirmEmail" </> o_) $ \req ->
   --   let resp = action $ get $ text "yo"
   --   in  resp req
+
+
+  match (l_ "facebookLoginReturn" </> o_) $ \app req resp ->
+    case do let bad = do
+                  errorCode <- join $ lookup "error_code" $ queryString req
+                  errorMessage <- join $ lookup "error_message" $ queryString req
+                  pure $ FacebookLoginReturnBad errorCode errorMessage
+                good = do
+                  Nothing
+            bad <|> good of
+      Nothing -> fail "No parameters"
+      Just x -> do
+        log' $ "Got facebook login return: " <> T.pack (show x)
+        (action $ get $ text "Good!") app req resp
+
+data FacebookLoginReturn
+  = FacebookLoginReturnBad BS.ByteString BS.ByteString
+  | FacebookLoginReturnGood
+  deriving (Show)
 
 
 httpServer :: (TChanRW 'Write (SessionID, LocalCookingInput), TMapChan SessionID LocalCookingOutput)
