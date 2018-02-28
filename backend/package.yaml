@@ -40,6 +40,8 @@ library:
     - file-embed
     - hashable
     - heredoc
+    - http-client
+    - http-client-tls
     - http-types
     - ixset
     - QuickCheck

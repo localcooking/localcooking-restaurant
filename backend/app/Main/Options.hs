@@ -7,7 +7,7 @@
 
 module Main.Options where
 
-import Types.Env (Env (..), Database (..), defThreads)
+import Types.Env (Env (..), Database (..), defThreads, defManagers)
 import Database (initialUsers)
 
 import Options.Applicative (Parser, strOption, option, switch, auto, long, help, value, showDefault)
@@ -115,6 +115,7 @@ mkEnv
     ]
 
   envThreads <- defThreads
+  envManagers <- defManagers
 
   pure
     ( Env
@@ -124,6 +125,7 @@ mkEnv
       , envThreads
       , envDevelopment = not argsImplProduction
       , envKeys
+      , envManagers
       }
     , fromIntegral boundPort
     )

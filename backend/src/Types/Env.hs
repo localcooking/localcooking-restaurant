@@ -23,6 +23,8 @@ import qualified Data.HashMap.Strict as HashMap
 import Control.Concurrent.Async (Async, cancel)
 import Control.Concurrent.STM (TVar, newTVar, atomically)
 import System.IO.Unsafe (unsafePerformIO)
+import Network.HTTP.Client (Manager)
+import Network.HTTP.Client.TLS (newTlsManager)
 
 
 data Database = Database
@@ -65,6 +67,20 @@ defThreads = do
   thSubs <- atomically $ newTVar HashMap.empty
   pure Threads{thSubs}
 
+data Managers = Managers
+  { managersFacebook :: Manager
+  }
+
+instance Default Managers where
+  def = unsafePerformIO defManagers
+
+defManagers :: IO Managers
+defManagers = do
+  managersFacebook <- newTlsManager -- FIXME could bug out from facebook booting us
+  pure Managers
+    { managersFacebook
+    }
+
 
 data Env = Env
   { envDatabase    :: Database
@@ -73,6 +89,7 @@ data Env = Env
   , envSMTPHost    :: URIAuthHost
   , envDevelopment :: Bool
   , envKeys        :: Keys
+  , envManagers    :: Managers
   }
 
 instance Default Env where
@@ -83,6 +100,7 @@ instance Default Env where
     , envSMTPHost    = Localhost
     , envDevelopment = True
     , envKeys        = error "No access to secret keys in default environment"
+    , envManagers    = def
     }
 
 

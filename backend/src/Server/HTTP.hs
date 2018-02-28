@@ -1,5 +1,6 @@
 {-# LANGUAGE
     OverloadedStrings
+  , OverloadedLists
   , NamedFieldPuns
   , ScopedTypeVariables
   , RecordWildCards
@@ -11,20 +12,24 @@ module Server.HTTP where
 import Server.HTTP.WebSocket (websocket)
 import Server.Assets (favicons)
 import Types (AppM, runAppM, HTTPException (..), LoginException (..))
-import Types.Env (Env (..), Database (..))
+import Types.Env (Env (..), Database (..), Managers (..))
+import Types.Keys (Keys (..))
 import Template (html)
 import Database (User (..), Users (..), Username (..), Email (..), Salt (..), InsertUser (..), GetUserSalt (..), GetAllUsers (..), IsUniqueSalt (..), salt, IsUniqueUsername (..))
 import LocalCooking.Auth (UserID, SessionID, sessionID, ChallengeID (..), SignedChallenge, verifySignedChallenge)
 import LocalCooking.WebSocket (LocalCookingInput (..), LocalCookingOutput (..), LocalCookingLoginResult (..))
+import Links (FacebookLoginVerify (..), facebookLoginVerifyToURI)
 
 import Web.Routes.Nested (RouterT, match, matchHere, action, post, get, json, text, l_, (</>), o_, route)
 import Network.Wai.Middleware.ContentType (bytestring, FileExt (Other))
 import Network.Wai.Trans (MiddlewareT, strictRequestBody, queryString, websocketsOrT)
 import Network.WebSockets (defaultConnectionOptions)
+import Network.HTTP.Client (httpLbs, responseBody, parseRequest)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import qualified Data.ByteString      as BS
 import qualified Data.ByteString.Lazy as LBS
+import Data.URI (URI (..))
 import Data.Aeson (FromJSON (..), (.:))
 import Data.Aeson.Types (typeMismatch, Value (String, Object))
 import qualified Data.Aeson as Aeson
@@ -36,6 +41,7 @@ import qualified Data.TimeMap.Multi as TimeMultiMap
 import qualified Data.Attoparsec.Text as Atto
 import qualified Data.IxSet as IxSet
 import Data.Monoid ((<>))
+import qualified Data.Strict.Maybe as Strict
 import Control.Applicative ((<|>))
 import Control.Monad (join, when, forM_)
 import Control.Monad.IO.Class (liftIO)
@@ -198,15 +204,44 @@ router
                   errorCode <- join $ lookup "error_code" $ queryString req
                   errorMessage <- join $ lookup "error_message" $ queryString req
                   pure $ FacebookLoginReturnBad errorCode errorMessage
+                denied = do
+                  error' <- join $ lookup "error" $ queryString req
+                  errorReason <- join $ lookup "error_reason" $ queryString req
+                  errorDescription <- join $ lookup "error_description" $ queryString req
+                  if error' == "access_denied" && errorReason == "user_denied"
+                    then pure $ FacebookLoginReturnDenied errorDescription
+                    else Nothing
                 good = do
-                  code <- join $ lookup "code" $ queryString req
+                  code <- fmap T.decodeUtf8 $ join $ lookup "code" $ queryString req
                   (state :: Maybe ()) <- do -- FIXME decide a monomorphic state to share for CSRF prevention
                     x <- join $ lookup "state" $ queryString req
                     Aeson.decode (LBS.fromStrict x)
                   pure $ FacebookLoginReturnGood code state
-            bad <|> good of
+            bad <|> good <|> denied of
       Nothing -> fail $ "No parameters: " <> show (queryString req)
       Just x -> do
+        case x of
+          FacebookLoginReturnGood{facebookLoginGoodCode} -> do
+            Env
+              { envManagers = Managers{managersFacebook}
+              , envKeys = Keys{keysFacebookClientID, keysFacebookClientSecret}
+              , envHostname
+              } <- ask
+
+            req <- liftIO $ parseRequest $ show $ facebookLoginVerifyToURI FacebookLoginVerify
+              { facebookLoginVerifyClientID = keysFacebookClientID
+              , facebookLoginVerifyClientSecret = keysFacebookClientSecret
+              , facebookLoginVerifyRedirectURI = URI (Strict.Just "https") True envHostname ["facebookLoginReturn"] [] Strict.Nothing
+              , facebookLoginVerifyCode = facebookLoginGoodCode
+              }
+
+            resp <- liftIO $ httpLbs req managersFacebook
+
+            case Aeson.decode (responseBody resp) of
+              Nothing -> fail $ "Somehow couldn't parse facebook verify output: " <> show (responseBody resp)
+              Just (x :: FacebookLoginGetToken) -> do
+                log' $ "Got facebook access token: " <> T.pack (show x)
+          _ -> pure ()
         log' $ "Got facebook login return: " <> T.pack (show x)
         (action $ get $ text "Good!") app req resp
 
@@ -220,10 +255,32 @@ data FacebookLoginReturn a
       , facebookLoginBadErrorMessage :: BS.ByteString
       }
   | FacebookLoginReturnGood
-      { facebookLoginGoodCode :: BS.ByteString
+      { facebookLoginGoodCode :: T.Text
       , facebookLoginGoodState :: a
       }
+  | FacebookLoginReturnDenied
+      { facebookLoginDeniedErrorDescription :: BS.ByteString
+      }
   deriving (Show)
+
+
+data FacebookLoginGetToken = FacebookLoginGetToken
+  { facebookLoginGetTokenAccessToken :: T.Text
+  , facebookLoginGetTokenTokenType :: T.Text
+  , facebookLoginGetTokenExpiresIn :: Int
+  } deriving (Show)
+
+instance FromJSON FacebookLoginGetToken where
+  parseJSON (Object o) = do
+    facebookLoginGetTokenAccessToken <- o .: "access_token"
+    facebookLoginGetTokenTokenType <- o .: "token_type"
+    facebookLoginGetTokenExpiresIn <- o .: "expires_in"
+    pure FacebookLoginGetToken
+      { facebookLoginGetTokenAccessToken
+      , facebookLoginGetTokenTokenType
+      , facebookLoginGetTokenExpiresIn
+      }
+  parseJSON x = typeMismatch "FacebookLoginGetToken" x
 
 
 httpServer :: (TChanRW 'Write (SessionID, LocalCookingInput), TMapChan SessionID LocalCookingOutput)
