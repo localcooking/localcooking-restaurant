@@ -199,7 +199,11 @@ router
                   errorMessage <- join $ lookup "error_message" $ queryString req
                   pure $ FacebookLoginReturnBad errorCode errorMessage
                 good = do
-                  Nothing
+                  code <- join $ lookup "code" $ queryString req
+                  (state :: Maybe ()) <- do -- FIXME decide a monomorphic state to share for CSRF prevention
+                    x <- join $ lookup "state" $ queryString req
+                    Aeson.decode (LBS.fromStrict x)
+                  pure $ FacebookLoginReturnGood code state
             bad <|> good of
       Nothing -> fail $ "No parameters: " <> show (queryString req)
       Just x -> do
@@ -210,12 +214,15 @@ router
     log' $ "Got deauthorized: " <> T.pack (show (queryString req))
     (action $ get $ text "") app req resp
 
-data FacebookLoginReturn
+data FacebookLoginReturn a
   = FacebookLoginReturnBad
       { facebookLoginBadErrorCode :: BS.ByteString
       , facebookLoginBadErrorMessage :: BS.ByteString
       }
   | FacebookLoginReturnGood
+      { facebookLoginGoodCode :: BS.ByteString
+      , facebookLoginGoodState :: a
+      }
   deriving (Show)
 
 
