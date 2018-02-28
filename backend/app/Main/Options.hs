@@ -59,7 +59,7 @@ args username = ArgsImpl
         <> value "localhost:3000" <> showDefault
     parsePublicPort = option auto $
       long "public-port" <> help "Publically accessible port of the service, if different from the bound port (i.e. 80)"
-        <> value 0 <> showDefault
+        <> value 3000 <> showDefault
     parseSMTPHost = strOption $
       long "smtp-host" <> help "Hostname of the SMTP outgoing mail server"
         <> value "localhost" <> showDefault
