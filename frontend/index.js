@@ -10594,7 +10594,7 @@ var PS = {};
 })(PS["Main"] = PS["Main"] || {});
 PS["Main"].main();
 
-},{"create-react-class":137,"material-ui-icons/Menu":230,"material-ui-icons/PersonPin":231,"material-ui-icons/RestaurantMenu":232,"material-ui/AppBar":234,"material-ui/Button":236,"material-ui/Dialog":247,"material-ui/Divider":250,"material-ui/Drawer":252,"material-ui/IconButton":260,"material-ui/List":273,"material-ui/Paper":283,"material-ui/Reboot":290,"material-ui/TextField":296,"material-ui/Toolbar":298,"material-ui/Typography":300,"material-ui/styles":317,"react":994,"react-dom":347,"react-dom/server":348,"react-icons/lib/fa":675,"react-tap-event-plugin":987,"tweetnacl-util":1004,"uuid":1006}],2:[function(require,module,exports){
+},{"create-react-class":137,"material-ui-icons/Menu":230,"material-ui-icons/PersonPin":231,"material-ui-icons/RestaurantMenu":232,"material-ui/AppBar":234,"material-ui/Button":236,"material-ui/Dialog":247,"material-ui/Divider":250,"material-ui/Drawer":252,"material-ui/IconButton":260,"material-ui/List":273,"material-ui/Paper":283,"material-ui/Reboot":290,"material-ui/TextField":296,"material-ui/Toolbar":298,"material-ui/Typography":300,"material-ui/styles":317,"react":994,"react-dom":347,"react-dom/server":348,"react-icons/lib/fa":675,"react-tap-event-plugin":987,"tweetnacl-util":1004,"uuid":1005}],2:[function(require,module,exports){
 module.exports = { "default": require("core-js/library/fn/array/from"), __esModule: true };
 },{"core-js/library/fn/array/from":23}],3:[function(require,module,exports){
 module.exports = { "default": require("core-js/library/fn/map"), __esModule: true };
@@ -15896,7 +15896,7 @@ function jssNested() {
 
   return { onProcessStyle: onProcessStyle };
 }
-},{"warning":1005}],186:[function(require,module,exports){
+},{"warning":1010}],186:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -16329,7 +16329,7 @@ var PluginsRegistry = function () {
 }();
 
 exports['default'] = PluginsRegistry;
-},{"warning":1005}],190:[function(require,module,exports){
+},{"warning":1010}],190:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -16665,7 +16665,7 @@ var SheetsManager = function () {
 }();
 
 exports['default'] = SheetsManager;
-},{"warning":1005}],192:[function(require,module,exports){
+},{"warning":1010}],192:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -17738,7 +17738,7 @@ var DomRenderer = function () {
 }();
 
 exports['default'] = DomRenderer;
-},{"../rules/StyleRule":204,"../sheets":206,"../utils/toCssValue":216,"warning":1005}],199:[function(require,module,exports){
+},{"../rules/StyleRule":204,"../sheets":206,"../utils/toCssValue":216,"warning":1010}],199:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -18245,7 +18245,7 @@ var StyleRule = function () {
 }();
 
 exports['default'] = StyleRule;
-},{"../utils/toCss":215,"../utils/toCssValue":216,"warning":1005}],205:[function(require,module,exports){
+},{"../utils/toCss":215,"../utils/toCssValue":216,"warning":1010}],205:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -18418,7 +18418,7 @@ exports['default'] = function () {
   };
 };
 }).call(this,require('_process'))
-},{"../StyleSheet":193,"./moduleId":214,"_process":337,"warning":1005}],209:[function(require,module,exports){
+},{"../StyleSheet":193,"./moduleId":214,"_process":337,"warning":1010}],209:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -18461,7 +18461,7 @@ function createRule() {
 
   return new _StyleRule2['default'](name, declCopy, options);
 }
-},{"../rules/StyleRule":204,"../utils/cloneStyle":207,"warning":1005}],210:[function(require,module,exports){
+},{"../rules/StyleRule":204,"../utils/cloneStyle":207,"warning":1010}],210:[function(require,module,exports){
 (function (process,global){
 'use strict';
 
@@ -25134,7 +25134,7 @@ ListItemAvatar.muiName = 'ListItemAvatar';
 
 exports.default = (0, _withStyles2.default)(styles, { name: 'MuiListItemAvatar' })(ListItemAvatar);
 }).call(this,require('_process'))
-},{"../styles/withStyles":323,"_process":337,"babel-runtime/helpers/defineProperty":16,"babel-runtime/helpers/extends":17,"babel-runtime/helpers/objectWithoutProperties":19,"classnames":135,"prop-types":341,"react":994,"warning":1005}],269:[function(require,module,exports){
+},{"../styles/withStyles":323,"_process":337,"babel-runtime/helpers/defineProperty":16,"babel-runtime/helpers/extends":17,"babel-runtime/helpers/objectWithoutProperties":19,"classnames":135,"prop-types":341,"react":994,"warning":1010}],269:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -26793,7 +26793,7 @@ Modal.defaultProps = {
 
 exports.default = (0, _withStyles2.default)(styles, { flip: false, name: 'MuiModal' })(Modal);
 }).call(this,require('_process'))
-},{"../Portal":288,"../internal/RefHolder":306,"../styles/withStyles":323,"../utils/addEventListener":330,"../utils/helpers":332,"./Backdrop":276,"./ModalManager":278,"_process":337,"babel-runtime/core-js/object/get-prototype-of":9,"babel-runtime/helpers/classCallCheck":14,"babel-runtime/helpers/createClass":15,"babel-runtime/helpers/defineProperty":16,"babel-runtime/helpers/extends":17,"babel-runtime/helpers/inherits":18,"babel-runtime/helpers/objectWithoutProperties":19,"babel-runtime/helpers/possibleConstructorReturn":20,"classnames":135,"dom-helpers/activeElement":144,"dom-helpers/ownerDocument":145,"dom-helpers/query/contains":147,"dom-helpers/util/inDOM":158,"keycode":217,"prop-types":341,"react":994,"react-dom":347,"warning":1005}],278:[function(require,module,exports){
+},{"../Portal":288,"../internal/RefHolder":306,"../styles/withStyles":323,"../utils/addEventListener":330,"../utils/helpers":332,"./Backdrop":276,"./ModalManager":278,"_process":337,"babel-runtime/core-js/object/get-prototype-of":9,"babel-runtime/helpers/classCallCheck":14,"babel-runtime/helpers/createClass":15,"babel-runtime/helpers/defineProperty":16,"babel-runtime/helpers/extends":17,"babel-runtime/helpers/inherits":18,"babel-runtime/helpers/objectWithoutProperties":19,"babel-runtime/helpers/possibleConstructorReturn":20,"classnames":135,"dom-helpers/activeElement":144,"dom-helpers/ownerDocument":145,"dom-helpers/query/contains":147,"dom-helpers/util/inDOM":158,"keycode":217,"prop-types":341,"react":994,"react-dom":347,"warning":1010}],278:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -27225,7 +27225,7 @@ Paper.defaultProps = {
 
 exports.default = (0, _withStyles2.default)(styles, { name: 'MuiPaper' })(Paper);
 }).call(this,require('_process'))
-},{"../styles/withStyles":323,"_process":337,"babel-runtime/helpers/defineProperty":16,"babel-runtime/helpers/extends":17,"babel-runtime/helpers/objectWithoutProperties":19,"classnames":135,"prop-types":341,"react":994,"warning":1005}],283:[function(require,module,exports){
+},{"../styles/withStyles":323,"_process":337,"babel-runtime/helpers/defineProperty":16,"babel-runtime/helpers/extends":17,"babel-runtime/helpers/objectWithoutProperties":19,"classnames":135,"prop-types":341,"react":994,"warning":1010}],283:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -27804,7 +27804,7 @@ Popover.defaultProps = {
 
 exports.default = (0, _withStyles2.default)(styles, { name: 'MuiPopover' })(Popover);
 }).call(this,require('_process'))
-},{"../Modal":279,"../Paper":283,"../styles/withStyles":323,"../transitions/Grow":327,"_process":337,"babel-runtime/core-js/object/get-prototype-of":9,"babel-runtime/helpers/classCallCheck":14,"babel-runtime/helpers/createClass":15,"babel-runtime/helpers/extends":17,"babel-runtime/helpers/inherits":18,"babel-runtime/helpers/objectWithoutProperties":19,"babel-runtime/helpers/possibleConstructorReturn":20,"dom-helpers/ownerDocument":145,"dom-helpers/ownerWindow":146,"dom-helpers/query/contains":147,"lodash/debounce":224,"prop-types":341,"react":994,"react-dom":347,"react-event-listener":349,"warning":1005}],285:[function(require,module,exports){
+},{"../Modal":279,"../Paper":283,"../styles/withStyles":323,"../transitions/Grow":327,"_process":337,"babel-runtime/core-js/object/get-prototype-of":9,"babel-runtime/helpers/classCallCheck":14,"babel-runtime/helpers/createClass":15,"babel-runtime/helpers/extends":17,"babel-runtime/helpers/inherits":18,"babel-runtime/helpers/objectWithoutProperties":19,"babel-runtime/helpers/possibleConstructorReturn":20,"dom-helpers/ownerDocument":145,"dom-helpers/ownerWindow":146,"dom-helpers/query/contains":147,"lodash/debounce":224,"prop-types":341,"react":994,"react-dom":347,"react-event-listener":349,"warning":1010}],285:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -28977,7 +28977,7 @@ SelectInput.propTypes = process.env.NODE_ENV !== "production" ? {
 
 exports.default = SelectInput;
 }).call(this,require('_process'))
-},{"../Input/Input":261,"../Menu/Menu":274,"../internal/svg-icons/ArrowDropDown":307,"_process":337,"babel-runtime/core-js/object/get-prototype-of":9,"babel-runtime/helpers/classCallCheck":14,"babel-runtime/helpers/createClass":15,"babel-runtime/helpers/defineProperty":16,"babel-runtime/helpers/extends":17,"babel-runtime/helpers/inherits":18,"babel-runtime/helpers/objectWithoutProperties":19,"babel-runtime/helpers/possibleConstructorReturn":20,"babel-runtime/helpers/toConsumableArray":21,"classnames":135,"keycode":217,"prop-types":341,"react":994,"warning":1005}],293:[function(require,module,exports){
+},{"../Input/Input":261,"../Menu/Menu":274,"../internal/svg-icons/ArrowDropDown":307,"_process":337,"babel-runtime/core-js/object/get-prototype-of":9,"babel-runtime/helpers/classCallCheck":14,"babel-runtime/helpers/createClass":15,"babel-runtime/helpers/defineProperty":16,"babel-runtime/helpers/extends":17,"babel-runtime/helpers/inherits":18,"babel-runtime/helpers/objectWithoutProperties":19,"babel-runtime/helpers/possibleConstructorReturn":20,"babel-runtime/helpers/toConsumableArray":21,"classnames":135,"keycode":217,"prop-types":341,"react":994,"warning":1010}],293:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -29448,7 +29448,7 @@ TextField.defaultProps = {
 
 exports.default = TextField;
 }).call(this,require('_process'))
-},{"../Form/FormControl":253,"../Form/FormHelperText":256,"../Input":265,"../Select/Select":291,"_process":337,"babel-runtime/helpers/extends":17,"babel-runtime/helpers/objectWithoutProperties":19,"prop-types":341,"react":994,"warning":1005}],296:[function(require,module,exports){
+},{"../Form/FormControl":253,"../Form/FormHelperText":256,"../Input":265,"../Select/Select":291,"_process":337,"babel-runtime/helpers/extends":17,"babel-runtime/helpers/objectWithoutProperties":19,"prop-types":341,"react":994,"warning":1010}],296:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -30199,7 +30199,7 @@ MuiThemeProvider.contextTypes = (0, _extends3.default)({}, _themeListener2.defau
 
 exports.default = MuiThemeProvider;
 }).call(this,require('_process'))
-},{"../utils/exactProp":331,"./themeListener":321,"_process":337,"babel-runtime/core-js/object/get-prototype-of":9,"babel-runtime/helpers/classCallCheck":14,"babel-runtime/helpers/createClass":15,"babel-runtime/helpers/defineProperty":16,"babel-runtime/helpers/extends":17,"babel-runtime/helpers/inherits":18,"babel-runtime/helpers/possibleConstructorReturn":20,"brcast":133,"prop-types":341,"react":994,"warning":1005}],309:[function(require,module,exports){
+},{"../utils/exactProp":331,"./themeListener":321,"_process":337,"babel-runtime/core-js/object/get-prototype-of":9,"babel-runtime/helpers/classCallCheck":14,"babel-runtime/helpers/createClass":15,"babel-runtime/helpers/defineProperty":16,"babel-runtime/helpers/extends":17,"babel-runtime/helpers/inherits":18,"babel-runtime/helpers/possibleConstructorReturn":20,"brcast":133,"prop-types":341,"react":994,"warning":1010}],309:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -30452,7 +30452,7 @@ function lighten(color, coefficient) {
   return recomposeColor(color);
 }
 }).call(this,require('_process'))
-},{"_process":337,"warning":1005}],310:[function(require,module,exports){
+},{"_process":337,"warning":1010}],310:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -30630,7 +30630,7 @@ function createGenerateClassName() {
   };
 }
 }).call(this,require('_process'))
-},{"_process":337,"warning":1005}],312:[function(require,module,exports){
+},{"_process":337,"warning":1010}],312:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -30765,7 +30765,7 @@ function createMuiTheme() {
 } // < 1kb payload overhead when lodash/merge is > 3kb.
 exports.default = createMuiTheme;
 }).call(this,require('_process'))
-},{"./createBreakpoints":310,"./createMixins":312,"./createPalette":314,"./createTypography":315,"./shadows":319,"./spacing":320,"./transitions":322,"./zIndex":325,"_process":337,"babel-runtime/helpers/extends":17,"babel-runtime/helpers/objectWithoutProperties":19,"deepmerge":143,"warning":1005}],314:[function(require,module,exports){
+},{"./createBreakpoints":310,"./createMixins":312,"./createPalette":314,"./createTypography":315,"./shadows":319,"./spacing":320,"./transitions":322,"./zIndex":325,"_process":337,"babel-runtime/helpers/extends":17,"babel-runtime/helpers/objectWithoutProperties":19,"deepmerge":143,"warning":1010}],314:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -30976,7 +30976,7 @@ function createPalette(palette) {
   return paletteOutput;
 }
 }).call(this,require('_process'))
-},{"../colors/common":301,"../colors/grey":302,"../colors/indigo":303,"../colors/pink":304,"../colors/red":305,"./colorManipulator":309,"_process":337,"babel-runtime/helpers/extends":17,"babel-runtime/helpers/objectWithoutProperties":19,"deepmerge":143,"warning":1005}],315:[function(require,module,exports){
+},{"../colors/common":301,"../colors/grey":302,"../colors/indigo":303,"../colors/pink":304,"../colors/red":305,"./colorManipulator":309,"_process":337,"babel-runtime/helpers/extends":17,"babel-runtime/helpers/objectWithoutProperties":19,"deepmerge":143,"warning":1010}],315:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -31173,7 +31173,7 @@ function getStylesCreator(stylesOrCreator) {
 
 exports.default = getStylesCreator;
 }).call(this,require('_process'))
-},{"_process":337,"babel-runtime/core-js/object/keys":10,"babel-runtime/helpers/extends":17,"deepmerge":143,"warning":1005}],317:[function(require,module,exports){
+},{"_process":337,"babel-runtime/core-js/object/keys":10,"babel-runtime/helpers/extends":17,"deepmerge":143,"warning":1010}],317:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -31465,7 +31465,7 @@ exports.default = {
   }
 };
 }).call(this,require('_process'))
-},{"_process":337,"babel-runtime/core-js/number/is-nan":4,"babel-runtime/core-js/object/keys":10,"babel-runtime/helpers/objectWithoutProperties":19,"warning":1005}],323:[function(require,module,exports){
+},{"_process":337,"babel-runtime/core-js/number/is-nan":4,"babel-runtime/core-js/object/keys":10,"babel-runtime/helpers/objectWithoutProperties":19,"warning":1010}],323:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -31873,7 +31873,7 @@ var withStyles = function withStyles(stylesOrCreator) {
 
 exports.default = withStyles;
 }).call(this,require('_process'))
-},{"./createGenerateClassName":311,"./createMuiTheme":313,"./getStylesCreator":316,"./jssPreset":318,"./themeListener":321,"_process":337,"babel-runtime/core-js/map":3,"babel-runtime/core-js/number/min-safe-integer":5,"babel-runtime/core-js/object/get-prototype-of":9,"babel-runtime/core-js/object/keys":10,"babel-runtime/helpers/classCallCheck":14,"babel-runtime/helpers/createClass":15,"babel-runtime/helpers/extends":17,"babel-runtime/helpers/inherits":18,"babel-runtime/helpers/objectWithoutProperties":19,"babel-runtime/helpers/possibleConstructorReturn":20,"hoist-non-react-statics":178,"jss":194,"prop-types":341,"react":994,"react-jss/lib/contextTypes":981,"react-jss/lib/ns":982,"recompose/getDisplayName":995,"recompose/wrapDisplayName":1001,"warning":1005}],324:[function(require,module,exports){
+},{"./createGenerateClassName":311,"./createMuiTheme":313,"./getStylesCreator":316,"./jssPreset":318,"./themeListener":321,"_process":337,"babel-runtime/core-js/map":3,"babel-runtime/core-js/number/min-safe-integer":5,"babel-runtime/core-js/object/get-prototype-of":9,"babel-runtime/core-js/object/keys":10,"babel-runtime/helpers/classCallCheck":14,"babel-runtime/helpers/createClass":15,"babel-runtime/helpers/extends":17,"babel-runtime/helpers/inherits":18,"babel-runtime/helpers/objectWithoutProperties":19,"babel-runtime/helpers/possibleConstructorReturn":20,"hoist-non-react-statics":178,"jss":194,"prop-types":341,"react":994,"react-jss/lib/contextTypes":981,"react-jss/lib/ns":982,"recompose/getDisplayName":995,"recompose/wrapDisplayName":1001,"warning":1010}],324:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -33028,7 +33028,7 @@ function createChainedFunction() {
   }, function () {});
 }
 }).call(this,require('_process'))
-},{"_process":337,"babel-runtime/core-js/object/keys":10,"babel-runtime/helpers/typeof":22,"warning":1005}],333:[function(require,module,exports){
+},{"_process":337,"babel-runtime/core-js/object/keys":10,"babel-runtime/helpers/typeof":22,"warning":1010}],333:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -33107,7 +33107,7 @@ function listenForFocusKeys(win) {
   win.addEventListener('keyup', handleKeyUpEvent);
 }
 }).call(this,require('_process'))
-},{"_process":337,"dom-helpers/ownerDocument":145,"dom-helpers/query/contains":147,"keycode":217,"warning":1005}],334:[function(require,module,exports){
+},{"_process":337,"dom-helpers/ownerDocument":145,"dom-helpers/query/contains":147,"keycode":217,"warning":1010}],334:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -52857,7 +52857,7 @@ EventListener.propTypes = process.env.NODE_ENV !== "production" ? {
 
 exports.default = EventListener;
 }).call(this,require('_process'))
-},{"./supports":350,"_process":337,"babel-runtime/core-js/object/assign":6,"babel-runtime/core-js/object/get-prototype-of":9,"babel-runtime/core-js/object/keys":10,"babel-runtime/helpers/classCallCheck":14,"babel-runtime/helpers/createClass":15,"babel-runtime/helpers/inherits":18,"babel-runtime/helpers/objectWithoutProperties":19,"babel-runtime/helpers/possibleConstructorReturn":20,"babel-runtime/helpers/typeof":22,"fbjs/lib/shallowEqual":176,"prop-types":341,"react":994,"warning":1005}],350:[function(require,module,exports){
+},{"./supports":350,"_process":337,"babel-runtime/core-js/object/assign":6,"babel-runtime/core-js/object/get-prototype-of":9,"babel-runtime/core-js/object/keys":10,"babel-runtime/helpers/classCallCheck":14,"babel-runtime/helpers/createClass":15,"babel-runtime/helpers/inherits":18,"babel-runtime/helpers/objectWithoutProperties":19,"babel-runtime/helpers/possibleConstructorReturn":20,"babel-runtime/helpers/typeof":22,"fbjs/lib/shallowEqual":176,"prop-types":341,"react":994,"warning":1010}],350:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -80146,6 +80146,217 @@ function symbolObservablePonyfill(root) {
 
 }).call(this,require("buffer").Buffer)
 },{"buffer":134}],1005:[function(require,module,exports){
+var v1 = require('./v1');
+var v4 = require('./v4');
+
+var uuid = v4;
+uuid.v1 = v1;
+uuid.v4 = v4;
+
+module.exports = uuid;
+
+},{"./v1":1008,"./v4":1009}],1006:[function(require,module,exports){
+/**
+ * Convert array of 16 byte values to UUID string format of the form:
+ * XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+ */
+var byteToHex = [];
+for (var i = 0; i < 256; ++i) {
+  byteToHex[i] = (i + 0x100).toString(16).substr(1);
+}
+
+function bytesToUuid(buf, offset) {
+  var i = offset || 0;
+  var bth = byteToHex;
+  return bth[buf[i++]] + bth[buf[i++]] +
+          bth[buf[i++]] + bth[buf[i++]] + '-' +
+          bth[buf[i++]] + bth[buf[i++]] + '-' +
+          bth[buf[i++]] + bth[buf[i++]] + '-' +
+          bth[buf[i++]] + bth[buf[i++]] + '-' +
+          bth[buf[i++]] + bth[buf[i++]] +
+          bth[buf[i++]] + bth[buf[i++]] +
+          bth[buf[i++]] + bth[buf[i++]];
+}
+
+module.exports = bytesToUuid;
+
+},{}],1007:[function(require,module,exports){
+// Unique ID creation requires a high quality random # generator.  In the
+// browser this is a little complicated due to unknown quality of Math.random()
+// and inconsistent support for the `crypto` API.  We do the best we can via
+// feature-detection
+
+// getRandomValues needs to be invoked in a context where "this" is a Crypto implementation.
+var getRandomValues = (typeof(crypto) != 'undefined' && crypto.getRandomValues.bind(crypto)) ||
+                      (typeof(msCrypto) != 'undefined' && msCrypto.getRandomValues.bind(msCrypto));
+if (getRandomValues) {
+  // WHATWG crypto RNG - http://wiki.whatwg.org/wiki/Crypto
+  var rnds8 = new Uint8Array(16); // eslint-disable-line no-undef
+
+  module.exports = function whatwgRNG() {
+    getRandomValues(rnds8);
+    return rnds8;
+  };
+} else {
+  // Math.random()-based (RNG)
+  //
+  // If all else fails, use Math.random().  It's fast, but is of unspecified
+  // quality.
+  var rnds = new Array(16);
+
+  module.exports = function mathRNG() {
+    for (var i = 0, r; i < 16; i++) {
+      if ((i & 0x03) === 0) r = Math.random() * 0x100000000;
+      rnds[i] = r >>> ((i & 0x03) << 3) & 0xff;
+    }
+
+    return rnds;
+  };
+}
+
+},{}],1008:[function(require,module,exports){
+var rng = require('./lib/rng');
+var bytesToUuid = require('./lib/bytesToUuid');
+
+// **`v1()` - Generate time-based UUID**
+//
+// Inspired by https://github.com/LiosK/UUID.js
+// and http://docs.python.org/library/uuid.html
+
+var _nodeId;
+var _clockseq;
+
+// Previous uuid creation time
+var _lastMSecs = 0;
+var _lastNSecs = 0;
+
+// See https://github.com/broofa/node-uuid for API details
+function v1(options, buf, offset) {
+  var i = buf && offset || 0;
+  var b = buf || [];
+
+  options = options || {};
+  var node = options.node || _nodeId;
+  var clockseq = options.clockseq !== undefined ? options.clockseq : _clockseq;
+
+  // node and clockseq need to be initialized to random values if they're not
+  // specified.  We do this lazily to minimize issues related to insufficient
+  // system entropy.  See #189
+  if (node == null || clockseq == null) {
+    var seedBytes = rng();
+    if (node == null) {
+      // Per 4.5, create and 48-bit node id, (47 random bits + multicast bit = 1)
+      node = _nodeId = [
+        seedBytes[0] | 0x01,
+        seedBytes[1], seedBytes[2], seedBytes[3], seedBytes[4], seedBytes[5]
+      ];
+    }
+    if (clockseq == null) {
+      // Per 4.2.2, randomize (14 bit) clockseq
+      clockseq = _clockseq = (seedBytes[6] << 8 | seedBytes[7]) & 0x3fff;
+    }
+  }
+
+  // UUID timestamps are 100 nano-second units since the Gregorian epoch,
+  // (1582-10-15 00:00).  JSNumbers aren't precise enough for this, so
+  // time is handled internally as 'msecs' (integer milliseconds) and 'nsecs'
+  // (100-nanoseconds offset from msecs) since unix epoch, 1970-01-01 00:00.
+  var msecs = options.msecs !== undefined ? options.msecs : new Date().getTime();
+
+  // Per 4.2.1.2, use count of uuid's generated during the current clock
+  // cycle to simulate higher resolution clock
+  var nsecs = options.nsecs !== undefined ? options.nsecs : _lastNSecs + 1;
+
+  // Time since last uuid creation (in msecs)
+  var dt = (msecs - _lastMSecs) + (nsecs - _lastNSecs)/10000;
+
+  // Per 4.2.1.2, Bump clockseq on clock regression
+  if (dt < 0 && options.clockseq === undefined) {
+    clockseq = clockseq + 1 & 0x3fff;
+  }
+
+  // Reset nsecs if clock regresses (new clockseq) or we've moved onto a new
+  // time interval
+  if ((dt < 0 || msecs > _lastMSecs) && options.nsecs === undefined) {
+    nsecs = 0;
+  }
+
+  // Per 4.2.1.2 Throw error if too many uuids are requested
+  if (nsecs >= 10000) {
+    throw new Error('uuid.v1(): Can\'t create more than 10M uuids/sec');
+  }
+
+  _lastMSecs = msecs;
+  _lastNSecs = nsecs;
+  _clockseq = clockseq;
+
+  // Per 4.1.4 - Convert from unix epoch to Gregorian epoch
+  msecs += 12219292800000;
+
+  // `time_low`
+  var tl = ((msecs & 0xfffffff) * 10000 + nsecs) % 0x100000000;
+  b[i++] = tl >>> 24 & 0xff;
+  b[i++] = tl >>> 16 & 0xff;
+  b[i++] = tl >>> 8 & 0xff;
+  b[i++] = tl & 0xff;
+
+  // `time_mid`
+  var tmh = (msecs / 0x100000000 * 10000) & 0xfffffff;
+  b[i++] = tmh >>> 8 & 0xff;
+  b[i++] = tmh & 0xff;
+
+  // `time_high_and_version`
+  b[i++] = tmh >>> 24 & 0xf | 0x10; // include version
+  b[i++] = tmh >>> 16 & 0xff;
+
+  // `clock_seq_hi_and_reserved` (Per 4.2.2 - include variant)
+  b[i++] = clockseq >>> 8 | 0x80;
+
+  // `clock_seq_low`
+  b[i++] = clockseq & 0xff;
+
+  // `node`
+  for (var n = 0; n < 6; ++n) {
+    b[i + n] = node[n];
+  }
+
+  return buf ? buf : bytesToUuid(b);
+}
+
+module.exports = v1;
+
+},{"./lib/bytesToUuid":1006,"./lib/rng":1007}],1009:[function(require,module,exports){
+var rng = require('./lib/rng');
+var bytesToUuid = require('./lib/bytesToUuid');
+
+function v4(options, buf, offset) {
+  var i = buf && offset || 0;
+
+  if (typeof(options) == 'string') {
+    buf = options === 'binary' ? new Array(16) : null;
+    options = null;
+  }
+  options = options || {};
+
+  var rnds = options.random || (options.rng || rng)();
+
+  // Per 4.4, set bits for version and `clock_seq_hi_and_reserved`
+  rnds[6] = (rnds[6] & 0x0f) | 0x40;
+  rnds[8] = (rnds[8] & 0x3f) | 0x80;
+
+  // Copy bytes to buffer, if provided
+  if (buf) {
+    for (var ii = 0; ii < 16; ++ii) {
+      buf[i + ii] = rnds[ii];
+    }
+  }
+
+  return buf || bytesToUuid(rnds);
+}
+
+module.exports = v4;
+
+},{"./lib/bytesToUuid":1006,"./lib/rng":1007}],1010:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2014-2015, Facebook, Inc.
@@ -80209,209 +80420,4 @@ if (process.env.NODE_ENV !== 'production') {
 module.exports = warning;
 
 }).call(this,require('_process'))
-},{"_process":337}],1006:[function(require,module,exports){
-var v1 = require('./v1');
-var v4 = require('./v4');
-
-var uuid = v4;
-uuid.v1 = v1;
-uuid.v4 = v4;
-
-module.exports = uuid;
-
-},{"./v1":1009,"./v4":1010}],1007:[function(require,module,exports){
-/**
- * Convert array of 16 byte values to UUID string format of the form:
- * XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
- */
-var byteToHex = [];
-for (var i = 0; i < 256; ++i) {
-  byteToHex[i] = (i + 0x100).toString(16).substr(1);
-}
-
-function bytesToUuid(buf, offset) {
-  var i = offset || 0;
-  var bth = byteToHex;
-  return bth[buf[i++]] + bth[buf[i++]] +
-          bth[buf[i++]] + bth[buf[i++]] + '-' +
-          bth[buf[i++]] + bth[buf[i++]] + '-' +
-          bth[buf[i++]] + bth[buf[i++]] + '-' +
-          bth[buf[i++]] + bth[buf[i++]] + '-' +
-          bth[buf[i++]] + bth[buf[i++]] +
-          bth[buf[i++]] + bth[buf[i++]] +
-          bth[buf[i++]] + bth[buf[i++]];
-}
-
-module.exports = bytesToUuid;
-
-},{}],1008:[function(require,module,exports){
-(function (global){
-// Unique ID creation requires a high quality random # generator.  In the
-// browser this is a little complicated due to unknown quality of Math.random()
-// and inconsistent support for the `crypto` API.  We do the best we can via
-// feature-detection
-var rng;
-
-var crypto = global.crypto || global.msCrypto; // for IE 11
-if (crypto && crypto.getRandomValues) {
-  // WHATWG crypto RNG - http://wiki.whatwg.org/wiki/Crypto
-  var rnds8 = new Uint8Array(16); // eslint-disable-line no-undef
-  rng = function whatwgRNG() {
-    crypto.getRandomValues(rnds8);
-    return rnds8;
-  };
-}
-
-if (!rng) {
-  // Math.random()-based (RNG)
-  //
-  // If all else fails, use Math.random().  It's fast, but is of unspecified
-  // quality.
-  var rnds = new Array(16);
-  rng = function() {
-    for (var i = 0, r; i < 16; i++) {
-      if ((i & 0x03) === 0) r = Math.random() * 0x100000000;
-      rnds[i] = r >>> ((i & 0x03) << 3) & 0xff;
-    }
-
-    return rnds;
-  };
-}
-
-module.exports = rng;
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],1009:[function(require,module,exports){
-var rng = require('./lib/rng');
-var bytesToUuid = require('./lib/bytesToUuid');
-
-// **`v1()` - Generate time-based UUID**
-//
-// Inspired by https://github.com/LiosK/UUID.js
-// and http://docs.python.org/library/uuid.html
-
-// random #'s we need to init node and clockseq
-var _seedBytes = rng();
-
-// Per 4.5, create and 48-bit node id, (47 random bits + multicast bit = 1)
-var _nodeId = [
-  _seedBytes[0] | 0x01,
-  _seedBytes[1], _seedBytes[2], _seedBytes[3], _seedBytes[4], _seedBytes[5]
-];
-
-// Per 4.2.2, randomize (14 bit) clockseq
-var _clockseq = (_seedBytes[6] << 8 | _seedBytes[7]) & 0x3fff;
-
-// Previous uuid creation time
-var _lastMSecs = 0, _lastNSecs = 0;
-
-// See https://github.com/broofa/node-uuid for API details
-function v1(options, buf, offset) {
-  var i = buf && offset || 0;
-  var b = buf || [];
-
-  options = options || {};
-
-  var clockseq = options.clockseq !== undefined ? options.clockseq : _clockseq;
-
-  // UUID timestamps are 100 nano-second units since the Gregorian epoch,
-  // (1582-10-15 00:00).  JSNumbers aren't precise enough for this, so
-  // time is handled internally as 'msecs' (integer milliseconds) and 'nsecs'
-  // (100-nanoseconds offset from msecs) since unix epoch, 1970-01-01 00:00.
-  var msecs = options.msecs !== undefined ? options.msecs : new Date().getTime();
-
-  // Per 4.2.1.2, use count of uuid's generated during the current clock
-  // cycle to simulate higher resolution clock
-  var nsecs = options.nsecs !== undefined ? options.nsecs : _lastNSecs + 1;
-
-  // Time since last uuid creation (in msecs)
-  var dt = (msecs - _lastMSecs) + (nsecs - _lastNSecs)/10000;
-
-  // Per 4.2.1.2, Bump clockseq on clock regression
-  if (dt < 0 && options.clockseq === undefined) {
-    clockseq = clockseq + 1 & 0x3fff;
-  }
-
-  // Reset nsecs if clock regresses (new clockseq) or we've moved onto a new
-  // time interval
-  if ((dt < 0 || msecs > _lastMSecs) && options.nsecs === undefined) {
-    nsecs = 0;
-  }
-
-  // Per 4.2.1.2 Throw error if too many uuids are requested
-  if (nsecs >= 10000) {
-    throw new Error('uuid.v1(): Can\'t create more than 10M uuids/sec');
-  }
-
-  _lastMSecs = msecs;
-  _lastNSecs = nsecs;
-  _clockseq = clockseq;
-
-  // Per 4.1.4 - Convert from unix epoch to Gregorian epoch
-  msecs += 12219292800000;
-
-  // `time_low`
-  var tl = ((msecs & 0xfffffff) * 10000 + nsecs) % 0x100000000;
-  b[i++] = tl >>> 24 & 0xff;
-  b[i++] = tl >>> 16 & 0xff;
-  b[i++] = tl >>> 8 & 0xff;
-  b[i++] = tl & 0xff;
-
-  // `time_mid`
-  var tmh = (msecs / 0x100000000 * 10000) & 0xfffffff;
-  b[i++] = tmh >>> 8 & 0xff;
-  b[i++] = tmh & 0xff;
-
-  // `time_high_and_version`
-  b[i++] = tmh >>> 24 & 0xf | 0x10; // include version
-  b[i++] = tmh >>> 16 & 0xff;
-
-  // `clock_seq_hi_and_reserved` (Per 4.2.2 - include variant)
-  b[i++] = clockseq >>> 8 | 0x80;
-
-  // `clock_seq_low`
-  b[i++] = clockseq & 0xff;
-
-  // `node`
-  var node = options.node || _nodeId;
-  for (var n = 0; n < 6; ++n) {
-    b[i + n] = node[n];
-  }
-
-  return buf ? buf : bytesToUuid(b);
-}
-
-module.exports = v1;
-
-},{"./lib/bytesToUuid":1007,"./lib/rng":1008}],1010:[function(require,module,exports){
-var rng = require('./lib/rng');
-var bytesToUuid = require('./lib/bytesToUuid');
-
-function v4(options, buf, offset) {
-  var i = buf && offset || 0;
-
-  if (typeof(options) == 'string') {
-    buf = options == 'binary' ? new Array(16) : null;
-    options = null;
-  }
-  options = options || {};
-
-  var rnds = options.random || (options.rng || rng)();
-
-  // Per 4.4, set bits for version and `clock_seq_hi_and_reserved`
-  rnds[6] = (rnds[6] & 0x0f) | 0x40;
-  rnds[8] = (rnds[8] & 0x3f) | 0x80;
-
-  // Copy bytes to buffer, if provided
-  if (buf) {
-    for (var ii = 0; ii < 16; ++ii) {
-      buf[i + ii] = rnds[ii];
-    }
-  }
-
-  return buf || bytesToUuid(rnds);
-}
-
-module.exports = v4;
-
-},{"./lib/bytesToUuid":1007,"./lib/rng":1008}]},{},[1]);
+},{"_process":337}]},{},[1]);
