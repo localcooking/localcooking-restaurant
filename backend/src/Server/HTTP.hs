@@ -20,6 +20,7 @@ import Database (User (..), Users (..), Username (..), Email (..), Salt (..), In
 import LocalCooking.Auth (UserID, SessionID, sessionID, ChallengeID (..), SignedChallenge, verifySignedChallenge)
 import LocalCooking.WebSocket (LocalCookingInput (..), LocalCookingOutput (..), LocalCookingLoginResult (..))
 import Links (FacebookLoginVerify (..), facebookLoginVerifyToURI)
+import Login (ThirdPartyLoginToken (..))
 import Login.Facebook (FacebookLoginReturn (..), FacebookLoginGetToken (..))
 
 import Web.Routes.Nested (RouterT, match, matchHere, matchGroup, action, post, get, json, text, l_, (</>), o_, route)
@@ -59,6 +60,7 @@ import Control.Concurrent.Chan.Scope (Scope (..))
 import Control.Concurrent.STM.TChan.Typed (TChanRW)
 import Crypto.Saltine.Core.Box (newNonce)
 import qualified Crypto.Saltine.Class as NaCl
+import System.IO.Error (userError)
 
 
 
@@ -236,6 +238,12 @@ router
       Nothing -> fail $ "No parameters: " <> show (queryString req)
       Just x -> do
         case x of
+          FacebookLoginReturnDenied{} -> do
+            warn' $ "Got bad facebook login: " <> T.pack (show x) -- FIXME return 200, pack failure in frontendEnv
+            throwM $ userError "Bad facebook login"
+          FacebookLoginReturnBad{} -> do
+            warn' $ "Got bad facebook login: " <> T.pack (show x) -- FIXME return 200, pack failure in frontendEnv
+            throwM $ userError "Bad facebook login"
           FacebookLoginReturnGood{facebookLoginGoodCode} -> do
             Env
               { envManagers = Managers{managersFacebook}
@@ -254,19 +262,18 @@ router
             resp' <- liftIO $ httpLbs req' managersFacebook
 
             case Aeson.decode (responseBody resp') of
-              Nothing -> fail $ "Somehow couldn't parse facebook verify output: " <> show (responseBody resp')
+              Nothing -> do
+                throwM $ userError $ "Somehow couldn't parse facebook verify output: " <> show (responseBody resp')
               Just x -> do
                 case x of
-                  FacebookLoginGetTokenError{} ->
+                  FacebookLoginGetTokenError{} -> do
                     when (isDevelopment env) $ warn' $
                       "Couldn't verify facebook code due to formatting error: "
                       <> T.pack (show x) <> ", from: " <> url
-                  FacebookLoginGetToken{facebookLoginGetTokenAccessToken} ->
+                    throwM $ userError "Couldn't verify facebook code" -- FIXME
+                  FacebookLoginGetToken{facebookLoginGetTokenAccessToken} -> do
                     log' $ "Got facebook access token: " <> T.pack (show x)
-          FacebookLoginReturnDenied{} -> pure ()
-          FacebookLoginReturnBad{} -> pure ()
-        log' $ "Got facebook login return: " <> T.pack (show x)
-        (action $ get $ text "Good!") app req resp
+                    (action $ get $ html (Just $ FacebookLoginToken facebookLoginGetTokenAccessToken) "") app req resp
 
   match (l_ "facebookLoginDeauthorize" </> o_) $ \app req resp -> do
     body <- liftIO $ strictRequestBody req
