@@ -20,6 +20,7 @@ import Database (User (..), Users (..), Username (..), Email (..), Salt (..), In
 import LocalCooking.Auth (UserID, SessionID, sessionID, ChallengeID (..), SignedChallenge, verifySignedChallenge)
 import LocalCooking.WebSocket (LocalCookingInput (..), LocalCookingOutput (..), LocalCookingLoginResult (..))
 import Links (FacebookLoginVerify (..), facebookLoginVerifyToURI)
+import Login.Facebook (FacebookLoginReturn (..), FacebookLoginGetToken (..))
 
 import Web.Routes.Nested (RouterT, match, matchHere, matchGroup, action, post, get, json, text, l_, (</>), o_, route)
 import Network.Wai.Middleware.ContentType (bytestring, FileExt (Other, JavaScript))
@@ -92,8 +93,8 @@ router
   loginSessions
   loginRefs
   = do
-  matchHere $ action $ get $ html ""
-  match (l_ "about" </> o_) $ action $ get $ html "" -- FIXME SEO
+  matchHere $ action $ get $ html Nothing ""
+  match (l_ "about" </> o_) $ action $ get $ html Nothing "" -- FIXME SEO
 
   forM_ favicons $ \(file, content) -> do
     let (file', ext) = T.breakOn "." (T.pack file)
@@ -101,24 +102,15 @@ router
       bytestring (Other (T.dropWhile (== '.') ext)) (LBS.fromStrict content)
 
   match (l_ "index.js" </> o_) $ \app req resp -> do
-    env@Env{envKeys = Keys{keysFacebookClientID}, envDevelopment} <- ask
+    Env{envDevelopment} <- ask
     case envDevelopment of
       Nothing -> pure ()
       Just Development{devCacheBuster} -> case join $ lookup "cache_buster" $ queryString req of
         Nothing -> fail "No cache busting parameter!"
         Just cacheBuster
-          | cacheBuster == BS64.encode (NaCl.encode devCacheBuster) -> log' "Uh..."
+          | cacheBuster == BS64.encode (NaCl.encode devCacheBuster) -> pure ()
           | otherwise -> fail "Wrong cache buster!" -- FIXME make cache buster generic
-
-    let frontendEnv = FrontendEnv
-          { frontendEnvDevelopment = isDevelopment env
-          , frontendEnvFacebookClientID = keysFacebookClientID
-          }
-        continue = action $ get $ bytestring JavaScript $
-                    "var frontendEnv = " <> Aeson.encode frontendEnv <> ";\n"
-                    <> LBS.fromStrict frontend
-
-    continue app req resp
+    (action $ get $ bytestring JavaScript $ LBS.fromStrict frontend) app req resp
 
   match (l_ "register" </> o_) $ \app req respond -> do
     body <- liftIO $ strictRequestBody req
@@ -269,9 +261,10 @@ router
                     when (isDevelopment env) $ warn' $
                       "Couldn't verify facebook code due to formatting error: "
                       <> T.pack (show x) <> ", from: " <> url
-                  _ -> pure ()
-                log' $ "Got facebook access token: " <> T.pack (show x)
-          _ -> pure ()
+                  FacebookLoginGetToken{facebookLoginGetTokenAccessToken} ->
+                    log' $ "Got facebook access token: " <> T.pack (show x)
+          FacebookLoginReturnDenied{} -> pure ()
+          FacebookLoginReturnBad{} -> pure ()
         log' $ "Got facebook login return: " <> T.pack (show x)
         (action $ get $ text "Good!") app req resp
 
@@ -279,62 +272,6 @@ router
     body <- liftIO $ strictRequestBody req
     log' $ "Got deauthorized: " <> T.pack (show body)
     (action $ post $ text "") app req resp
-
-
-data FacebookLoginReturn a
-  = FacebookLoginReturnBad
-      { facebookLoginBadErrorCode :: BS.ByteString
-      , facebookLoginBadErrorMessage :: BS.ByteString
-      }
-  | FacebookLoginReturnGood
-      { facebookLoginGoodCode :: T.Text
-      , facebookLoginGoodState :: a
-      }
-  | FacebookLoginReturnDenied
-      { facebookLoginDeniedErrorDescription :: BS.ByteString
-      }
-  deriving (Show)
-
-
-data FacebookLoginGetToken
-  = FacebookLoginGetToken
-    { facebookLoginGetTokenAccessToken :: T.Text
-    , facebookLoginGetTokenTokenType :: T.Text
-    , facebookLoginGetTokenExpiresIn :: Int
-    }
-  | FacebookLoginGetTokenError
-    { facebookLoginGetTokenErrorMessage :: T.Text
-    , facebookLoginGetTokenErrorType :: T.Text
-    , facebookLoginGetTokenErrorCode :: Int
-    , facebookLoginGetTokenErrorFbTraceID :: T.Text
-    }
-  deriving (Show)
-
-instance FromJSON FacebookLoginGetToken where
-  parseJSON (Object o) = do
-    let good = do
-          facebookLoginGetTokenAccessToken <- o .: "access_token"
-          facebookLoginGetTokenTokenType <- o .: "token_type"
-          facebookLoginGetTokenExpiresIn <- o .: "expires_in"
-          pure FacebookLoginGetToken
-            { facebookLoginGetTokenAccessToken
-            , facebookLoginGetTokenTokenType
-            , facebookLoginGetTokenExpiresIn
-            }
-        error' = do
-          o' <- o .: "error"
-          facebookLoginGetTokenErrorMessage <- o' .: "message"
-          facebookLoginGetTokenErrorType <- o' .: "type"
-          facebookLoginGetTokenErrorCode <- o' .: "code"
-          facebookLoginGetTokenErrorFbTraceID <- o' .: "fbtrace_id"
-          pure FacebookLoginGetTokenError
-            { facebookLoginGetTokenErrorMessage
-            , facebookLoginGetTokenErrorType
-            , facebookLoginGetTokenErrorCode
-            , facebookLoginGetTokenErrorFbTraceID
-            }
-    good <|> error'
-  parseJSON x = typeMismatch "FacebookLoginGetToken" x
 
 
 httpServer :: (TChanRW 'Write (SessionID, LocalCookingInput), TMapChan SessionID LocalCookingOutput)

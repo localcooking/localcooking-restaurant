@@ -57,6 +57,7 @@ library:
     - safecopy
     - safe-exceptions
     - saltine
+    - shakespeare
     - stm
     - strict
     - timemap

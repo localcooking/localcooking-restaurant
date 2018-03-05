@@ -10,11 +10,13 @@
 module Template where
 
 import           Types (AppM)
-import           Types.Env (Env (..), Development (..))
+import           Types.Env (Env (..), Development (..), isDevelopment)
+import           Types.FrontendEnv (FrontendEnv (..))
 import           Types.Keys (Keys (..))
 import           Links (WebAssetLinks (..))
+import           Login (ThirdPartyLoginToken (..))
 
-import           Lucid (renderBST, HtmlT, Attribute, content_, name_, meta_, httpEquiv_, charset_, link_, rel_, type_, href_, sizes_)
+import           Lucid (renderBST, HtmlT, Attribute, content_, name_, meta_, httpEquiv_, charset_, link_, rel_, type_, href_, sizes_, script_)
 import           Lucid.Base (makeAttribute)
 import           Network.HTTP.Types (Status, status200)
 import qualified Network.Wai.Middleware.ContentType.Types as CT
@@ -23,6 +25,7 @@ import           Web.Routes.Nested (FileExtListenerT, mapHeaders, mapStatus, byt
 
 import qualified Data.Text                                as T
 import qualified Data.Text.Encoding                       as T
+import qualified Data.Text.Lazy.Encoding                  as LT
 import           Data.Default
 import qualified Data.HashMap.Strict                      as HM
 import           Data.Markup                              as M
@@ -43,6 +46,8 @@ import           Control.Monad.State                      (modify)
 import           Control.Monad.Trans                      (lift)
 import           Control.Monad.Morph                      (hoist)
 import           Path.Extended (ToLocation (toLocation))
+import           Text.Julius (julius, renderJavascriptUrl)
+import           Text.Lucius (lucius, renderCssUrl, Color (..))
 
 import Debug.Trace (traceShow)
 
@@ -68,13 +73,15 @@ htmlLight s content = do
                   . mapHeaders ([("content-Type", "text/html")] ++)
 
 
-html :: HtmlT (AbsoluteUrlT AppM) ()
+html :: Maybe ThirdPartyLoginToken
+     -> HtmlT (AbsoluteUrlT AppM) ()
      -> FileExtListenerT AppM ()
-html content = htmlLight status200 $ mainTemplate content
+html mToken = htmlLight status200 . mainTemplate mToken
 
 
-masterPage :: WebPage (HtmlT (AbsoluteUrlT AppM) ()) T.Text [Attribute]
-masterPage =
+masterPage :: Maybe ThirdPartyLoginToken
+           -> WebPage (HtmlT (AbsoluteUrlT AppM) ()) T.Text [Attribute]
+masterPage mToken =
   let page :: WebPage (HtmlT (AbsoluteUrlT AppM) ()) T.Text [Attribute]
       page = def
   in  page
@@ -93,30 +100,47 @@ masterPage =
             meta_ [name_ "theme-color", content_ "#ffffff"]
         , pageTitle = "Local Cooking"
         , styles =
-          inlineStyles
+          deploy M.Css Inline $ renderCssUrl (\_ _ -> undefined) inlineStyles
         , bodyScripts = do
           Env{envDevelopment = mDev} <- lift ask
           deploy M.JavaScript M.Remote =<< lift (toLocation $ IndexJs $ devCacheBuster <$> mDev)
+        , afterStylesScripts = do
+          env@Env{envKeys = Keys{keysFacebookClientID}} <- lift ask
+          let frontendEnv = FrontendEnv
+                { frontendEnvDevelopment = isDevelopment env
+                , frontendEnvFacebookClientID = keysFacebookClientID
+                , frontendEnvLoginToken = mToken
+                }
+          script_ [] $ renderJavascriptUrl (\_ _ -> undefined) $ inlineScripts frontendEnv
         }
   where
-    inlineStyles =
-      deploy M.Css Inline ([here|
+    inlineStyles = [lucius|
 a:link:not(.MuiButton-root-38), a:active:not(.MuiButton-root-38) {
-  color: #c62828;
+  color: #{aLinkActive};
 }
 a:hover:not(.MuiButton-root-38) {
-  color: #ff5f52;
+  color: #{aHover};
 }
 a:visited:not(.MuiButton-root-38) {
-  color: #8e0000;
+  color: #{aVisited};
 }
 body {
-  background-color: #8e0000 !important;
+  background-color: #{background} !important;
   padding-bottom: 5em;
-}|] :: T.Text)
+}|]
+      where
+        aLinkActive = Color 198 40 40
+        aHover = Color 255 95 82
+        aVisited = Color 142 0 0
+        background = Color 142 0 0
+
+    inlineScripts frontendEnv = [julius|
+var frontendEnv = #{Aeson.toJSON frontendEnv}
+|]
 
 -- | Inject some HTML into the @<body>@ tag of our template
-mainTemplate :: HtmlT (AbsoluteUrlT AppM) ()
+mainTemplate :: Maybe ThirdPartyLoginToken
              -> HtmlT (AbsoluteUrlT AppM) ()
-mainTemplate = template masterPage
+             -> HtmlT (AbsoluteUrlT AppM) ()
+mainTemplate = template . masterPage
 
