@@ -8,7 +8,7 @@ Group=localcooking
 WorkingDirectory=/home/localcooking
 
 ExecStart=/home/localcooking/localcooking-mitch/backend/.stack-work/install/x86_64-linux/lts-10.5/8.2.2/bin/localcooking \
-  --host localcooking.com:3000 --public-port 80
+  --host localcooking.com:3000 --public-port 80 --tls
 
 [Install]
 WantedBy=multi-user.target
