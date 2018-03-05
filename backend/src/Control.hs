@@ -8,7 +8,7 @@
 module Control where
 
 import Types (AppM)
-import Types.Env (Env (..), Database (..), Threads (..))
+import Types.Env (Env (..), Database (..), Threads (..), isDevelopment)
 import LocalCooking.Auth (UserID, SessionID)
 import LocalCooking.WebSocket (LocalCookingInput (..), LocalCookingOutput (..))
 import LocalCooking.Subs (SubsInput (..), SubsOutput (..))
@@ -40,8 +40,7 @@ control ControlSenders{controlOutgoingUnauth,controlOutgoingAuth} = do
   -- controlBitmexInput $ Subscribe $ TradeBin1m $ Just XBTUSD
   -- controlBitmexInput $ Subscribe $ OrderBook10 $ Just XBTUSD -- FIXME should we batch ourselves?
 
-  Env{ envDevelopment
-     } <- ask
+  env <- ask
 
 
   pure ControlReceivers
@@ -53,7 +52,7 @@ control ControlSenders{controlOutgoingUnauth,controlOutgoingAuth} = do
           --     atomically $ TMapChan.insert controlOutgoingUnauth sid $
           --       LocalCookingOpResult $ LocalCookingOpResultChartData xs
           -- LocalCookingSubsInput x' -> case x' of
-          _ -> when envDevelopment $ liftIO $ log' $ "Got input that's not handled: " <> T.pack (show input) <> ", from session: " <> T.pack (show sid)
-        when envDevelopment $ liftIO $ log' "Finished reading controlIncomingUnauth"
+          _ -> when (isDevelopment env) $ liftIO $ log' $ "Got input that's not handled: " <> T.pack (show input) <> ", from session: " <> T.pack (show sid)
+        when (isDevelopment env) $ liftIO $ log' "Finished reading controlIncomingUnauth"
     , controlIncomingAuth = \_ _ -> pure ()
     }

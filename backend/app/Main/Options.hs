@@ -7,7 +7,7 @@
 
 module Main.Options where
 
-import Types.Env (Env (..), Database (..), defThreads, defManagers)
+import Types.Env (Env (..), Database (..), defThreads, defManagers, defDevelopment)
 import Database (initialUsers)
 
 import Options.Applicative (Parser, strOption, option, switch, auto, long, help, value, showDefault)
@@ -36,6 +36,7 @@ data ArgsImpl = ArgsImpl
   , argsImplPublicPort :: Int
   , argsImplSMTPHost   :: String
   , argsImplProduction :: Bool
+  , argsImplTls        :: Bool
   }
 
 
@@ -47,6 +48,7 @@ args username = ArgsImpl
              <*> parsePublicPort
              <*> parseSMTPHost
              <*> parseProduction
+             <*> parseTls
   where
     parseSecretKey = strOption $
       long "secret-key" <> help "File path to the properly accessible secrets file, containing the PayPal API tokens, etc."
@@ -65,6 +67,8 @@ args username = ArgsImpl
         <> value "localhost" <> showDefault
     parseProduction = switch $
       long "production" <> help "Run the server in production-mode (less logging)"
+    parseTls = switch $
+      long "tls" <> help "Assume the server is running behind a TLS HTTP proxy"
 
 
 mkEnv :: ArgsImpl -> IO (Env, Int)
@@ -76,6 +80,7 @@ mkEnv
     , argsImplPublicPort
     , argsImplSMTPHost
     , argsImplProduction
+    , argsImplTls
     } = do
   envKeys <- case parseOnly absFilePath (T.pack argsImplSecretKey) of
     Left e -> errorL $ "Secret key path not absolute: " <> T.pack e
@@ -116,6 +121,7 @@ mkEnv
 
   envThreads <- defThreads
   envManagers <- defManagers
+  envDevelopment <- if argsImplProduction then pure Nothing else Just <$> defDevelopment
 
   pure
     ( Env
@@ -123,7 +129,8 @@ mkEnv
       , envSMTPHost
       , envDatabase
       , envThreads
-      , envDevelopment = not argsImplProduction
+      , envDevelopment
+      , envTls = argsImplTls
       , envKeys
       , envManagers
       }

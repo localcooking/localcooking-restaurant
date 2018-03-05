@@ -46,9 +46,12 @@ extra-deps:
   - acid-state-0.14.3
   - aeson-attoparsec-0.0.0
   - attoparsec-base64-0.0.0
+  - attoparsec-uri-0.0.4
   - chan-0.0.3
   - logging-3.0.5
+  - markup-4.0.4
   - nested-routes-8.0.1
+  - urlpath-8.0.1
   - wai-middleware-content-type-0.5.2
   - wai-middleware-verbs-0.3.2
 

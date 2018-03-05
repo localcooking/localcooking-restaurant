@@ -10,9 +10,10 @@
 module Server.HTTP where
 
 import Server.HTTP.WebSocket (websocket)
-import Server.Assets (favicons)
+import Server.Assets (favicons, frontend)
 import Types (AppM, runAppM, HTTPException (..), LoginException (..))
-import Types.Env (Env (..), Database (..), Managers (..))
+import Types.Env (Env (..), Database (..), Managers (..), isDevelopment, Development (..))
+import Types.FrontendEnv (FrontendEnv (..))
 import Types.Keys (Keys (..))
 import Template (html)
 import Database (User (..), Users (..), Username (..), Email (..), Salt (..), InsertUser (..), GetUserSalt (..), GetAllUsers (..), IsUniqueSalt (..), salt, IsUniqueUsername (..))
@@ -20,16 +21,17 @@ import LocalCooking.Auth (UserID, SessionID, sessionID, ChallengeID (..), Signed
 import LocalCooking.WebSocket (LocalCookingInput (..), LocalCookingOutput (..), LocalCookingLoginResult (..))
 import Links (FacebookLoginVerify (..), facebookLoginVerifyToURI)
 
-import Web.Routes.Nested (RouterT, match, matchHere, action, post, get, json, text, l_, (</>), o_, route)
-import Network.Wai.Middleware.ContentType (bytestring, FileExt (Other))
+import Web.Routes.Nested (RouterT, match, matchHere, matchGroup, action, post, get, json, text, l_, (</>), o_, route)
+import Network.Wai.Middleware.ContentType (bytestring, FileExt (Other, JavaScript))
 import Network.Wai.Trans (MiddlewareT, strictRequestBody, queryString, websocketsOrT)
 import Network.WebSockets (defaultConnectionOptions)
 import Network.HTTP.Client (httpLbs, responseBody, parseRequest)
-import qualified Data.Text as T
-import qualified Data.Text.Encoding as T
-import qualified Data.ByteString      as BS
-import qualified Data.ByteString.Lazy as LBS
-import Data.URI (URI (..))
+import qualified Data.Text              as T
+import qualified Data.Text.Encoding     as T
+import qualified Data.ByteString        as BS
+import qualified Data.ByteString.Base64 as BS64
+import qualified Data.ByteString.Lazy   as LBS
+import Data.URI (URI (..), printURI)
 import Data.Aeson (FromJSON (..), (.:))
 import Data.Aeson.Types (typeMismatch, Value (String, Object))
 import qualified Data.Aeson as Aeson
@@ -55,6 +57,7 @@ import qualified Control.Concurrent.STM.TMapChan as TMapChan
 import Control.Concurrent.Chan.Scope (Scope (..))
 import Control.Concurrent.STM.TChan.Typed (TChanRW)
 import Crypto.Saltine.Core.Box (newNonce)
+import qualified Crypto.Saltine.Class as NaCl
 
 
 
@@ -96,6 +99,26 @@ router
     let (file', ext) = T.breakOn "." (T.pack file)
     match (l_ file' </> o_) $ action $ get $
       bytestring (Other (T.dropWhile (== '.') ext)) (LBS.fromStrict content)
+
+  match (l_ "index.js" </> o_) $ \app req resp -> do
+    env@Env{envKeys = Keys{keysFacebookClientID}, envDevelopment} <- ask
+    case envDevelopment of
+      Nothing -> pure ()
+      Just Development{devCacheBuster} -> case join $ lookup "cache_buster" $ queryString req of
+        Nothing -> fail "No cache busting parameter!"
+        Just cacheBuster
+          | cacheBuster == BS64.encode (NaCl.encode devCacheBuster) -> log' "Uh..."
+          | otherwise -> fail "Wrong cache buster!" -- FIXME make cache buster generic
+
+    let frontendEnv = FrontendEnv
+          { frontendEnvDevelopment = isDevelopment env
+          , frontendEnvFacebookClientID = keysFacebookClientID
+          }
+        continue = action $ get $ bytestring JavaScript $
+                    "var frontendEnv = " <> Aeson.encode frontendEnv <> ";\n"
+                    <> LBS.fromStrict frontend
+
+    continue app req resp
 
   match (l_ "register" </> o_) $ \app req respond -> do
     body <- liftIO $ strictRequestBody req
@@ -177,8 +200,8 @@ router
           let resp = action $ get $ json challenge
           resp app req respond
 
-  Env{envDevelopment} <- lift ask
-  when envDevelopment $
+  env <- lift ask
+  when (isDevelopment env) $
     match (l_ "getAllUsers" </> o_) $ \app req respond -> do
       Env{envDatabase = Database{dbUsers}} <- ask
       Users us <- query' dbUsers GetAllUsers
@@ -228,14 +251,14 @@ router
               , envHostname
               } <- ask
 
-            let url = show $ facebookLoginVerifyToURI FacebookLoginVerify
+            let url = printURI $ facebookLoginVerifyToURI FacebookLoginVerify
                   { facebookLoginVerifyClientID = keysFacebookClientID
                   , facebookLoginVerifyClientSecret = keysFacebookClientSecret
                   , facebookLoginVerifyRedirectURI = URI (Strict.Just "https") True envHostname ["facebookLoginReturn"] [] Strict.Nothing
                   , facebookLoginVerifyCode = facebookLoginGoodCode
                   }
 
-            req' <- liftIO $ parseRequest url
+            req' <- liftIO $ parseRequest (T.unpack url)
             resp' <- liftIO $ httpLbs req' managersFacebook
 
             case Aeson.decode (responseBody resp') of
@@ -243,9 +266,9 @@ router
               Just x -> do
                 case x of
                   FacebookLoginGetTokenError{} ->
-                    when envDevelopment $ warn' $
+                    when (isDevelopment env) $ warn' $
                       "Couldn't verify facebook code due to formatting error: "
-                      <> T.pack (show x) <> ", from: " <> T.pack url
+                      <> T.pack (show x) <> ", from: " <> url
                   _ -> pure ()
                 log' $ "Got facebook access token: " <> T.pack (show x)
           _ -> pure ()

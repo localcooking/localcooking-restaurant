@@ -11,7 +11,7 @@ import Server.Subs (delSession)
 import Data.TimeMap.Multi (TimeMultiMap)
 import qualified Data.TimeMap.Multi as TimeMultiMap
 import Types (AppM, LoginException (..))
-import Types.Env (Env (..), Database (..))
+import Types.Env (Env (..), Database (..), isDevelopment)
 import Database (GetUserDetails (..))
 import LocalCooking.Auth (UserID, SessionID, ChallengeID (..), verifySignedChallenge)
 import LocalCooking.WebSocket (LocalCookingInput (..), LocalCookingOutput (..), LocalCookingLoginResult (..))
@@ -61,12 +61,12 @@ websocket
   = \pending -> do
 
   (userIDRef :: TMVar UserID) <- liftIO $ atomically newEmptyTMVar
-  Env{envDevelopment} <- ask
+  env <- ask
 
   let go = do
         conn <- liftIO $ acceptRequest pending
 
-        when envDevelopment $ log' $ "Accepted connection from: " <> T.pack (show sid)
+        when (isDevelopment env) $ log' $ "Accepted connection from: " <> T.pack (show sid)
 
         void $ liftBaseWith $ \runInBase -> do
           void $ async $ forever $ do
@@ -75,9 +75,9 @@ websocket
                   Text bits _ -> bits
                   Binary bits -> bits
             case Aeson.eitherDecode msg' of
-              Left e -> when envDevelopment $ debug' $ "Couldn't decode LocalCooking input: " <> T.pack (show (LT.decodeUtf8 msg')) <> T.pack e
+              Left e -> when (isDevelopment env) $ debug' $ "Couldn't decode LocalCooking input: " <> T.pack (show (LT.decodeUtf8 msg')) <> T.pack e
               Right (x :: LocalCookingInput) -> do
-                when envDevelopment $ case x of
+                when (isDevelopment env) $ case x of
                   LocalCookingPing -> pure ()
                   _ -> log' $ "Got koredex input: " <> T.pack (show x)
                 mUser <- atomically $ tryReadTMVar userIDRef

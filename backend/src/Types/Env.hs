@@ -22,6 +22,7 @@ import Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as HashMap
 import Control.Concurrent.Async (Async, cancel)
 import Control.Concurrent.STM (TVar, newTVar, atomically)
+import Crypto.Saltine.Core.Box (Nonce, newNonce)
 import System.IO.Unsafe (unsafePerformIO)
 import Network.HTTP.Client (Manager)
 import Network.HTTP.Client.TLS (newTlsManager)
@@ -82,12 +83,33 @@ defManagers = do
     }
 
 
+data Development = Development
+  { devCacheBuster :: Nonce
+  }
+
+instance Default Development where
+  def = unsafePerformIO defDevelopment
+
+defDevelopment :: IO Development
+defDevelopment = do
+  devCacheBuster <- newNonce
+  pure Development
+    { devCacheBuster
+    }
+
+isDevelopment :: Env -> Bool
+isDevelopment Env{envDevelopment} = case envDevelopment of
+  Nothing -> False
+  Just _ -> True
+
+
 data Env = Env
   { envDatabase    :: Database
   , envThreads     :: Threads
   , envHostname    :: URIAuth
   , envSMTPHost    :: URIAuthHost
-  , envDevelopment :: Bool
+  , envDevelopment :: Maybe Development
+  , envTls         :: Bool
   , envKeys        :: Keys
   , envManagers    :: Managers
   }
@@ -98,7 +120,8 @@ instance Default Env where
     , envThreads     = def
     , envHostname    = URIAuth Strict.Nothing Localhost (Strict.Just 3000)
     , envSMTPHost    = Localhost
-    , envDevelopment = True
+    , envDevelopment = def
+    , envTls         = False
     , envKeys        = error "No access to secret keys in default environment"
     , envManagers    = def
     }

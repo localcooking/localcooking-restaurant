@@ -4,14 +4,15 @@
   , ScopedTypeVariables
   , NamedFieldPuns
   , QuasiQuotes
+  , StandaloneDeriving
   #-}
 
 module Template where
 
 import           Types (AppM)
-import           Types.Env (Env (..))
+import           Types.Env (Env (..), Development (..))
 import           Types.Keys (Keys (..))
-import           Server.Assets (frontend)
+import           Links (WebAssetLinks (..))
 
 import           Lucid (renderBST, HtmlT, Attribute, content_, name_, meta_, httpEquiv_, charset_, link_, rel_, type_, href_, sizes_)
 import           Lucid.Base (makeAttribute)
@@ -25,30 +26,46 @@ import qualified Data.Text.Encoding                       as T
 import           Data.Default
 import qualified Data.HashMap.Strict                      as HM
 import           Data.Markup                              as M
-import           Data.Url (AbsoluteUrlT (..), fromLocation)
-import           Data.URI.Auth (URIAuth)
+import           Data.Url (AbsoluteUrlT (..), packLocation)
+import           Data.URI (URI (..))
+import           Data.URI.Auth (URIAuth (..))
+import           Data.URI.Auth.Host (URIAuthHost (..))
 import           Data.Aeson (ToJSON (..), (.=), object)
 import qualified Data.Aeson as Aeson
 import qualified Data.ByteString                          as BS
 import qualified Data.ByteString.Lazy                     as LBS
+import qualified Data.Strict.Maybe                        as Strict
 import           Data.Monoid ((<>))
 import           Text.Heredoc (here)
+import           Control.Monad.Trans                      (lift)
 import           Control.Monad.Reader                     (ask)
 import           Control.Monad.State                      (modify)
 import           Control.Monad.Trans                      (lift)
+import           Control.Monad.Morph                      (hoist)
+import           Path.Extended (ToLocation (toLocation))
 
+import Debug.Trace (traceShow)
+
+
+deriving instance Show URIAuthHost
+deriving instance Show URIAuth
+deriving instance Show URI
 
 
 htmlLight :: Status
           -> HtmlT (AbsoluteUrlT AppM) a
           -> FileExtListenerT AppM ()
 htmlLight s content = do
-  hostname <- envHostname <$> lift ask
-  bs <- lift $ runAbsoluteUrlT (renderBST content) (fromLocation (Just "http") True hostname)
+  bs <- lift $ do
+    Env{envHostname,envTls} <- ask
+    let locationToURI loc =
+          let uri = packLocation (Strict.Just $ if envTls then "https" else "http") True envHostname loc
+          in  traceShow uri uri
+    runAbsoluteUrlT (renderBST content) locationToURI
 
   bytestring CT.Html bs
   modify . HM.map $ mapStatus (const s)
-                    . mapHeaders ([("content-Type", "text/html")] ++)
+                  . mapHeaders ([("content-Type", "text/html")] ++)
 
 
 html :: HtmlT (AbsoluteUrlT AppM) ()
@@ -77,8 +94,9 @@ masterPage =
         , pageTitle = "Local Cooking"
         , styles =
           inlineStyles
-        , bodyScripts =
-          inlineBodyScripts
+        , bodyScripts = do
+          Env{envDevelopment = mDev} <- lift ask
+          deploy M.JavaScript M.Remote =<< lift (toLocation $ IndexJs $ devCacheBuster <$> mDev)
         }
   where
     inlineStyles =
@@ -97,38 +115,8 @@ body {
   padding-bottom: 5em;
 }|] :: T.Text)
 
-    inlineBodyScripts = do
-      Env{envDevelopment,envKeys = Keys{keysFacebookClientID}} <- lift ask
-      deploy M.JavaScript Inline $
-        "var frontendEnv = "
-        <> T.decodeUtf8
-           ( LBS.toStrict $
-               Aeson.encode
-                 FrontendEnv
-                  { frontendEnvDevelopment = envDevelopment
-                  , frontendEnvFacebookClientID = keysFacebookClientID
-                  }
-           )
-      deploy M.JavaScript Inline $ T.decodeUtf8 frontend
-
 -- | Inject some HTML into the @<body>@ tag of our template
 mainTemplate :: HtmlT (AbsoluteUrlT AppM) ()
              -> HtmlT (AbsoluteUrlT AppM) ()
 mainTemplate = template masterPage
 
-
-
-data FrontendEnv = FrontendEnv
-  { frontendEnvDevelopment :: Bool
-  , frontendEnvFacebookClientID :: T.Text
-  }
-
-instance ToJSON FrontendEnv where
-  toJSON
-    FrontendEnv
-      { frontendEnvDevelopment
-      , frontendEnvFacebookClientID
-      } = object
-    [ "development" .= frontendEnvDevelopment
-    , "facebookClientID" .= frontendEnvFacebookClientID
-    ]

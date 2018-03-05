@@ -11,7 +11,7 @@ module Server where
 import Server.HTTP (httpServer)
 import Control (control, ControlSenders (..), ControlReceivers (..))
 import Types (AppM)
-import Types.Env (Env (..))
+import Types.Env (Env (..), isDevelopment)
 import LocalCooking.Auth (UserID, SessionID, ChallengeID (..))
 import LocalCooking.WebSocket (LocalCookingInput (..), LocalCookingOutput (..))
 
@@ -51,7 +51,7 @@ import Path (absfile)
 
 server :: Int -> AppM ()
 server port = do
-  Env{envDevelopment} <- ask
+  env <- ask
 
   (loginSessions :: TimeMultiMap UserID SessionID) <- liftIO (atomically TimeMultiMap.newTimeMultiMap)
   (outgoingUnauth :: TMapChan SessionID LocalCookingOutput) <- liftIO (atomically newTMapChan)
@@ -78,7 +78,7 @@ server port = do
   --           (map (T.unpack *** fmap T.unpack) (authRequestToQueryString r))
   --           Nothing
 
-  --   when envDevelopment $ log' $ "Connecting to bitmex: wss://www.bitmex.com:443" <> T.pack bitmexURI
+  --   when (isDevelopment env) $ log' $ "Connecting to bitmex: wss://www.bitmex.com:443" <> T.pack bitmexURI
 
   --   retriesVar <- newIORef 1
 
@@ -87,7 +87,7 @@ server port = do
   --         retries <- readIORef retriesVar
   --         writeIORef retriesVar (retries * 2)
   --         -- TODO fetch historical data upon reconnection
-  --         when envDevelopment $ warn' $ "Retrying BitMex connection in " <> T.pack (show retries) <> " seconds..."
+  --         when (isDevelopment env) $ warn' $ "Retrying BitMex connection in " <> T.pack (show retries) <> " seconds..."
   --         threadDelay (1000000 * retries)
 
   --         go `catch` handleBadHandshake
@@ -96,13 +96,13 @@ server port = do
   --       handleBrokenConnection :: ConnectionException -> IO ()
   --       handleBrokenConnection e = case e of
   --         ConnectionClosed -> do
-  --           when envDevelopment $ warn' $ "Couldn't connect to bitmex: " <> T.pack (show e)
+  --           when (isDevelopment env) $ warn' $ "Couldn't connect to bitmex: " <> T.pack (show e)
   --           retry
   --         _ -> throwM e
 
   --       handleBadHandshake :: HandshakeException -> IO ()
   --       handleBadHandshake e = do
-  --         when envDevelopment $ warn' $ "Couldn't connect to bitmex: " <> T.pack (show e)
+  --         when (isDevelopment env) $ warn' $ "Couldn't connect to bitmex: " <> T.pack (show e)
   --         retry
 
   --       go =  runSecureClient "www.bitmex.com" 443 bitmexURI
@@ -125,9 +125,9 @@ server port = do
                 }
       void $ liftBaseWith $ \runInBase -> do
         void $ async $ forever $ do
-          when envDevelopment $ log' "Waiting for incomingUnauth..."
+          when (isDevelopment env) $ log' "Waiting for incomingUnauth..."
           (sid,x) <- atomically $ readTChanRW incomingUnauth
-          when envDevelopment $ log' $ "Got incomingUnauth: " <> T.pack (show (sid,x))
+          when (isDevelopment env) $ log' $ "Got incomingUnauth: " <> T.pack (show (sid,x))
           runInBase $ controlIncomingUnauth sid x
         void $ async $ forever $ do
           (uid,x) <- atomically $ readTChanRW incomingAuth
