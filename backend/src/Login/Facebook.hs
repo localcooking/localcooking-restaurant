@@ -66,3 +66,18 @@ instance FromJSON FacebookLoginGetToken where
             }
     good <|> error'
   parseJSON x = typeMismatch "FacebookLoginGetToken" x
+
+
+-- data FacebookLoginOrigin
+--   = FacebookLoginOriginApp SiteLinks
+--   | FacebookLoginOriginRegister
+--       { facebookLoginOriginRegisterName :: Text
+--       , facebookLoginOriginRegisterUsername :: Text
+--       , facebookLoginOriginRegisterAddress :: Text
+--       }
+
+
+-- data FacebookLoginState = FacebookLoginState
+--   { facebookLoginStateOrigin :: SiteLinks
+--   , facebookLoginStateAux :: forall a. a
+--   }

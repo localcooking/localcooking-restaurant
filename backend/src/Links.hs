@@ -8,7 +8,7 @@
 module Links where
 
 import Data.Monoid ((<>))
-import Path.Extended (ToPath (..), ToLocation (..), Abs, File, fromPath, setFileExt, addQuery, parseAbsFile)
+import Path.Extended (ToPath (..), ToLocation (..), Abs, File, fromPath, setFileExt, addQuery, parseAbsFile, parseAbsDir)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.UTF8 as BS8
 import qualified Data.ByteString.Base64 as BS64
@@ -20,6 +20,7 @@ import qualified Data.Strict.Maybe as Strict
 import Data.Strict.Tuple (Pair (..))
 import Crypto.Saltine.Core.Box (Nonce)
 import qualified Crypto.Saltine.Class as NaCl
+import Unsafe.Coerce (unsafeCoerce)
 
 
 data WebAssetLinks
@@ -42,6 +43,19 @@ instance ToLocation WebAssetLinks Abs File where
         )
       . fromPath
       ) <$> toPath x
+
+
+data SiteLinks
+  = RootLink
+  | AboutLink
+
+instance ToPath SiteLinks Abs File where
+  toPath x = case x of
+    RootLink -> unsafeCoerce <$> parseAbsDir "/"
+    AboutLink -> parseAbsFile "/about"
+
+instance ToLocation SiteLinks Abs File where
+  toLocation x = fromPath <$> toPath x
 
 
 data LogoLinks
