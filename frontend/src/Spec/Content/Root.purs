@@ -1,4 +1,4 @@
-module Spec.Content.Menu where
+module Spec.Content.Root where
 
 import Prelude
 
@@ -33,10 +33,10 @@ spec = T.simpleSpec performAction render
 
     render :: T.Render State Unit Action
     render dispatch props state children =
-      [ R.text "Menu" ]
+      [ R.text "Root" ]
 
 
-menu :: R.ReactElement
-menu =
+root :: R.ReactElement
+root =
   let {spec: reactSpec, dispatcher} = T.createReactSpec spec initialState
   in  R.createElement (R.createClass reactSpec) unit []

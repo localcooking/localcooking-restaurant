@@ -1,7 +1,9 @@
 module Spec.Content where
 
 import Spec.Content.About (about)
-import Spec.Content.Menu (menu)
+import Spec.Content.Root (root)
+import Spec.Content.Chefs (chefs)
+import Spec.Content.Meals (meals)
 import Links (SiteLinks (..))
 import Page (Page (..), initPage)
 
@@ -72,7 +74,9 @@ spec = T.simpleSpec performAction render
           [ paper {style: createStyles {minHeight: "30em"}}
             [ case state.page of
                 AboutPage -> about
-                MenuPage -> menu
+                RootPage -> root
+                ChefsPage -> chefs
+                MealsPage -> meals
             ]
           , typography
             { variant: Typography.caption

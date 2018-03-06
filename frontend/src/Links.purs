@@ -57,6 +57,8 @@ instance toLocationWebSocketLinks :: ToLocation WebSocketLinks where
 data SiteLinks
   = RootLink
   | AboutLink
+  | MealsLink -- FIXME search terms
+  | ChefsLink -- FIXME search terms or hierarchy
 
 derive instance genericSiteLinks :: Generic SiteLinks
 
@@ -64,6 +66,8 @@ instance showSiteLinks :: Show SiteLinks where
   show x = case x of
     RootLink -> printPath rootDir
     AboutLink -> printPath $ rootDir </> file "about"
+    MealsLink -> printPath $ rootDir </> file "meals"
+    ChefsLink -> printPath $ rootDir </> file "chefs"
 
 instance eqSiteLinks :: Eq SiteLinks where
   eq = gEq
@@ -78,6 +82,8 @@ siteLinksToDocumentTitle :: SiteLinks -> DocumentTitle
 siteLinksToDocumentTitle x = DocumentTitle $ case x of
   RootLink -> "Local Cooking"
   AboutLink -> "About - Local Cooking"
+  MealsLink -> "Meals - Local Cooking"
+  ChefsLink -> "Chefs - Local Cooking"
 
 siteLinksParser :: Parser SiteLinks
 siteLinksParser = do
@@ -85,7 +91,15 @@ siteLinksParser = do
       about = do
         void divider
         AboutLink <$ string "about"
+      meals = do
+        void divider
+        MealsLink <$ string "meals" -- FIXME search parameters
+      chefs = do
+        void divider
+        ChefsLink <$ string "chefs" -- FIXME search parameters or hierarchy
   try about
+    <|> try meals
+    <|> try chefs
     <|> root
   where
     divider = char '/'

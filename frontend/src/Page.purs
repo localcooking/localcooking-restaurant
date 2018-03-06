@@ -10,7 +10,9 @@ import Control.Monad.Aff (Aff)
 
 data Page
   = AboutPage
-  | MenuPage
+  | RootPage
+  | MealsPage
+  | ChefsPage
 
 derive instance genericPage :: Generic Page
 
@@ -19,6 +21,7 @@ instance eqPage :: Eq Page where
 
 
 
+-- FIXME consider a resource oriented architecture
 makePage :: forall eff
           . SiteLinks
          -> { immediate :: Page
@@ -26,13 +29,17 @@ makePage :: forall eff
             }
 makePage x =
   { immediate: case x of
-      RootLink -> MenuPage
+      RootLink -> RootPage
       AboutLink -> AboutPage
+      MealsLink -> MealsPage
+      ChefsLink -> ChefsPage
   , loadDetails: case x of
-      RootLink -> pure MenuPage
+      RootLink -> pure RootPage
       AboutLink -> pure AboutPage
+      MealsLink -> pure MealsPage
+      ChefsLink -> pure ChefsPage
   }
 
 
 initPage :: Page
-initPage = MenuPage
+initPage = RootPage

@@ -57,7 +57,8 @@ data Action
   | ChangedWindowSize WindowSize
   | ChangedCurrentPage Page
   | ClickedAboutLink
-  | ClickedMenuLink
+  | ClickedMealsLink
+  | ClickedChefsLink
 
 type Effects eff =
   ( ref :: REF
@@ -86,7 +87,8 @@ spec
       ChangedWindowSize w -> void $ T.cotransform _ { windowSize = w }
       ChangedCurrentPage x -> void $ T.cotransform _ { currentPage = x }
       ClickedAboutLink -> liftEff (siteLinks AboutLink)
-      ClickedMenuLink -> liftEff (siteLinks RootLink)
+      ClickedMealsLink -> liftEff (siteLinks MealsLink)
+      ClickedChefsLink -> liftEff (siteLinks ChefsLink)
 
     render :: T.Render State Unit Action
     render dispatch props state children =
@@ -102,7 +104,7 @@ spec
             else
               [ R.img [ RP.src $ URI.print $ toURI $ toLocation Logo40Png
                       , RP.style {height: "2.5em"}
-                      ] []
+                      ] [] -- FIXME make into a link to RootLink
               , button
                 { color: Button.inherit
                 , disabled: state.currentPage == AboutPage
@@ -111,9 +113,15 @@ spec
               , button
                 { color: Button.primary
                 , variant: Button.raised
-                , disabled: state.currentPage == MenuPage
-                , onTouchTap: mkEffFn1 \_ -> dispatch ClickedMenuLink
-                } [R.text "Menu"]
+                , disabled: state.currentPage == MealsPage
+                , onTouchTap: mkEffFn1 \_ -> dispatch ClickedMealsLink
+                } [R.text "Meals"]
+              , button
+                { color: Button.secondary
+                , variant: Button.raised
+                , disabled: state.currentPage == ChefsPage
+                , onTouchTap: mkEffFn1 \_ -> dispatch ClickedChefsLink
+                } [R.text "Chefs"]
               ]
           ) <>
           [ R.div [RP.style {flex: 1, display: "flex", flexDirection: "row-reverse"}]
