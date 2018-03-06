@@ -97,7 +97,7 @@ main = do
           Left e -> throw e
           Right (x :: SiteLinks) -> pure (makePage x)
         IxSignal.set immediate sig
-        flip runAff_ loadDetails \eX -> case eX of
+        flip runAff_ loadDetails \eX -> case eX of -- FIXME resource loading section
           Left e -> throwException e
           Right x' -> IxSignal.set x' sig
       ) w

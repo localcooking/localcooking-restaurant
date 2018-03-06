@@ -3698,6 +3698,18 @@ var PS = {};
           });
       };
   };
+  var eof = function (s) {
+      if (s.pos < Data_String.length(s.str)) {
+          return new Data_Either.Left({
+              pos: s.pos,
+              error: new Text_Parsing_StringParser.ParseError("Expected EOF")
+          });
+      };
+      return new Data_Either.Right({
+          result: Data_Unit.unit,
+          suffix: s
+      });
+  };
   var anyChar = function (v) {
       var v1 = Data_String.charAt(v.pos)(v.str);
       if (v1 instanceof Data_Maybe.Just) {
@@ -3731,6 +3743,7 @@ var PS = {};
           return v === c;
       }))("Could not match character " + Data_Show.show(Data_Show.showChar)(c));
   };
+  exports["eof"] = eof;
   exports["anyChar"] = anyChar;
   exports["string"] = string;
   exports["satisfy"] = satisfy;
@@ -7670,6 +7683,7 @@ var PS = {};
 (function(exports) {
     "use strict";
 
+  // var frontendEnv = {development: true, facebookClientID: "asdf"};
   exports.envImpl = frontendEnv;
 })(PS["Env"] = PS["Env"] || {});
 (function(exports) {
@@ -7781,6 +7795,7 @@ var PS = {};
   "use strict";
   var Control_Alt = PS["Control.Alt"];
   var Control_Alternative = PS["Control.Alternative"];
+  var Control_Apply = PS["Control.Apply"];
   var Control_Bind = PS["Control.Bind"];
   var DOM_HTML_History = PS["DOM.HTML.History"];
   var Data_Argonaut = PS["Data.Argonaut"];
@@ -7966,7 +7981,7 @@ var PS = {};
   };
   var siteLinksParser = (function () {
       var divider = Text_Parsing_StringParser_String["char"]("/");
-      var root = Data_Functor.voidRight(Text_Parsing_StringParser.functorParser)(RootLink.value)(divider);
+      var root = Data_Functor.voidRight(Text_Parsing_StringParser.functorParser)(RootLink.value)(Control_Apply.applySecond(Text_Parsing_StringParser.applyParser)(divider)(Text_Parsing_StringParser_String.eof));
       var meals = Control_Bind.discard(Control_Bind.discardUnit)(Text_Parsing_StringParser.bindParser)(Data_Functor["void"](Text_Parsing_StringParser.functorParser)(divider))(function () {
           return Data_Functor.voidRight(Text_Parsing_StringParser.functorParser)(MealsLink.value)(Text_Parsing_StringParser_String.string("meals"));
       });
@@ -7974,7 +7989,7 @@ var PS = {};
           return Data_Functor.voidRight(Text_Parsing_StringParser.functorParser)(ChefsLink.value)(Text_Parsing_StringParser_String.string("chefs"));
       });
       var about = Control_Bind.discard(Control_Bind.discardUnit)(Text_Parsing_StringParser.bindParser)(Data_Functor["void"](Text_Parsing_StringParser.functorParser)(divider))(function () {
-          return Data_Functor.voidRight(Text_Parsing_StringParser.functorParser)(AboutLink.value)(Text_Parsing_StringParser_String.string("about"));
+          return Data_Functor.voidRight(Text_Parsing_StringParser.functorParser)(AboutLink.value)(Control_Apply.applySecond(Text_Parsing_StringParser.applyParser)(Text_Parsing_StringParser_String.string("about"))(Text_Parsing_StringParser_String.eof));
       });
       return Control_Alt.alt(Text_Parsing_StringParser.altParser)(Control_Alt.alt(Text_Parsing_StringParser.altParser)(Control_Alt.alt(Text_Parsing_StringParser.altParser)(Text_Parsing_StringParser["try"](about))(Text_Parsing_StringParser["try"](meals)))(Text_Parsing_StringParser["try"](chefs)))(root);
   })();

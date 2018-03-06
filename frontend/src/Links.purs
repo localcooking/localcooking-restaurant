@@ -18,7 +18,7 @@ import Data.Argonaut (class EncodeJson, class DecodeJson)
 import Data.Argonaut.Encode.Generic (gEncodeJson)
 import Data.Argonaut.Decode.Generic (gDecodeJson)
 import Text.Parsing.StringParser (Parser, try)
-import Text.Parsing.StringParser.String (char, string)
+import Text.Parsing.StringParser.String (char, string, eof)
 import Control.Alternative ((<|>))
 import DOM.HTML.History (DocumentTitle (..))
 import Global (encodeURIComponent)
@@ -87,10 +87,10 @@ siteLinksToDocumentTitle x = DocumentTitle $ case x of
 
 siteLinksParser :: Parser SiteLinks
 siteLinksParser = do
-  let root = RootLink <$ divider
+  let root = RootLink <$ (divider *> eof)
       about = do
         void divider
-        AboutLink <$ string "about"
+        AboutLink <$ (string "about" *> eof)
       meals = do
         void divider
         MealsLink <$ string "meals" -- FIXME search parameters
