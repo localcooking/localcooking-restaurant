@@ -32,6 +32,7 @@ import qualified Data.Text              as T
 import qualified Data.Text.Encoding     as T
 import qualified Data.ByteString        as BS
 import qualified Data.ByteString.Base64 as BS64
+import qualified Data.ByteString.Base16 as BS16
 import qualified Data.ByteString.Lazy   as LBS
 import Data.URI (URI (..), printURI)
 import Data.Aeson (FromJSON (..), (.:))
@@ -110,7 +111,7 @@ router
       Just Development{devCacheBuster} -> case join $ lookup "cache_buster" $ queryString req of
         Nothing -> fail "No cache busting parameter!"
         Just cacheBuster
-          | cacheBuster == BS64.encode (NaCl.encode devCacheBuster) -> pure ()
+          | cacheBuster == BS16.encode (NaCl.encode devCacheBuster) -> pure ()
           | otherwise -> fail "Wrong cache buster!" -- FIXME make cache buster generic
     (action $ get $ bytestring JavaScript $ LBS.fromStrict frontend) app req resp
 

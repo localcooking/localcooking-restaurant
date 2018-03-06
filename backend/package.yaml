@@ -32,6 +32,7 @@ library:
     - attoparsec
     - attoparsec-base64
     - attoparsec-uri
+    - base16-bytestring
     - base64-bytestring
     - bytestring
     - chan

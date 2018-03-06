@@ -12,6 +12,7 @@ import Path.Extended (ToPath (..), ToLocation (..), Abs, File, fromPath, setFile
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.UTF8 as BS8
 import qualified Data.ByteString.Base64 as BS64
+import qualified Data.ByteString.Base16 as BS16
 import qualified Data.Text as T
 import Data.URI (URI (..), printURI)
 import Data.URI.Auth (URIAuth (..))
@@ -39,7 +40,7 @@ instance ToLocation WebAssetLinks Abs File where
       ( setFileExt (Just "js")
       . ( case mNonce of
             Nothing -> id
-            Just nonce -> addQuery ("cache_buster", Just $ BS8.toString $ BS64.encode $ NaCl.encode nonce)
+            Just nonce -> addQuery ("cache_buster", Just $ BS8.toString $ BS16.encode $ NaCl.encode nonce)
         )
       . fromPath
       ) <$> toPath x
