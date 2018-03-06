@@ -2,7 +2,7 @@ module Main where
 
 import Spec (app)
 import Window (widthToWindowSize)
-import Links (SiteLinks (..), siteLinksParser, siteLinksToDocumentTitle, WebSocketLinks (..), toLocation)
+import Links (SiteLinks (..), siteLinksParser, siteLinksToDocumentTitle, WebSocketLinks (..), toLocation, thirdPartyLoginReturnLinksParser)
 import Page (makePage)
 import Client (client)
 import Env (env)
@@ -41,7 +41,7 @@ import MaterialUI.InjectTapEvent (INJECT_TAP_EVENT, injectTapEvent)
 import DOM (DOM)
 import DOM.HTML (window)
 import DOM.HTML.Window (location, document, history)
-import DOM.HTML.Window.Extra (onPopState)
+import DOM.HTML.Window.Extra (onPopState, queryParams)
 import DOM.HTML.Document (body)
 import DOM.HTML.History (pushState, URL (..), DocumentTitle (..))
 import DOM.HTML.Location (hostname, protocol, port, pathname)
@@ -84,7 +84,10 @@ main = do
       if p == ""
         then pure RootLink
         else case runParser siteLinksParser p of
-          Left e -> throw (show e)
+          Left e1 -> case runParser thirdPartyLoginReturnLinksParser p of
+            Left e2 -> throw $ "Parsing errors: " <> show e1
+                            <> ", " <> show e2
+            Right x -> throw $ show $ queryParams l
           Right x -> pure x
     let {immediate,loadDetails} = makePage initSiteLink
     sig <- IxSignal.make immediate

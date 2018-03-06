@@ -133,8 +133,18 @@ thirdPartyLoginLinksToURI x = case x of
 
 
 data ThirdPartyLoginReturnLinks
-  = FacebookLoginReturn
+  = FacebookLoginReturn -- (Maybe {code :: String, state :: Maybe Unit}) -- FIXME hardcode a facebook login state
 
 instance toLocationThirdPartyLoginReturnLinks :: ToLocation ThirdPartyLoginReturnLinks where
   toLocation x = case x of
     FacebookLoginReturn -> Location (Right $ rootDir </> file "facebookLoginReturn") Nothing Nothing
+
+
+thirdPartyLoginReturnLinksParser :: Parser ThirdPartyLoginReturnLinks
+thirdPartyLoginReturnLinksParser = do
+  let facebook = do
+        void divider
+        FacebookLoginReturn <$ (string "facebookLoginReturn" *> eof)
+  facebook
+  where
+    divider = char '/'

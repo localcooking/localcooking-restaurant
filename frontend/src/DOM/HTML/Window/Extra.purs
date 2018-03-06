@@ -1,9 +1,10 @@
-module DOM.HTML.Window.Extra (onPopState) where
+module DOM.HTML.Window.Extra (onPopState, queryParams) where
 
 import Prelude
 import Data.Foreign (Foreign)
+import Data.StrMap (StrMap)
 import DOM (DOM)
-import DOM.HTML.Types (Window)
+import DOM.HTML.Types (Window, Location)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Uncurried (EffFn1, EffFn2, mkEffFn1, runEffFn2)
 
@@ -15,3 +16,6 @@ onPopState :: forall eff
            -> Window
            -> Eff (dom :: DOM | eff) Unit
 onPopState f w = runEffFn2 onPopStateImpl (mkEffFn1 f) w
+
+
+foreign import queryParams :: Location -> StrMap String
