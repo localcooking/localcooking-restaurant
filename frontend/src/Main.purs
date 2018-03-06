@@ -2,7 +2,7 @@ module Main where
 
 import Spec (app)
 import Window (widthToWindowSize)
-import Links (SiteLinks (..), siteLinksParser, siteLinksToDocumentTitle, WebSocketLinks (..), toLocation, thirdPartyLoginReturnLinksParser)
+import Links (SiteLinks (..), ThirdPartyLoginReturnLinks (..),siteLinksParser, siteLinksToDocumentTitle, WebSocketLinks (..), toLocation, thirdPartyLoginReturnLinksParser)
 import Page (makePage)
 import Client (client)
 import Env (env)
@@ -19,7 +19,8 @@ import Data.String (takeWhile) as String
 import Data.UUID (GENUUID)
 import Data.Traversable (traverse_)
 import Data.Foreign (toForeign, unsafeFromForeign)
-import Data.Argonaut (encodeJson, decodeJson)
+import Data.Argonaut (jsonParser, encodeJson, decodeJson)
+import Data.StrMap as StrMap
 import Text.Parsing.StringParser (runParser)
 import Control.Monad.Aff (runAff_)
 import Control.Monad.Eff (Eff)
@@ -78,6 +79,8 @@ main = do
       Just x -> pure (Just (Port x))
     pure $ Just $ Authority Nothing [Tuple (NameAddress host) p]
 
+  toSiteLinksSignal <- One.newQueue -- Just a hack because Eff isn't MonadRec
+
   currentPageSignal <- do
     initSiteLink <- do
       p <- pathname l
@@ -87,7 +90,17 @@ main = do
           Left e1 -> case runParser thirdPartyLoginReturnLinksParser p of
             Left e2 -> throw $ "Parsing errors: " <> show e1
                             <> ", " <> show e2
-            Right x -> throw $ show $ queryParams l
+            Right x -> case x of
+              FacebookLoginReturn ->
+                case StrMap.lookup "state" (queryParams l) of
+                  Nothing -> throw $ "No `state` key in query params: " <> show (queryParams l)
+                  Just s -> case jsonParser s >>= decodeJson of
+                    Left e -> throw $ "URI Query parsing error: " <> e
+                    Right (x' :: Maybe Unit) -> do -- FIXME Facebook state
+                      -- redirect
+                      One.putQueue toSiteLinksSignal RootLink
+                      -- assumed original
+                      pure RootLink
           Right x -> pure x
     let {immediate,loadDetails} = makePage initSiteLink
     sig <- IxSignal.make immediate
@@ -116,6 +129,9 @@ main = do
         Left e -> throwException e
         Right x -> IxSignal.set x currentPageSignal
     pure (One.writeOnly q)
+
+  One.onQueue toSiteLinksSignal (One.putQueue siteLinksSignal)
+  -- end hack
 
   windowSizeSignal <- do
     -- debounces and only relays when the window size changes

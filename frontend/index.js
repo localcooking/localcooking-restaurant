@@ -2485,7 +2485,8 @@ var PS = {};
           return $foreign.fromObject(Data_StrMap.singleton(key)(val));
       };
   };                                            
-  var jsonEmptyObject = $foreign.fromObject(Data_StrMap.empty);      
+  var jsonEmptyObject = $foreign.fromObject(Data_StrMap.empty);
+  var isJsonType = verbJsonType(false)(Data_Function["const"](true));
   var foldJsonString = function (d) {
       return function (f) {
           return function (j) {
@@ -2510,6 +2511,14 @@ var PS = {};
       };
   };                                        
   var toNumber = toJsonType(foldJsonNumber);
+  var foldJsonNull = function (d) {
+      return function (f) {
+          return function (j) {
+              return $foreign._foldJson(f, Data_Function["const"](d), Data_Function["const"](d), Data_Function["const"](d), Data_Function["const"](d), Data_Function["const"](d), j);
+          };
+      };
+  };
+  var isNull = isJsonType(foldJsonNull);
   var foldJsonBoolean = function (d) {
       return function (f) {
           return function (j) {
@@ -2526,11 +2535,13 @@ var PS = {};
       };
   };                                      
   var toArray = toJsonType(foldJsonArray);
+  exports["foldJsonNull"] = foldJsonNull;
   exports["foldJsonBoolean"] = foldJsonBoolean;
   exports["foldJsonNumber"] = foldJsonNumber;
   exports["foldJsonString"] = foldJsonString;
   exports["foldJsonArray"] = foldJsonArray;
   exports["foldJsonObject"] = foldJsonObject;
+  exports["isNull"] = isNull;
   exports["toBoolean"] = toBoolean;
   exports["toNumber"] = toNumber;
   exports["toString"] = toString;
@@ -2940,10 +2951,22 @@ var PS = {};
   var DecodeJson = function (decodeJson) {
       this.decodeJson = decodeJson;
   }; 
-  var decodeJsonString = new DecodeJson(Data_Argonaut_Core.foldJsonString(new Data_Either.Left("Value is not a String"))(Data_Either.Right.create));                               
+  var decodeJsonString = new DecodeJson(Data_Argonaut_Core.foldJsonString(new Data_Either.Left("Value is not a String"))(Data_Either.Right.create));
+  var decodeJsonNull = new DecodeJson(Data_Argonaut_Core.foldJsonNull(new Data_Either.Left("Value is not a null"))(Data_Function["const"](new Data_Either.Right(Data_Unit.unit))));
   var decodeJsonJson = new DecodeJson(Data_Either.Right.create);                                                                                       
   var decodeJson = function (dict) {
       return dict.decodeJson;
+  };                                
+  var decodeJsonMaybe = function (dictDecodeJson) {
+      return new DecodeJson(function (j) {
+          if (Data_Argonaut_Core.isNull(j)) {
+              return Control_Applicative.pure(Data_Either.applicativeEither)(Data_Maybe.Nothing.value);
+          };
+          if (Data_Boolean.otherwise) {
+              return Data_Functor.map(Data_Either.functorEither)(Data_Maybe.Just.create)(decodeJson(dictDecodeJson)(j));
+          };
+          throw new Error("Failed pattern match at Data.Argonaut.Decode.Class line 23, column 1 - line 23, column 65: " + [ j.constructor.name ]);
+      });
   };
   var decodeJObject = function ($33) {
       return Data_Maybe.maybe(new Data_Either.Left("Value is not an Object"))(Data_Either.Right.create)(Data_Argonaut_Core.toObject($33));
@@ -2957,6 +2980,8 @@ var PS = {};
   };
   exports["DecodeJson"] = DecodeJson;
   exports["decodeJson"] = decodeJson;
+  exports["decodeJsonMaybe"] = decodeJsonMaybe;
+  exports["decodeJsonNull"] = decodeJsonNull;
   exports["decodeJsonString"] = decodeJsonString;
   exports["decodeJsonJson"] = decodeJsonJson;
   exports["decodeStrMap"] = decodeStrMap;
@@ -10693,6 +10718,7 @@ var PS = {};
   var Data_Argonaut = PS["Data.Argonaut"];
   var Data_Argonaut_Decode_Class = PS["Data.Argonaut.Decode.Class"];
   var Data_Argonaut_Encode_Class = PS["Data.Argonaut.Encode.Class"];
+  var Data_Argonaut_Parser = PS["Data.Argonaut.Parser"];
   var Data_Either = PS["Data.Either"];
   var Data_Eq = PS["Data.Eq"];
   var Data_Foldable = PS["Data.Foldable"];
@@ -10738,10 +10764,10 @@ var PS = {};
       var v = DOM_HTML.window();
       var v1 = DOM_HTML_Window.location(v)();
       var v2 = DOM_HTML_Window.history(v)();
-      var v3 = Data_Functor.map(Control_Monad_Eff.functorEff)(function ($85) {
+      var v3 = Data_Functor.map(Control_Monad_Eff.functorEff)(function ($95) {
           return Data_Maybe.Just.create(Data_URI_Scheme.Scheme(Data_String.takeWhile(function (c) {
               return c !== ":";
-          })($85)));
+          })($95)));
       })(DOM_HTML_Location.protocol(v1))();
       var v4 = (function __do() {
           var v4 = DOM_HTML_Location.hostname(v1)();
@@ -10754,111 +10780,128 @@ var PS = {};
               if (v6 instanceof Data_Maybe.Just) {
                   return Control_Applicative.pure(Control_Monad_Eff.applicativeEff)(new Data_Maybe.Just(v6.value0));
               };
-              throw new Error("Failed pattern match at Main line 76, column 10 - line 78, column 37: " + [ v6.constructor.name ]);
+              throw new Error("Failed pattern match at Main line 77, column 10 - line 79, column 37: " + [ v6.constructor.name ]);
           })()();
           return Data_Maybe.Just.create(new Data_URI_Authority.Authority(Data_Maybe.Nothing.value, [ new Data_Tuple.Tuple(new Data_URI_Host.NameAddress(v4), v6) ]));
       })();
-      var v5 = (function __do() {
-          var v5 = (function __do() {
-              var v5 = DOM_HTML_Location.pathname(v1)();
-              var $41 = v5 === "";
-              if ($41) {
+      var v5 = Queue_One.newQueue();
+      var v6 = (function __do() {
+          var v6 = (function __do() {
+              var v6 = DOM_HTML_Location.pathname(v1)();
+              var $45 = v6 === "";
+              if ($45) {
                   return Links.RootLink.value;
               };
-              var v6 = Text_Parsing_StringParser.runParser(Links.siteLinksParser)(v5);
-              if (v6 instanceof Data_Either.Left) {
-                  var v7 = Text_Parsing_StringParser.runParser(Links.thirdPartyLoginReturnLinksParser)(v5);
-                  if (v7 instanceof Data_Either.Left) {
-                      return Control_Monad_Eff_Exception["throw"]("Parsing errors: " + (Data_Show.show(Text_Parsing_StringParser.showParseError)(v6.value0) + (", " + Data_Show.show(Text_Parsing_StringParser.showParseError)(v7.value0))))();
+              var v7 = Text_Parsing_StringParser.runParser(Links.siteLinksParser)(v6);
+              if (v7 instanceof Data_Either.Left) {
+                  var v8 = Text_Parsing_StringParser.runParser(Links.thirdPartyLoginReturnLinksParser)(v6);
+                  if (v8 instanceof Data_Either.Left) {
+                      return Control_Monad_Eff_Exception["throw"]("Parsing errors: " + (Data_Show.show(Text_Parsing_StringParser.showParseError)(v7.value0) + (", " + Data_Show.show(Text_Parsing_StringParser.showParseError)(v8.value0))))();
                   };
-                  if (v7 instanceof Data_Either.Right) {
-                      return Control_Monad_Eff_Exception["throw"](Data_Show.show(Data_StrMap.showStrMap(Data_Show.showString))(DOM_HTML_Window_Extra.queryParams(v1)))();
+                  if (v8 instanceof Data_Either.Right) {
+                      var v9 = Data_StrMap.lookup("state")(DOM_HTML_Window_Extra.queryParams(v1));
+                      if (v9 instanceof Data_Maybe.Nothing) {
+                          return Control_Monad_Eff_Exception["throw"]("No `state` key in query params: " + Data_Show.show(Data_StrMap.showStrMap(Data_Show.showString))(DOM_HTML_Window_Extra.queryParams(v1)))();
+                      };
+                      if (v9 instanceof Data_Maybe.Just) {
+                          var v10 = Control_Bind.bind(Data_Either.bindEither)(Data_Argonaut_Parser.jsonParser(v9.value0))(Data_Argonaut_Decode_Class.decodeJson(Data_Argonaut_Decode_Class.decodeJsonMaybe(Data_Argonaut_Decode_Class.decodeJsonNull)));
+                          if (v10 instanceof Data_Either.Left) {
+                              return Control_Monad_Eff_Exception["throw"]("URI Query parsing error: " + v10.value0)();
+                          };
+                          if (v10 instanceof Data_Either.Right) {
+                              Queue_One.putQueue(v5)(Links.RootLink.value)();
+                              return Links.RootLink.value;
+                          };
+                          throw new Error("Failed pattern match at Main line 97, column 29 - line 103, column 36: " + [ v10.constructor.name ]);
+                      };
+                      throw new Error("Failed pattern match at Main line 95, column 17 - line 103, column 36: " + [ v9.constructor.name ]);
                   };
-                  throw new Error("Failed pattern match at Main line 87, column 22 - line 90, column 52: " + [ v7.constructor.name ]);
+                  throw new Error("Failed pattern match at Main line 90, column 22 - line 103, column 36: " + [ v8.constructor.name ]);
               };
-              if (v6 instanceof Data_Either.Right) {
-                  return v6.value0;
+              if (v7 instanceof Data_Either.Right) {
+                  return v7.value0;
               };
-              throw new Error("Failed pattern match at Main line 86, column 14 - line 91, column 28: " + [ v6.constructor.name ]);
+              throw new Error("Failed pattern match at Main line 89, column 14 - line 104, column 28: " + [ v7.constructor.name ]);
           })();
-          var v6 = Page.makePage(v5);
-          var v7 = IxSignal_Internal.make(v6.immediate)();
-          Data_Function.flip(Control_Monad_Aff.runAff_)(v6.loadDetails)(function (eX) {
+          var v7 = Page.makePage(v6);
+          var v8 = IxSignal_Internal.make(v7.immediate)();
+          Data_Function.flip(Control_Monad_Aff.runAff_)(v7.loadDetails)(function (eX) {
               if (eX instanceof Data_Either.Left) {
                   return Control_Monad_Eff_Exception.throwException(eX.value0);
               };
               if (eX instanceof Data_Either.Right) {
-                  return IxSignal_Internal.set(eX.value0)(v7);
+                  return IxSignal_Internal.set(eX.value0)(v8);
               };
-              throw new Error("Failed pattern match at Main line 94, column 37 - line 96, column 36: " + [ eX.constructor.name ]);
+              throw new Error("Failed pattern match at Main line 107, column 37 - line 109, column 36: " + [ eX.constructor.name ]);
           })();
           DOM_HTML_Window_Extra.onPopState(function (x) {
               return function __do() {
-                  var v8 = (function () {
-                      var v8 = Data_Argonaut_Decode_Class.decodeJson(Links.decodeJsonSiteLinks)(Data_Foreign.unsafeFromForeign(x));
-                      if (v8 instanceof Data_Either.Left) {
-                          return Control_Monad_Eff_Exception["throw"](v8.value0);
+                  var v9 = (function () {
+                      var v9 = Data_Argonaut_Decode_Class.decodeJson(Links.decodeJsonSiteLinks)(Data_Foreign.unsafeFromForeign(x));
+                      if (v9 instanceof Data_Either.Left) {
+                          return Control_Monad_Eff_Exception["throw"](v9.value0);
                       };
-                      if (v8 instanceof Data_Either.Right) {
-                          return Control_Applicative.pure(Control_Monad_Eff.applicativeEff)(Page.makePage(v8.value0));
+                      if (v9 instanceof Data_Either.Right) {
+                          return Control_Applicative.pure(Control_Monad_Eff.applicativeEff)(Page.makePage(v9.value0));
                       };
-                      throw new Error("Failed pattern match at Main line 99, column 36 - line 101, column 54: " + [ v8.constructor.name ]);
+                      throw new Error("Failed pattern match at Main line 112, column 36 - line 114, column 54: " + [ v9.constructor.name ]);
                   })()();
-                  IxSignal_Internal.set(v8.immediate)(v7)();
-                  return Data_Function.flip(Control_Monad_Aff.runAff_)(v8.loadDetails)(function (eX) {
+                  IxSignal_Internal.set(v9.immediate)(v8)();
+                  return Data_Function.flip(Control_Monad_Aff.runAff_)(v9.loadDetails)(function (eX) {
                       if (eX instanceof Data_Either.Left) {
                           return Control_Monad_Eff_Exception.throwException(eX.value0);
                       };
                       if (eX instanceof Data_Either.Right) {
-                          return IxSignal_Internal.set(eX.value0)(v7);
+                          return IxSignal_Internal.set(eX.value0)(v8);
                       };
-                      throw new Error("Failed pattern match at Main line 103, column 41 - line 105, column 42: " + [ eX.constructor.name ]);
+                      throw new Error("Failed pattern match at Main line 116, column 41 - line 118, column 42: " + [ eX.constructor.name ]);
                   })();
               };
           })(v)();
-          return v7;
+          return v8;
       })();
-      var v6 = (function __do() {
-          var v6 = Queue_One.newQueue();
-          Queue_One.onQueue(v6)(function (v7) {
+      var v7 = (function __do() {
+          var v7 = Queue_One.newQueue();
+          Queue_One.onQueue(v7)(function (v8) {
               return function __do() {
-                  DOM_HTML_History.pushState(Data_Foreign.toForeign(Data_Argonaut_Encode_Class.encodeJson(Links.encodeJsonSiteLinks)(v7)))(Links.siteLinksToDocumentTitle(v7))(Data_Show.show(Links.showSiteLinks)(v7))(v2)();
-                  var v8 = Page.makePage(v7);
-                  IxSignal_Internal.set(v8.immediate)(v5)();
-                  return Data_Function.flip(Control_Monad_Aff.runAff_)(v8.loadDetails)(function (eX) {
+                  DOM_HTML_History.pushState(Data_Foreign.toForeign(Data_Argonaut_Encode_Class.encodeJson(Links.encodeJsonSiteLinks)(v8)))(Links.siteLinksToDocumentTitle(v8))(Data_Show.show(Links.showSiteLinks)(v8))(v2)();
+                  var v9 = Page.makePage(v8);
+                  IxSignal_Internal.set(v9.immediate)(v6)();
+                  return Data_Function.flip(Control_Monad_Aff.runAff_)(v9.loadDetails)(function (eX) {
                       if (eX instanceof Data_Either.Left) {
                           return Control_Monad_Eff_Exception.throwException(eX.value0);
                       };
                       if (eX instanceof Data_Either.Right) {
-                          return IxSignal_Internal.set(eX.value0)(v5);
+                          return IxSignal_Internal.set(eX.value0)(v6);
                       };
-                      throw new Error("Failed pattern match at Main line 115, column 39 - line 117, column 52: " + [ eX.constructor.name ]);
+                      throw new Error("Failed pattern match at Main line 128, column 39 - line 130, column 52: " + [ eX.constructor.name ]);
                   })();
               };
           })();
-          return Queue_One.writeOnly(v6);
+          return Queue_One.writeOnly(v7);
       })();
-      var v7 = (function __do() {
-          var v7 = Control_Bind.bindFlipped(Control_Monad_Eff.bindEff)(Signal_Time.debounce(100.0))(Signal_DOM.windowDimensions)();
-          var v8 = Data_Functor.map(Control_Monad_Eff.functorEff)(function (w$prime) {
+      Queue_One.onQueue(v5)(Queue_One.putQueue(v7))();
+      var v8 = (function __do() {
+          var v8 = Control_Bind.bindFlipped(Control_Monad_Eff.bindEff)(Signal_Time.debounce(100.0))(Signal_DOM.windowDimensions)();
+          var v9 = Data_Functor.map(Control_Monad_Eff.functorEff)(function (w$prime) {
               return w$prime.w;
-          })(Signal_Internal.get(v7))();
-          var v9 = Control_Monad_Eff_Ref.newRef(v8)();
-          var initWindowSize = Window.widthToWindowSize(v8);
-          var v10 = IxSignal_Internal.make(initWindowSize)();
-          Data_Function.flip(Signal_Internal.subscribe)(v7)(function (w$prime) {
+          })(Signal_Internal.get(v8))();
+          var v10 = Control_Monad_Eff_Ref.newRef(v9)();
+          var initWindowSize = Window.widthToWindowSize(v9);
+          var v11 = IxSignal_Internal.make(initWindowSize)();
+          Data_Function.flip(Signal_Internal.subscribe)(v8)(function (w$prime) {
               return function __do() {
-                  var v11 = Control_Monad_Eff_Ref.readRef(v9)();
-                  return Control_Applicative.when(Control_Monad_Eff.applicativeEff)(w$prime.w !== v11)(function __do() {
-                      Control_Monad_Eff_Ref.writeRef(v9)(w$prime.w)();
+                  var v12 = Control_Monad_Eff_Ref.readRef(v10)();
+                  return Control_Applicative.when(Control_Monad_Eff.applicativeEff)(w$prime.w !== v12)(function __do() {
+                      Control_Monad_Eff_Ref.writeRef(v10)(w$prime.w)();
                       var size = Window.widthToWindowSize(w$prime.w);
-                      return IxSignal_Internal.set(size)(v10)();
+                      return IxSignal_Internal.set(size)(v11)();
                   })();
               };
           })();
-          return v10;
+          return v11;
       })();
-      var v8 = Queue_One.newQueue();
+      var v9 = Queue_One.newQueue();
       Client.client({
           uri: function (sessionID) {
               return Data_URI_Location.toURI({
@@ -10867,9 +10910,9 @@ var PS = {};
                   location: Links.toLocation(Links.toLocationWebSocketLinks)(new Links.Realtime(sessionID))
               });
           },
-          toLocalCooking: Queue_One.readOnly(v8)
+          toLocalCooking: Queue_One.readOnly(v9)
       })();
-      var v9 = Spec.app({
+      var v10 = Spec.app({
           toURI: function (location) {
               return Data_URI_Location.toURI({
                   scheme: v3,
@@ -10877,14 +10920,14 @@ var PS = {};
                   location: location
               });
           },
-          windowSizeSignal: v7,
-          currentPageSignal: v5,
-          siteLinks: Queue_One.putQueue(v6),
+          windowSizeSignal: v8,
+          currentPageSignal: v6,
+          siteLinks: Queue_One.putQueue(v7),
           development: Env.env.development
       });
-      var component = React.createClass(v9.spec);
-      return Control_Bind.bindFlipped(Control_Monad_Eff.bindEff)(Data_Foldable.traverse_(Control_Monad_Eff.applicativeEff)(Data_Foldable.foldableMaybe)(function ($86) {
-          return ReactDOM.render(React.createFactory(component)(Data_Unit.unit))(DOM_HTML_Types.htmlElementToElement($86));
+      var component = React.createClass(v10.spec);
+      return Control_Bind.bindFlipped(Control_Monad_Eff.bindEff)(Data_Foldable.traverse_(Control_Monad_Eff.applicativeEff)(Data_Foldable.foldableMaybe)(function ($96) {
+          return ReactDOM.render(React.createFactory(component)(Data_Unit.unit))(DOM_HTML_Types.htmlElementToElement($96));
       }))(Control_Bind.bindFlipped(Control_Monad_Eff.bindEff)(DOM_HTML_Document.body)(DOM_HTML_Window.document(v)))();
   };
   exports["main"] = main;
