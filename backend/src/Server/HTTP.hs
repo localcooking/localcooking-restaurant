@@ -282,11 +282,15 @@ router
     (action $ post $ text "") app req resp
 
 
+
 httpServer :: (TChanRW 'Write (SessionID, LocalCookingInput), TMapChan SessionID LocalCookingOutput)
            -> (TChanRW 'Write (UserID, LocalCookingInput), TMapChan UserID LocalCookingOutput)
            -> TimeMap ChallengeID SessionID
            -> TimeMultiMap UserID SessionID
+           -> RouterT (MiddlewareT AppM) sec AppM ()
            -> MiddlewareT AppM
-httpServer unauth auth challenges loginSessions = \app req resp -> do
+httpServer unauth auth challenges loginSessions dependencies = \app req resp -> do
   loginRefs <- liftIO $ atomically newTMapChan
-  route (router unauth auth challenges loginSessions loginRefs) app req resp
+  route ( do dependencies
+             router unauth auth challenges loginSessions loginRefs
+        ) app req resp

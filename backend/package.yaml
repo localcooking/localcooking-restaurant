@@ -59,6 +59,7 @@ library:
     - safe-exceptions
     - saltine
     - shakespeare
+    - sparrow >= 0.0.1.1
     - stm
     - strict
     - timemap

@@ -66,53 +66,6 @@ server port = do
     pure x
 
 
-  -- -- BitMex Client
-  -- void $ liftBaseWith $ \runInBase -> async $ do
-  --   r <- runSingleton <$> runInBase genAuthRequest
-
-  --   let bitmexURI = show $
-  --         Location
-  --           0
-  --           [absfile|/realtime|]
-  --           Nothing
-  --           (map (T.unpack *** fmap T.unpack) (authRequestToQueryString r))
-  --           Nothing
-
-  --   when (isDevelopment env) $ log' $ "Connecting to bitmex: wss://www.bitmex.com:443" <> T.pack bitmexURI
-
-  --   retriesVar <- newIORef 1
-
-  --   let retry :: IO ()
-  --       retry = do
-  --         retries <- readIORef retriesVar
-  --         writeIORef retriesVar (retries * 2)
-  --         -- TODO fetch historical data upon reconnection
-  --         when (isDevelopment env) $ warn' $ "Retrying BitMex connection in " <> T.pack (show retries) <> " seconds..."
-  --         threadDelay (1000000 * retries)
-
-  --         go `catch` handleBadHandshake
-  --            `catch` handleBrokenConnection
-
-  --       handleBrokenConnection :: ConnectionException -> IO ()
-  --       handleBrokenConnection e = case e of
-  --         ConnectionClosed -> do
-  --           when (isDevelopment env) $ warn' $ "Couldn't connect to bitmex: " <> T.pack (show e)
-  --           retry
-  --         _ -> throwM e
-
-  --       handleBadHandshake :: HandshakeException -> IO ()
-  --       handleBadHandshake e = do
-  --         when (isDevelopment env) $ warn' $ "Couldn't connect to bitmex: " <> T.pack (show e)
-  --         retry
-
-  --       go =  runSecureClient "www.bitmex.com" 443 bitmexURI
-  --               (runClientAppT (fmap runSingleton . runInBase)
-  --                 (bitmexClient retriesVar (readOnly bitmexInputImpl) (writeOnly bitmexOutput)))
-
-  --   go `catch` handleBadHandshake
-  --      `catch` handleBrokenConnection
-
-
   -- Control
   do  ControlReceivers
         { controlIncomingUnauth
