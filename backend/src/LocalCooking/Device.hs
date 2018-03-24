@@ -2,7 +2,7 @@
     GeneralizedNewtypeDeriving
   #-}
 
-module LocalCooking.Auth where
+module LocalCooking.Device where
 
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
@@ -11,9 +11,12 @@ import Crypto.Saltine.Core.Box (Nonce)
 import qualified Crypto.Saltine.Class as NaCl
 
 
-newtype AuthToken = AuthToken
-  { getAuthToken :: Nonce
+newtype DeviceToken = DeviceToken
+  { getDeviceToken :: Nonce
   } deriving (Eq, Hashable)
 
-instance Show AuthToken where
-  show (AuthToken x) = T.unpack (T.decodeUtf8 (NaCl.encode x))
+instance Show DeviceToken where
+  show (DeviceToken x) = T.unpack (T.decodeUtf8 (NaCl.encode x))
+
+
+-- TODO register device token, get device description, revoke device, etc.

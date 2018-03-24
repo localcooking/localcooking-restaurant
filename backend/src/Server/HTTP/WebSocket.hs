@@ -7,17 +7,14 @@
 
 module Server.HTTP.WebSocket where
 
-import Server.Subs (delSession)
 import Data.TimeMap.Multi (TimeMultiMap)
 import qualified Data.TimeMap.Multi as TimeMultiMap
-import Types (AppM, LoginException (..))
-import Types.Env (Env (..), Database (..), isDevelopment)
-import Database (GetUserDetails (..))
-import LocalCooking.Auth (UserID, SessionID, ChallengeID (..), verifySignedChallenge)
-import LocalCooking.WebSocket (LocalCookingInput (..), LocalCookingOutput (..), LocalCookingLoginResult (..))
+import Types (AppM)
+import Types.Env (Env (..), isDevelopment)
+import LocalCooking.WebSocket (LocalCookingInput (..), LocalCookingOutput (..))
 
-import Network.Wai.Trans (ServerAppT)
 import Network.WebSockets (DataMessage (..), sendTextData, receiveDataMessage, DataMessage (..), acceptRequest, ConnectionException (..))
+import Network.WebSockets.Trans (ServerAppT)
 import qualified Data.ByteString.Lazy as LBS
 import Data.Monoid ((<>))
 import qualified Data.Text as T

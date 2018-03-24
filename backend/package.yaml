@@ -25,7 +25,6 @@ dependencies:
 library:
   source-dirs: src
   dependencies:
-    - acid-state
     - aeson
     - aeson-attoparsec
     - async
@@ -52,29 +51,30 @@ library:
     - mmorph
     - monad-control-aligned
     - mtl
-    - nested-routes
+    - nested-routes >= 9.0.0.1
     - path
     - path-extra
     - safecopy
     - safe-exceptions
     - saltine
     - shakespeare
-    - sparrow >= 0.0.1.1
+    - sparrow >= 0.0.1.2
     - stm
     - strict
     - timemap
     - text
     - tmapchan
     - unordered-containers
-    - urlpath
+    - urlpath >= 8.0.1
     - utf8-string
     - uuid
     - vector
-    - wai-middleware-content-type
-    - wai-transformers
+    - wai >= 3.2.1
+    - wai-middleware-content-type >= 0.6.1.1
+    - wai-transformers >= 0.1.0
     - warp
     - webpage
-    - websockets
+    - websockets >= 0.12.4
 
 executables:
   localcooking:

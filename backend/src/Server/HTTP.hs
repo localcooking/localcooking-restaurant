@@ -24,9 +24,11 @@ import Login (ThirdPartyLoginToken (..))
 import Login.Facebook (FacebookLoginReturn (..), FacebookLoginGetToken (..))
 
 import Web.Routes.Nested (RouterT, match, matchHere, matchGroup, action, post, get, json, text, l_, (</>), o_, route)
+import Network.Wai (strictRequestBody, queryString)
 import Network.Wai.Middleware.ContentType (bytestring, FileExt (Other, JavaScript))
-import Network.Wai.Trans (MiddlewareT, strictRequestBody, queryString, websocketsOrT)
+import Network.Wai.Trans (MiddlewareT)
 import Network.WebSockets (defaultConnectionOptions)
+import Network.WebSockets.Trans (websocketsOrT)
 import Network.HTTP.Client (httpLbs, responseBody, parseRequest)
 import qualified Data.Text              as T
 import qualified Data.Text.Encoding     as T
@@ -149,7 +151,7 @@ router
           TimeMultiMap.insert (userID u) sid loginSessions
           atomically $ TMapChan.insert outgoingAuth (userID u) $ LocalCookingLoginResult $ LocalCookingLoginSuccess u
           atomically $ TMapChan.insert loginRefs sid (userID u)
-        let resp = action $ post $ json $ String "success"
+        let resp = action $ post $ \_ -> json $ String "success"
         resp app req respond
 
   match (l_ "userSalt" </> o_) $ \app req respond -> do
@@ -210,7 +212,7 @@ router
         Left e -> fail $ "SessionID parsing failed: " ++ e
         Right sid -> do
           env <- ask
-          (websocketsOrT (`runAppM` env) defaultConnectionOptions
+          (websocketsOrT defaultConnectionOptions
             (websocket sid unauth auth challenges loginSessions loginRefs)) app req resp
   -- match (l_ "confirmEmail" </> o_) $ \req ->
   --   let resp = action $ get $ text "yo"
@@ -279,7 +281,7 @@ router
   match (l_ "facebookLoginDeauthorize" </> o_) $ \app req resp -> do
     body <- liftIO $ strictRequestBody req
     log' $ "Got deauthorized: " <> T.pack (show body)
-    (action $ post $ text "") app req resp
+    (action $ post $ \_ -> text "") app req resp
 
 
 

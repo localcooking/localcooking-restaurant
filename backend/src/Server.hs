@@ -9,6 +9,7 @@
 module Server where
 
 import Server.HTTP (httpServer)
+import Server.Dependencies (servedDependencies)
 import Control (control, ControlSenders (..), ControlReceivers (..))
 import Types (AppM)
 import Types.Env (Env (..), isDevelopment)
@@ -17,8 +18,9 @@ import LocalCooking.WebSocket (LocalCookingInput (..), LocalCookingOutput (..))
 
 import Web.Routes.Nested (textOnly)
 import Network.Wai.Handler.Warp (runEnv)
-import Network.Wai.Trans (ApplicationT, runApplicationT, runClientAppT)
+import Network.Wai.Trans (ApplicationT, runApplicationT)
 import Network.WebSockets (ConnectionException (..), runClient, HandshakeException)
+import Network.WebSockets.Trans (runClientAppT)
 import Network.HTTP.Types (status404)
 import Data.Monoid ((<>))
 import qualified Data.Text as T
@@ -88,12 +90,14 @@ server port = do
 
 
   -- HTTP Server
-  liftBaseWith $ \runInBase ->
-    runEnv port $ runApplicationT (fmap runSingleton . runInBase) $
+  liftBaseWith $ \runInBase -> do
+    dependencies <- fmap runSingleton $ runInBase servedDependencies
+    server' <- fmap runSingleton $ runInBase $ runApplicationT $
       httpServer
         (writeOnly incomingUnauth, outgoingUnauth)
         (writeOnly incomingAuth, outgoingAuth)
-        challenges loginSessions defApp
+        challenges loginSessions dependencies defApp
+    runEnv port server'
 
 
 

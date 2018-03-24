@@ -4,8 +4,6 @@
 
 module Types where
 
-import LocalCooking.Auth (UserID, SessionID, ChallengeID, SignedChallenge)
-
 import Types.Env (Env)
 import qualified Data.ByteString.Lazy as LBS
 import Control.Monad.Reader (ReaderT (..))
@@ -31,13 +29,13 @@ data HTTPException
 instance Exception HTTPException
 
 
-data LoginException
-  = ChallengeForWrongSessionID SessionID SessionID ChallengeID
-  | ChallengeDoesntExist ChallengeID
-  | ChallengeResponseInvalidSignature UserID SignedChallenge
-  | UserDoesntExist UserID
-  deriving (Show, Eq, Ord, Generic)
+-- data LoginException
+--   = ChallengeForWrongSessionID SessionID SessionID ChallengeID
+--   | ChallengeDoesntExist ChallengeID
+--   | ChallengeResponseInvalidSignature UserID SignedChallenge
+--   | UserDoesntExist UserID
+--   deriving (Show, Eq, Ord, Generic)
 
-instance Exception LoginException
+-- instance Exception LoginException
 
 

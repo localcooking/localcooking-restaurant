@@ -50,10 +50,17 @@ extra-deps:
   - chan-0.0.3
   - logging-3.0.5
   - markup-4.0.4
-  - nested-routes-8.0.1
+  - nested-routes-9.0.0.1
+  - pred-trie-0.6.0.1
+  - sparrow-0.0.1.2
+  - tmapmvar-0.0.4
+  - tries-0.0.5
   - urlpath-8.0.1
-  - wai-middleware-content-type-0.5.2
-  - wai-middleware-verbs-0.3.2
+  - wai-transformers-0.1.0
+  - wai-middleware-content-type-0.6.1.1
+  - wai-middleware-verbs-0.4.0.1
+  - websockets-0.12.4.0
+  - websockets-simple-0.1.2.1
 
 # Override default flag values for local packages and extra-deps
 # flags: {}

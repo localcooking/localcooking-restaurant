@@ -7,7 +7,7 @@ module Login.Facebook where
 
 import qualified Data.ByteString as BS
 import qualified Data.Text as T
-import Data.Aeson (FromJSON (..), (.:), Value (..))
+import Data.Aeson (FromJSON (..), ToJSON (..), (.:), Value (..))
 import Data.Aeson.Types (typeMismatch)
 import Control.Applicative ((<|>))
 
@@ -18,7 +18,7 @@ data FacebookLoginReturn a
       , facebookLoginBadErrorMessage :: BS.ByteString
       }
   | FacebookLoginReturnGood
-      { facebookLoginGoodCode :: T.Text
+      { facebookLoginGoodCode :: FacebookLoginCode
       , facebookLoginGoodState :: a
       }
   | FacebookLoginReturnDenied
@@ -29,7 +29,7 @@ data FacebookLoginReturn a
 
 data FacebookLoginGetToken
   = FacebookLoginGetToken
-    { facebookLoginGetTokenAccessToken :: T.Text
+    { facebookLoginGetTokenAccessToken :: FacebookLoginUserAccessToken
     , facebookLoginGetTokenTokenType :: T.Text
     , facebookLoginGetTokenExpiresIn :: Int
     }
@@ -66,6 +66,30 @@ instance FromJSON FacebookLoginGetToken where
             }
     good <|> error'
   parseJSON x = typeMismatch "FacebookLoginGetToken" x
+
+
+newtype FacebookLoginCode = FacebookLoginCode
+  { getFacebookLoginCode :: T.Text
+  } deriving (Eq, Show)
+
+instance FromJSON FacebookLoginCode where
+  parseJSON (String x) = pure (FacebookLoginCode x)
+  parseJSON x = typeMismatch "FacebookLoginCode" x
+
+instance ToJSON FacebookLoginCode where
+  toJSON (FacebookLoginCode x) = String x
+
+
+newtype FacebookLoginUserAccessToken = FacebookLoginUserAccessToken
+  { getFacebookLoginUserAccessToken :: T.Text
+  } deriving (Eq, Show)
+
+instance FromJSON FacebookLoginUserAccessToken where
+  parseJSON (String x) = pure (FacebookLoginUserAccessToken x)
+  parseJSON x = typeMismatch "FacebookLoginUserAccessToken" x
+
+instance ToJSON FacebookLoginUserAccessToken where
+  toJSON (FacebookLoginUserAccessToken x) = String x
 
 
 -- data FacebookLoginOrigin
