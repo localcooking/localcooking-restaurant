@@ -6,9 +6,13 @@
 
 module Types.Env where
 
+import LocalCooking.Device (DeviceToken)
 import Types.Keys (Keys)
 
+import Data.TimeMap (TimeMap)
+import qualified Data.TimeMap as TimeMap
 import Data.Word (Word64)
+import Data.Text (Text)
 import qualified Data.Text.Encoding as T
 import Data.URI.Auth (URIAuth (..))
 import Data.URI.Auth.Host (URIAuthHost (..))
@@ -60,6 +64,22 @@ isDevelopment Env{envDevelopment} = case envDevelopment of
   Just _ -> True
 
 
+data Devices = Devices
+  { devicesNames :: TimeMap DeviceToken Text -- FIXME use a Cassandra database shared across apps
+  }
+
+instance Default Devices where
+  def = unsafePerformIO defDevices
+
+
+defDevices :: IO Devices
+defDevices = do
+  devicesNames <- atomically TimeMap.newTimeMap
+  pure Devices
+    { devicesNames
+    }
+
+
 data Env = Env
   { envHostname    :: URIAuth
   , envSMTPHost    :: URIAuthHost
@@ -67,6 +87,7 @@ data Env = Env
   , envTls         :: Bool
   , envKeys        :: Keys
   , envManagers    :: Managers
+  , envDevices     :: Devices
   }
 
 instance Default Env where
@@ -77,6 +98,7 @@ instance Default Env where
     , envTls         = False
     , envKeys        = error "No access to secret keys in default environment"
     , envManagers    = def
+    , envDevices     = def
     }
 
 
