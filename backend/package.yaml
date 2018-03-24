@@ -86,7 +86,6 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - localcooking
-    - acid-state
     - aeson
     - attoparsec
     - attoparsec-uri

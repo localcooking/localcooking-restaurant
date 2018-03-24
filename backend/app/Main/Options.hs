@@ -7,8 +7,7 @@
 
 module Main.Options where
 
-import Types.Env (Env (..), Database (..), defThreads, defManagers, defDevelopment)
-import Database (initialUsers)
+import Types.Env (Env (..), defManagers, defDevelopment)
 
 import Options.Applicative (Parser, strOption, option, switch, auto, long, help, value, showDefault)
 import Data.Attoparsec.Text (parseOnly)
@@ -20,7 +19,6 @@ import qualified Data.ByteString.Lazy as LBS
 import Data.Monoid ((<>))
 import qualified Data.Aeson as Aeson
 import qualified Data.Strict.Maybe as Strict
-import Data.Acid (openLocalStateFrom)
 import Control.Monad (unless)
 import Control.Concurrent.STM (newTVar, atomically)
 import Control.Logging (errorL)
@@ -105,11 +103,6 @@ mkEnv
   envSMTPHost <- case parseOnly parseURIAuthHost (T.pack argsImplSMTPHost) of
     Left e -> errorL $ "Can't parse SMTP host: " <> T.pack e
     Right a -> pure a
-  envDatabase <- do
-    dbUsers <- openLocalStateFrom argsImplStore initialUsers
-    pure Database
-      { dbUsers
-      }
 
   putStrLn $ unlines
     [ "Starting server with environment:"
@@ -119,7 +112,6 @@ mkEnv
     , " - secret key location: " <> argsImplSecretKey
     ]
 
-  envThreads <- defThreads
   envManagers <- defManagers
   envDevelopment <- if argsImplProduction then pure Nothing else Just <$> defDevelopment
 
@@ -127,8 +119,6 @@ mkEnv
     ( Env
       { envHostname
       , envSMTPHost
-      , envDatabase
-      , envThreads
       , envDevelopment
       , envTls = argsImplTls
       , envKeys

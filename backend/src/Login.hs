@@ -4,13 +4,13 @@
 
 module Login where
 
-import qualified Data.Text as T
+import Login.Facebook (FacebookLoginUserAccessToken)
 import Data.Aeson (ToJSON (..), (.=), object)
 
 
 
 data ThirdPartyLoginToken
-  = FacebookLoginToken T.Text
+  = FacebookLoginToken FacebookLoginUserAccessToken
 
 
 instance ToJSON ThirdPartyLoginToken where

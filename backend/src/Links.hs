@@ -7,6 +7,8 @@
 
 module Links where
 
+import Login.Facebook (FacebookLoginCode (getFacebookLoginCode))
+
 import Data.Monoid ((<>))
 import Path.Extended (ToPath (..), ToLocation (..), Abs, File, fromPath, setFileExt, addQuery, parseAbsFile, parseAbsDir)
 import qualified Data.ByteString as BS
@@ -88,7 +90,7 @@ data FacebookLoginVerify = FacebookLoginVerify
   { facebookLoginVerifyClientID :: T.Text
   , facebookLoginVerifyRedirectURI :: URI
   , facebookLoginVerifyClientSecret :: T.Text
-  , facebookLoginVerifyCode :: T.Text
+  , facebookLoginVerifyCode :: FacebookLoginCode
   }
 
 
@@ -102,6 +104,6 @@ facebookLoginVerifyToURI FacebookLoginVerify{..} =
     [ "client_id" :!: Strict.Just facebookLoginVerifyClientID
     , "redirect_uri" :!: Strict.Just (printURI facebookLoginVerifyRedirectURI)
     , "client_secret" :!: Strict.Just facebookLoginVerifyClientSecret
-    , "code" :!: Strict.Just facebookLoginVerifyCode
+    , "code" :!: Strict.Just (getFacebookLoginCode facebookLoginVerifyCode)
     ]
     Strict.Nothing
