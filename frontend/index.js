@@ -1670,7 +1670,6 @@ var PS = {};
     "use strict";       
 
   exports.fromFoldableImpl = (function () {
-    // jshint maxparams: 2
     function Cons(head, tail) {
       this.head = head;
       this.tail = tail;
@@ -1729,7 +1728,6 @@ var PS = {};
 
   exports.sortImpl = function (f) {
     return function (l) {
-      // jshint maxparams: 2
       return l.slice().sort(function (x, y) {
         return f(x)(y);
       });
@@ -4688,22 +4686,24 @@ var PS = {};
   var Control_Semigroupoid = PS["Control.Semigroupoid"];
   var Data_Argonaut_Core = PS["Data.Argonaut.Core"];
   var Data_Argonaut_Encode_Class = PS["Data.Argonaut.Encode.Class"];
+  var Data_Functor = PS["Data.Functor"];
+  var Data_Maybe = PS["Data.Maybe"];
   var Data_StrMap = PS["Data.StrMap"];
   var Data_Tuple = PS["Data.Tuple"];
   var Prelude = PS["Prelude"];        
   var extend = function (dictEncodeJson) {
       return function (v) {
-          return function ($6) {
-              return Data_Argonaut_Core.foldJsonObject(Data_Argonaut_Core.jsonSingletonObject(v.value0)(v.value1))(function ($7) {
-                  return Data_Argonaut_Core.fromObject(Data_StrMap.insert(v.value0)(v.value1)($7));
-              })(Data_Argonaut_Encode_Class.encodeJson(dictEncodeJson)($6));
+          return function ($11) {
+              return Data_Argonaut_Core.foldJsonObject(Data_Argonaut_Core.jsonSingletonObject(v.value0)(v.value1))(function ($12) {
+                  return Data_Argonaut_Core.fromObject(Data_StrMap.insert(v.value0)(v.value1)($12));
+              })(Data_Argonaut_Encode_Class.encodeJson(dictEncodeJson)($11));
           };
       };
   };
   var assoc = function (dictEncodeJson) {
       return function (k) {
-          return function ($8) {
-              return Data_Tuple.Tuple.create(k)(Data_Argonaut_Encode_Class.encodeJson(dictEncodeJson)($8));
+          return function ($13) {
+              return Data_Tuple.Tuple.create(k)(Data_Argonaut_Encode_Class.encodeJson(dictEncodeJson)($13));
           };
       };
   };

@@ -7,7 +7,8 @@
 
 module Main.Options where
 
-import Types.Env (Env (..), defManagers, defDevelopment)
+import Types.Env (Env (..), Devices (..), defManagers, defDevices, defDevelopment)
+import LocalCooking.Device (watchDeviceTokens)
 
 import Options.Applicative (Parser, strOption, option, switch, auto, long, help, value, showDefault)
 import Data.Attoparsec.Text (parseOnly)
@@ -19,7 +20,7 @@ import qualified Data.ByteString.Lazy as LBS
 import Data.Monoid ((<>))
 import qualified Data.Aeson as Aeson
 import qualified Data.Strict.Maybe as Strict
-import Control.Monad (unless)
+import Control.Monad (unless, void)
 import Control.Concurrent.STM (newTVar, atomically)
 import Control.Logging (errorL)
 import Path (toFilePath, parent, relfile, (</>))
@@ -115,6 +116,12 @@ mkEnv
   envManagers <- defManagers
   envDevelopment <- if argsImplProduction then pure Nothing else Just <$> defDevelopment
 
+  envDevices@Devices
+    { devicesNames
+    } <- defDevices
+
+  void $ watchDeviceTokens devicesNames
+
   pure
     ( Env
       { envHostname
@@ -123,6 +130,7 @@ mkEnv
       , envTls = argsImplTls
       , envKeys
       , envManagers
+      , envDevices
       }
     , fromIntegral boundPort
     )
