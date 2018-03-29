@@ -2851,7 +2851,8 @@ var PS = {};
           return $foreign.fromObject(Data_StrMap.singleton(key)(val));
       };
   };                                            
-  var jsonEmptyObject = $foreign.fromObject(Data_StrMap.empty);      
+  var jsonEmptyObject = $foreign.fromObject(Data_StrMap.empty);
+  var isJsonType = verbJsonType(false)(Data_Function["const"](true));
   var foldJsonString = function (d) {
       return function (f) {
           return function (j) {
@@ -2866,7 +2867,15 @@ var PS = {};
           };
       };
   };                                        
-  var toObject = toJsonType(foldJsonObject);  
+  var toObject = toJsonType(foldJsonObject);
+  var foldJsonNull = function (d) {
+      return function (f) {
+          return function (j) {
+              return $foreign._foldJson(f, Data_Function["const"](d), Data_Function["const"](d), Data_Function["const"](d), Data_Function["const"](d), Data_Function["const"](d), j);
+          };
+      };
+  };
+  var isNull = isJsonType(foldJsonNull);      
   var foldJsonArray = function (d) {
       return function (f) {
           return function (j) {
@@ -2875,9 +2884,11 @@ var PS = {};
       };
   };                                      
   var toArray = toJsonType(foldJsonArray);
+  exports["foldJsonNull"] = foldJsonNull;
   exports["foldJsonString"] = foldJsonString;
   exports["foldJsonArray"] = foldJsonArray;
   exports["foldJsonObject"] = foldJsonObject;
+  exports["isNull"] = isNull;
   exports["toArray"] = toArray;
   exports["toObject"] = toObject;
   exports["jsonEmptyObject"] = jsonEmptyObject;
@@ -4081,6 +4092,17 @@ var PS = {};
   var decodeJsonJson = new DecodeJson(Data_Either.Right.create);                                                                                       
   var decodeJson = function (dict) {
       return dict.decodeJson;
+  };                                
+  var decodeJsonMaybe = function (dictDecodeJson) {
+      return new DecodeJson(function (j) {
+          if (Data_Argonaut_Core.isNull(j)) {
+              return Control_Applicative.pure(Data_Either.applicativeEither)(Data_Maybe.Nothing.value);
+          };
+          if (Data_Boolean.otherwise) {
+              return Data_Functor.map(Data_Either.functorEither)(Data_Maybe.Just.create)(decodeJson(dictDecodeJson)(j));
+          };
+          throw new Error("Failed pattern match at Data.Argonaut.Decode.Class line 23, column 1 - line 23, column 65: " + [ j.constructor.name ]);
+      });
   };
   var decodeJObject = function ($33) {
       return Data_Maybe.maybe(new Data_Either.Left("Value is not an Object"))(Data_Either.Right.create)(Data_Argonaut_Core.toObject($33));
@@ -4104,6 +4126,7 @@ var PS = {};
   };
   exports["DecodeJson"] = DecodeJson;
   exports["decodeJson"] = decodeJson;
+  exports["decodeJsonMaybe"] = decodeJsonMaybe;
   exports["decodeJsonString"] = decodeJsonString;
   exports["decodeJsonJson"] = decodeJsonJson;
   exports["decodeStrMap"] = decodeStrMap;
@@ -10574,27 +10597,88 @@ var PS = {};
   var PreliminaryAuthToken = function (x) {
       return x;
   };
+  var decodeJsonAuthError = new Data_Argonaut_Decode_Class.DecodeJson(function (json) {
+      var str = Control_Bind.bind(Data_Either.bindEither)(Data_Argonaut_Decode_Class.decodeJson(Data_Argonaut_Decode_Class.decodeJsonString)(json))(function (v) {
+          if (v === "bad-parse") {
+              return Control_Applicative.pure(Data_Either.applicativeEither)(FBLoginReturnBadParse.value);
+          };
+          if (v === "no-user") {
+              return Control_Applicative.pure(Data_Either.applicativeEither)(FBLoginReturnNoUser.value);
+          };
+          if (v === "exists-failure") {
+              return Control_Applicative.pure(Data_Either.applicativeEither)(AuthExistsFailure.value);
+          };
+          if (Data_Boolean.otherwise) {
+              return Data_Argonaut_JCursor.fail(Data_Show.showString)("Not a AuthError");
+          };
+          throw new Error("Failed pattern match at Login.Error line 33, column 11 - line 38, column 5: " + [ Data_Unit.unit.constructor.name ]);
+      });
+      var obj = Control_Bind.bind(Data_Either.bindEither)(Data_Argonaut_Decode_Class.decodeJson(Data_Argonaut_Decode_Class.decodeStrMap(Data_Argonaut_Decode_Class.decodeJsonJson))(json))(function (v) {
+          var denied = Control_Bind.bind(Data_Either.bindEither)(Data_Argonaut_Decode_Combinators.getField(Data_Argonaut_Decode_Class.decodeStrMap(Data_Argonaut_Decode_Class.decodeJsonJson))(v)("fbDenied"))(function (v1) {
+              return Data_Functor.map(Data_Either.functorEither)(FBLoginReturnDenied.create)(Data_Argonaut_Decode_Combinators.getField(Data_Argonaut_Decode_Class.decodeJsonString)(v1)("desc"));
+          });
+          var bad = Control_Bind.bind(Data_Either.bindEither)(Data_Argonaut_Decode_Combinators.getField(Data_Argonaut_Decode_Class.decodeStrMap(Data_Argonaut_Decode_Class.decodeJsonJson))(v)("fbBad"))(function (v1) {
+              return Control_Apply.apply(Data_Either.applyEither)(Data_Functor.map(Data_Either.functorEither)(FBLoginReturnBad.create)(Data_Argonaut_Decode_Combinators.getField(Data_Argonaut_Decode_Class.decodeJsonString)(v1)("code")))(Data_Argonaut_Decode_Combinators.getField(Data_Argonaut_Decode_Class.decodeJsonString)(v1)("msg"));
+          });
+          return Control_Alt.alt(Data_Either.altEither)(bad)(denied);
+      });
+      return Control_Alt.alt(Data_Either.altEither)(obj)(str);
+  });
+  var decodeJsonPreliminaryAuthToken = new Data_Argonaut_Decode_Class.DecodeJson(function (json) {
+      return Control_Bind.bind(Data_Either.bindEither)(Data_Argonaut_Decode_Class.decodeJson(Data_Argonaut_Decode_Class.decodeJsonMaybe(Data_Argonaut_Decode_Class.decodeStrMap(Data_Argonaut_Decode_Class.decodeJsonJson)))(json))(function (v) {
+          if (v instanceof Data_Maybe.Nothing) {
+              return Control_Applicative.pure(Data_Either.applicativeEither)(Data_Maybe.Nothing.value);
+          };
+          if (v instanceof Data_Maybe.Just) {
+              var token = Data_Functor.map(Data_Either.functorEither)(Data_Either.Right.create)(Data_Argonaut_Decode_Combinators.getField(LocalCooking_Common_AuthToken.decodeJsonAuthToken)(v.value0)("token"));
+              var err = Data_Functor.map(Data_Either.functorEither)(Data_Either.Left.create)(Data_Argonaut_Decode_Combinators.getField(decodeJsonAuthError)(v.value0)("err"));
+              return Data_Functor.map(Data_Either.functorEither)(function ($13) {
+                  return PreliminaryAuthToken(Data_Maybe.Just.create($13));
+              })(Control_Alt.alt(Data_Either.altEither)(err)(token));
+          };
+          throw new Error("Failed pattern match at Login.Error line 48, column 5 - line 53, column 59: " + [ v.constructor.name ]);
+      });
+  });
   exports["FBLoginReturnBad"] = FBLoginReturnBad;
   exports["FBLoginReturnDenied"] = FBLoginReturnDenied;
   exports["FBLoginReturnBadParse"] = FBLoginReturnBadParse;
   exports["FBLoginReturnNoUser"] = FBLoginReturnNoUser;
   exports["AuthExistsFailure"] = AuthExistsFailure;
   exports["PreliminaryAuthToken"] = PreliminaryAuthToken;
+  exports["decodeJsonAuthError"] = decodeJsonAuthError;
+  exports["decodeJsonPreliminaryAuthToken"] = decodeJsonPreliminaryAuthToken;
 })(PS["Login.Error"] = PS["Login.Error"] || {});
 (function(exports) {
   // Generated by purs version 0.11.7
   "use strict";
   var $foreign = PS["Types.Env"];
+  var Data_Argonaut = PS["Data.Argonaut"];
+  var Data_Argonaut_Decode_Class = PS["Data.Argonaut.Decode.Class"];
   var Data_Either = PS["Data.Either"];
+  var Data_Function = PS["Data.Function"];
   var Data_Maybe = PS["Data.Maybe"];
   var LocalCooking_Common_AuthToken = PS["LocalCooking.Common.AuthToken"];
   var LocalCooking_Common_Password = PS["LocalCooking.Common.Password"];
   var Login_Error = PS["Login.Error"];
+  var Partial_Unsafe = PS["Partial.Unsafe"];
   var Prelude = PS["Prelude"];        
   var env = {
       development: $foreign.envImpl.development,
       facebookClientID: $foreign.envImpl.facebookClientID,
-      authToken: $foreign.envImpl.authToken,
+      authToken: (function (dictPartial) {
+          var __unused = function (dictPartial1) {
+              return function ($dollar1) {
+                  return $dollar1;
+              };
+          };
+          return __unused(dictPartial)((function () {
+              var v = Data_Argonaut_Decode_Class.decodeJson(Login_Error.decodeJsonPreliminaryAuthToken)($foreign.envImpl.authToken);
+              if (v instanceof Data_Either.Right) {
+                  return v.value0;
+              };
+              throw new Error("Failed pattern match at Types.Env line 35, column 32 - line 36, column 17: " + [ v.constructor.name ]);
+          })());
+      })(),
       salt: $foreign.envImpl.salt
   };
   exports["env"] = env;
