@@ -119,7 +119,11 @@ router
                           pure $ Right (FacebookLoginCode code, state)
                     bad <|> good <|> denied of
 
-              Nothing -> pure (Left FBLoginReturnBadParse)
+              Nothing -> do
+                liftIO $ do
+                  putStr "Bad /facebookLoginReturn parse: "
+                  print qs
+                pure (Left FBLoginReturnBadParse)
               Just eX -> case eX of
                 Left e -> pure (Left e)
                 Right (code, state) -> do
