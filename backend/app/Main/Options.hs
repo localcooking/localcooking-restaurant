@@ -9,6 +9,10 @@ module Main.Options where
 
 import Types.Env (Env (..), defManagers, defDevelopment)
 import LocalCooking.Database.Query.Salt (getPasswordSalt)
+import qualified LocalCooking.Database.Schema.Auth as Auth
+import qualified LocalCooking.Database.Schema.Facebook as Facebook
+import qualified LocalCooking.Database.Schema.User as User
+import qualified LocalCooking.Database.Schema.Salt as Salt
 
 import Options.Applicative (Parser, strOption, option, switch, auto, long, help, value, showDefault)
 import Data.Attoparsec.Text (parseOnly)
@@ -28,6 +32,7 @@ import Control.Monad.Logger (runStderrLoggingT)
 import Path (toFilePath, parent, relfile, (</>))
 import System.Directory (doesDirectoryExist, createDirectory)
 import Foreign.C.Types (CTime (..))
+import Database.Persist.Sql (runSqlPool, runMigration)
 import Database.Persist.Postgresql (createPostgresqlPool)
 
 
@@ -148,6 +153,12 @@ mkEnv
                <> " password=" <> BS8.fromString argsImplDbPassword
                <> " dbname=" <> BS8.fromString argsImplDbName
     runStderrLoggingT (createPostgresqlPool connStr 10)
+
+  flip runSqlPool envDatabase $ do
+    runMigration Auth.migrateAll
+    runMigration Facebook.migrateAll
+    runMigration User.migrateAll
+    runMigration Salt.migrateAll
 
   envSalt <- getPasswordSalt envDatabase
 

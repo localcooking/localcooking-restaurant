@@ -106,6 +106,7 @@ executables:
     - monad-logger
     - optparse-applicative
     - path
+    - persistent
     - persistent-postgresql
     - safe-exceptions
     - stm
