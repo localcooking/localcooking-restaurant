@@ -16,9 +16,11 @@ import           Types.Keys (Keys (..))
 import           Links (WebAssetLinks (..))
 import           Login.Error (AuthError)
 import           Facebook.App (Credentials (..))
+import           Google.Keys (GoogleCredentials (..))
+import           Google.Analytics (googleAnalyticsGTagToURI, GoogleAnalyticsGTag (..))
 import           LocalCooking.Common.AuthToken (AuthToken)
 
-import           Lucid (renderBST, HtmlT, Attribute, content_, name_, meta_, httpEquiv_, charset_, link_, rel_, type_, href_, sizes_, script_)
+import           Lucid (renderBST, HtmlT, Attribute, content_, name_, meta_, httpEquiv_, charset_, link_, rel_, type_, href_, sizes_, script_, src_, async_)
 import           Lucid.Base (makeAttribute)
 import           Network.HTTP.Types (Status, status200)
 import qualified Network.Wai.Middleware.ContentType.Types as CT
@@ -32,7 +34,7 @@ import           Data.Default
 import qualified Data.HashMap.Strict                      as HM
 import           Data.Markup                              as M
 import           Data.Url (AbsoluteUrlT (..), packLocation)
-import           Data.URI (URI (..))
+import           Data.URI (URI (..), printURI)
 import           Data.URI.Auth (URIAuth (..))
 import           Data.URI.Auth.Host (URIAuthHost (..))
 import           Data.Aeson (ToJSON (..), (.=), object)
@@ -104,9 +106,18 @@ masterPage mToken =
           deploy M.JavaScript M.Remote =<< lift (toLocation $ IndexJs $ devCacheBuster <$> mDev)
         , afterStylesScripts = do
           env@Env
-            { envKeys = Keys{keysFacebook = Credentials{clientId}}
+            { envKeys = Keys
+              { keysFacebook = Credentials{clientId}
+              , keysGoogle = GoogleCredentials{googleAnalytics}
+              }
             , envSalt
             } <- lift ask
+
+          -- Google Analytics
+          script_ [async_ "", src_ $ printURI $ googleAnalyticsGTagToURI googleAnalytics] ("" :: T.Text)
+          script_ [] $ renderJavascriptUrl (\_ _ -> undefined) $ googleAnalyticsScript googleAnalytics
+
+          -- FrontendEnv
           let frontendEnv = FrontendEnv
                 { frontendEnvDevelopment = isDevelopment env
                 , frontendEnvFacebookClientID = clientId
@@ -138,6 +149,14 @@ body {
 
     inlineScripts frontendEnv = [julius|
 var frontendEnv = #{Aeson.toJSON frontendEnv}
+|]
+
+    googleAnalyticsScript gTag = [julius|
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+
+gtag('config', #{Aeson.toJSON $ googleAnalyticsGTag gTag});
 |]
 
 -- | Inject some HTML into the @<body>@ tag of our template
