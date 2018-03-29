@@ -133,7 +133,8 @@ mkEnv
     [ "Starting server with environment:"
     , " - hostname: " <> argsImplHostname
     , " - public port: " <> show argsImplPublicPort
-    , " - database location: " <> argsImplDbHost <> ":" <> show (argsImplDbPort)
+    , " - database location: " <> argsImplDbHost <> ":" <> show argsImplDbPort
+    , " - database user: " <> argsImplDbUser <> ":" <> argsImplDbPassword
     , " - secret key location: " <> argsImplSecretKey
     ]
 
