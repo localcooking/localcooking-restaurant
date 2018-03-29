@@ -19,6 +19,7 @@ import Types.Keys (Keys (..))
 import Template (html)
 import Login (AuthError (..))
 import Facebook.Types (FacebookLoginCode (..))
+import Facebook.State (FacebookLoginState (..))
 
 import Web.Routes.Nested (RouterT, match, matchHere, matchGroup, action, post, get, json, text, textOnly, l_, (</>), o_, route)
 import Web.Dependencies.Sparrow.Types (ServerContinue (ServerContinue, serverContinue), ServerReturn (ServerReturn, serverInitOut))
@@ -113,7 +114,7 @@ router
                             else Nothing
                         good = do
                           code <- fmap T.decodeUtf8 $ join $ lookup "code" qs
-                          (state :: ()) <- do -- FIXME decide a monomorphic state to share for CSRF prevention
+                          (state :: FacebookLoginState) <- do -- FIXME decide a monomorphic state to share for CSRF prevention
                             x <- join $ lookup "state" qs
                             join $ Aeson.decode $ LBS.fromStrict x
                           pure $ Right (FacebookLoginCode code, state)
@@ -127,6 +128,7 @@ router
               Just eX -> case eX of
                 Left e -> pure (Left e)
                 Right (code, state) -> do
+                  -- TODO redirect smart
                   mCont <- authTokenServer $ AuthTokenInitInFacebookCode code
                   case mCont of
                     Nothing -> fail "Somehow couldn't get FB server's ServerContinue"
