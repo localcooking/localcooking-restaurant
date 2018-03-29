@@ -4,7 +4,7 @@
 
 module Login.Error where
 
-
+import LocalCooking.Common.AuthToken (AuthToken)
 
 import Data.Aeson (ToJSON (..), FromJSON (..), (.:), (.=), object, Value (String, Object))
 import Data.Aeson.Types (typeMismatch)
@@ -52,3 +52,16 @@ instance FromJSON AuthError where
     _ -> fail
     where
       fail = typeMismatch "AuthError" json
+
+
+
+newtype PreliminaryAuthToken = PreliminaryAuthToken
+  { getPreliminaryAuthToken :: Maybe (Either AuthError AuthToken)
+  }
+
+instance ToJSON PreliminaryAuthToken where
+  toJSON (PreliminaryAuthToken mTkn) = case mTkn of
+    Nothing -> toJSON (Nothing :: Maybe ())
+    Just eTkn -> case eTkn of
+      Left e -> object ["err" .= e]
+      Right tkn -> object ["token" .= tkn]

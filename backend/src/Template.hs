@@ -14,7 +14,7 @@ import           Types.Env (Env (..), Development (..), isDevelopment)
 import           Types.FrontendEnv (FrontendEnv (..))
 import           Types.Keys (Keys (..))
 import           Links (WebAssetLinks (..))
-import           Login.Error (AuthError)
+import           Login.Error (AuthError, PreliminaryAuthToken (..))
 import           Facebook.App (Credentials (..))
 import           Google.Keys (GoogleCredentials (..))
 import           Google.Analytics (googleAnalyticsGTagToURI, GoogleAnalyticsGTag (..))
@@ -122,7 +122,7 @@ masterPage mToken =
                 { frontendEnvDevelopment = isDevelopment env
                 , frontendEnvFacebookClientID = clientId
                 , frontendEnvSalt = envSalt
-                , frontendEnvAuthToken = mToken
+                , frontendEnvAuthToken = PreliminaryAuthToken mToken
                 }
           script_ [] $ renderJavascriptUrl (\_ _ -> undefined) $ inlineScripts frontendEnv
         }
