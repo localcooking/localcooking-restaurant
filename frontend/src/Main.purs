@@ -52,7 +52,7 @@ import DOM.HTML.Window (location, document, history)
 import DOM.HTML.Window.Extra (onPopState, queryParams, removeQueryParam)
 import DOM.HTML.Document (body)
 import DOM.HTML.History (pushState, URL (..), DocumentTitle (..))
-import DOM.HTML.Location (hostname, protocol, port, pathname, setHash)
+import DOM.HTML.Location (hostname, protocol, port, pathname, setHash, hash)
 import DOM.HTML.Types (HISTORY, htmlElementToElement)
 import WebSocket (WEBSOCKET)
 import Network.HTTP.Affjax (AJAX)
@@ -103,7 +103,8 @@ main = do
         Just _ -> removeQueryParam l "authToken"
 
       -- remove residual facebook gunk from fragment
-      setHash "" l
+      h' <- hash l
+      when (h' /= "") $ setHash "" l
 
       -- parse foo.com/pathname
       p <- pathname l

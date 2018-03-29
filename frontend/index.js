@@ -9304,6 +9304,7 @@ var PS = {};
   var DOM = PS["DOM"];
   var DOM_HTML_Types = PS["DOM.HTML.Types"];
   var Prelude = PS["Prelude"];
+  exports["hash"] = $foreign.hash;
   exports["setHash"] = $foreign.setHash;
   exports["hostname"] = $foreign.hostname;
   exports["pathname"] = $foreign.pathname;
@@ -15098,10 +15099,10 @@ var PS = {};
       var v = DOM_HTML.window();
       var v1 = DOM_HTML_Window.location(v)();
       var v2 = DOM_HTML_Window.history(v)();
-      var v3 = Data_Functor.map(Control_Monad_Eff.functorEff)(function ($88) {
+      var v3 = Data_Functor.map(Control_Monad_Eff.functorEff)(function ($90) {
           return Data_Maybe.Just.create(Data_URI_Scheme.Scheme(Data_String.takeWhile(function (c) {
               return c !== ":";
-          })($88)));
+          })($90)));
       })(DOM_HTML_Location.protocol(v1))();
       var v4 = (function __do() {
           var v4 = DOM_HTML_Location.hostname(v1)();
@@ -15130,20 +15131,21 @@ var PS = {};
                   };
                   throw new Error("Failed pattern match at Main line 101, column 7 - line 105, column 7: " + [ v5.constructor.name ]);
               })()();
-              DOM_HTML_Location.setHash("")(v1)();
-              var v5 = DOM_HTML_Location.pathname(v1)();
-              var $44 = v5 === "";
-              if ($44) {
+              var v5 = DOM_HTML_Location.hash(v1)();
+              Control_Applicative.when(Control_Monad_Eff.applicativeEff)(v5 !== "")(DOM_HTML_Location.setHash("")(v1))();
+              var v6 = DOM_HTML_Location.pathname(v1)();
+              var $46 = v6 === "";
+              if ($46) {
                   return Links.RootLink.value;
               };
-              var v6 = Text_Parsing_StringParser.runParser(Links.siteLinksParser)(v5);
-              if (v6 instanceof Data_Either.Left) {
-                  return Control_Monad_Eff_Exception["throw"]("Parsing error: " + Data_Show.show(Text_Parsing_StringParser.showParseError)(v6.value0))();
+              var v7 = Text_Parsing_StringParser.runParser(Links.siteLinksParser)(v6);
+              if (v7 instanceof Data_Either.Left) {
+                  return Control_Monad_Eff_Exception["throw"]("Parsing error: " + Data_Show.show(Text_Parsing_StringParser.showParseError)(v7.value0))();
               };
-              if (v6 instanceof Data_Either.Right) {
-                  return v6.value0;
+              if (v7 instanceof Data_Either.Right) {
+                  return v7.value0;
               };
-              throw new Error("Failed pattern match at Main line 112, column 14 - line 114, column 28: " + [ v6.constructor.name ]);
+              throw new Error("Failed pattern match at Main line 113, column 14 - line 115, column 28: " + [ v7.constructor.name ]);
           })();
           var v6 = Page.makePage(v5);
           var v7 = IxSignal_Internal.make(v6.immediate)();
@@ -15154,7 +15156,7 @@ var PS = {};
               if (eX instanceof Data_Either.Right) {
                   return IxSignal_Internal.set(eX.value0)(v7);
               };
-              throw new Error("Failed pattern match at Main line 119, column 37 - line 121, column 36: " + [ eX.constructor.name ]);
+              throw new Error("Failed pattern match at Main line 120, column 37 - line 122, column 36: " + [ eX.constructor.name ]);
           })();
           DOM_HTML_Window_Extra.onPopState(function (x) {
               return function __do() {
@@ -15166,7 +15168,7 @@ var PS = {};
                       if (v8 instanceof Data_Either.Right) {
                           return Control_Applicative.pure(Control_Monad_Eff.applicativeEff)(Page.makePage(v8.value0));
                       };
-                      throw new Error("Failed pattern match at Main line 124, column 36 - line 126, column 54: " + [ v8.constructor.name ]);
+                      throw new Error("Failed pattern match at Main line 125, column 36 - line 127, column 54: " + [ v8.constructor.name ]);
                   })()();
                   IxSignal_Internal.set(v8.immediate)(v7)();
                   return Data_Function.flip(Control_Monad_Aff.runAff_)(v8.loadDetails)(function (eX) {
@@ -15176,7 +15178,7 @@ var PS = {};
                       if (eX instanceof Data_Either.Right) {
                           return IxSignal_Internal.set(eX.value0)(v7);
                       };
-                      throw new Error("Failed pattern match at Main line 128, column 41 - line 130, column 42: " + [ eX.constructor.name ]);
+                      throw new Error("Failed pattern match at Main line 129, column 41 - line 131, column 42: " + [ eX.constructor.name ]);
                   })();
               };
           })(v)();
@@ -15196,7 +15198,7 @@ var PS = {};
                       if (eX instanceof Data_Either.Right) {
                           return IxSignal_Internal.set(eX.value0)(v5);
                       };
-                      throw new Error("Failed pattern match at Main line 143, column 39 - line 145, column 52: " + [ eX.constructor.name ]);
+                      throw new Error("Failed pattern match at Main line 144, column 39 - line 146, column 52: " + [ eX.constructor.name ]);
                   })();
               };
           })();
@@ -15231,7 +15233,7 @@ var PS = {};
           if (Types_Env.env.authToken instanceof Data_Maybe.Just) {
               return Control_Applicative.pure(Control_Monad_Eff.applicativeEff)(new Data_Maybe.Just(Types_Env.env.authToken.value0));
           };
-          throw new Error("Failed pattern match at Main line 175, column 37 - line 177, column 61: " + [ Types_Env.env.authToken.constructor.name ]);
+          throw new Error("Failed pattern match at Main line 176, column 37 - line 178, column 61: " + [ Types_Env.env.authToken.constructor.name ]);
       })())();
       var v10 = Spec.app({
           toURI: function (location) {
@@ -15249,8 +15251,8 @@ var PS = {};
           authTokenQueues: v8
       });
       var component = React.createClass(v10.spec);
-      return Control_Bind.bindFlipped(Control_Monad_Eff.bindEff)(Data_Foldable.traverse_(Control_Monad_Eff.applicativeEff)(Data_Foldable.foldableMaybe)(function ($89) {
-          return ReactDOM.render(React.createFactory(component)(Data_Unit.unit))(DOM_HTML_Types.htmlElementToElement($89));
+      return Control_Bind.bindFlipped(Control_Monad_Eff.bindEff)(Data_Foldable.traverse_(Control_Monad_Eff.applicativeEff)(Data_Foldable.foldableMaybe)(function ($91) {
+          return ReactDOM.render(React.createFactory(component)(Data_Unit.unit))(DOM_HTML_Types.htmlElementToElement($91));
       }))(Control_Bind.bindFlipped(Control_Monad_Eff.bindEff)(DOM_HTML_Document.body)(DOM_HTML_Window.document(v)))();
   };
   exports["main"] = main;
