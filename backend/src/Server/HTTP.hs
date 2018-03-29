@@ -17,7 +17,7 @@ import Types.Env (Env (..), Managers (..), isDevelopment, Development (..))
 import Types.FrontendEnv (FrontendEnv (..))
 import Types.Keys (Keys (..))
 import Template (html)
-import Login.Error (AuthError (..))
+import Login.Error (AuthError (..), PreliminaryAuthToken (..))
 import Facebook.Types (FacebookLoginCode (..))
 import Facebook.State (FacebookLoginState (..))
 
@@ -141,7 +141,7 @@ router
                           True
                           envHostname
                           []
-                          ["authToken" :!: Strict.Just (T.decodeUtf8 $ LBS.toStrict $ Aeson.encode eToken)]
+                          ["authToken" :!: Strict.Just (T.decodeUtf8 $ LBS.toStrict $ Aeson.encode $ PreliminaryAuthToken $ Just eToken)]
                           Strict.Nothing
     resp $ textOnly "" status302 [("Location", T.encodeUtf8 $ printURI redirectUri)]
 

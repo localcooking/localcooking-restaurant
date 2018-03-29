@@ -102,6 +102,9 @@ main = do
         Nothing -> pure unit
         Just _ -> removeQueryParam l "authToken"
 
+      -- remove residual facebook gunk from fragment
+      setHash "" l
+
       -- parse foo.com/pathname
       p <- pathname l
       if p == ""
