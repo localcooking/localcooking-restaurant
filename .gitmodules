@@ -1,3 +1,12 @@
 [submodule "logo"]
 	path = logo
 	url = git@git.localcooking.com:localcooking/logo.git
+[submodule "localcooking-shared"]
+	path = localcooking-shared
+	url = git@git.localcooking.com:localcooking/localcooking-shared
+[submodule "localcooking-fb"]
+	path = localcooking-fb
+	url = git@git.localcooking.com:localcooking/localcooking-fb
+[submodule "localcooking-db"]
+	path = localcooking-db
+	url = git@git.localcooking.com:localcooking/localcooking-db
