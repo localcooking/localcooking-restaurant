@@ -43,3 +43,11 @@ makePage x =
 
 initPage :: Page
 initPage = RootPage
+
+
+pageBacklink :: Page -> SiteLinks
+pageBacklink x = case x of
+  RootPage  -> RootLink
+  AboutPage -> AboutLink
+  MealsPage -> MealsLink
+  ChefsPage -> ChefsLink

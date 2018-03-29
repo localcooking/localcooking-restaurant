@@ -479,10 +479,7 @@ var PS = {};
 
   function id(x) {
     return x;
-  } 
-
-  exports.fromBoolean = id;
-  exports.fromNumber = id;
+  }                       
   exports.fromString = id;
   exports.fromArray = id;
   exports.fromObject = id;
@@ -958,19 +955,6 @@ var PS = {};
           throw new Error("Failed pattern match at Data.Maybe line 68, column 1 - line 68, column 35: " + [ v.constructor.name, v1.constructor.name ]);
       };
   });
-  var bindMaybe = new Control_Bind.Bind(function () {
-      return applyMaybe;
-  }, function (v) {
-      return function (v1) {
-          if (v instanceof Just) {
-              return v1(v.value0);
-          };
-          if (v instanceof Nothing) {
-              return Nothing.value;
-          };
-          throw new Error("Failed pattern match at Data.Maybe line 127, column 1 - line 127, column 33: " + [ v.constructor.name, v1.constructor.name ]);
-      };
-  });
   var applicativeMaybe = new Control_Applicative.Applicative(function () {
       return applyMaybe;
   }, Just.create);
@@ -984,7 +968,6 @@ var PS = {};
   exports["functorMaybe"] = functorMaybe;
   exports["applyMaybe"] = applyMaybe;
   exports["applicativeMaybe"] = applicativeMaybe;
-  exports["bindMaybe"] = bindMaybe;
   exports["eqMaybe"] = eqMaybe;
 })(PS["Data.Maybe"] = PS["Data.Maybe"] || {});
 (function(exports) {
@@ -1224,23 +1207,6 @@ var PS = {};
     return function (e) {
       return function (l) {
         return l.slice(s, e);
-      };
-    };
-  };
-
-  //------------------------------------------------------------------------------
-  // Zipping ---------------------------------------------------------------------
-  //------------------------------------------------------------------------------
-
-  exports.zipWith = function (f) {
-    return function (xs) {
-      return function (ys) {
-        var l = xs.length < ys.length ? xs.length : ys.length;
-        var result = new Array(l);
-        for (var i = 0; i < l; i++) {
-          result[i] = f(xs[i])(ys[i]);
-        }
-        return result;
       };
     };
   };
@@ -1603,19 +1569,6 @@ var PS = {};
   var foldMap = function (dict) {
       return dict.foldMap;
   };
-  var find = function (dictFoldable) {
-      return function (p) {
-          var go = function (v) {
-              return function (v1) {
-                  if (v instanceof Data_Maybe.Nothing && p(v1)) {
-                      return new Data_Maybe.Just(v1);
-                  };
-                  return v;
-              };
-          };
-          return foldl(dictFoldable)(go)(Data_Maybe.Nothing.value);
-      };
-  };
   var any = function (dictFoldable) {
       return function (dictHeytingAlgebra) {
           return Data_Newtype.alaF(Data_Functor.functorFn)(Data_Functor.functorFn)(Data_Monoid_Disj.newtypeDisj)(Data_Monoid_Disj.newtypeDisj)(Data_Monoid_Disj.Disj)(foldMap(dictFoldable)(Data_Monoid_Disj.monoidDisj(dictHeytingAlgebra)));
@@ -1629,7 +1582,6 @@ var PS = {};
   exports["traverse_"] = traverse_;
   exports["intercalate"] = intercalate;
   exports["any"] = any;
-  exports["find"] = find;
   exports["foldableArray"] = foldableArray;
   exports["foldableMaybe"] = foldableMaybe;
 })(PS["Data.Foldable"] = PS["Data.Foldable"] || {});
@@ -1745,20 +1697,10 @@ var PS = {};
   var sequence = function (dict) {
       return dict.sequence;
   };
-  var $$for = function (dictApplicative) {
-      return function (dictTraversable) {
-          return function (x) {
-              return function (f) {
-                  return traverse(dictTraversable)(dictApplicative)(f)(x);
-              };
-          };
-      };
-  };
   exports["Traversable"] = Traversable;
   exports["traverse"] = traverse;
   exports["sequence"] = sequence;
   exports["sequenceDefault"] = sequenceDefault;
-  exports["for"] = $$for;
   exports["traversableArray"] = traversableArray;
 })(PS["Data.Traversable"] = PS["Data.Traversable"] || {});
 (function(exports) {
@@ -2444,16 +2386,7 @@ var PS = {};
   var Data_Tuple = PS["Data.Tuple"];
   var Data_Unfoldable = PS["Data.Unfoldable"];
   var Partial_Unsafe = PS["Partial.Unsafe"];
-  var Prelude = PS["Prelude"];        
-  var zipWithA = function (dictApplicative) {
-      return function (f) {
-          return function (xs) {
-              return function (ys) {
-                  return Data_Traversable.sequence(Data_Traversable.traversableArray)(dictApplicative)($foreign.zipWith(f)(xs)(ys));
-              };
-          };
-      };
-  };                                                                                  
+  var Prelude = PS["Prelude"];                                                        
   var unsafeIndex = function (dictPartial) {
       return $foreign.unsafeIndexImpl;
   };
@@ -2556,7 +2489,6 @@ var PS = {};
   exports["mapMaybe"] = mapMaybe;
   exports["catMaybes"] = catMaybes;
   exports["sortBy"] = sortBy;
-  exports["zipWithA"] = zipWithA;
   exports["unsafeIndex"] = unsafeIndex;
   exports["length"] = $foreign.length;
   exports["snoc"] = $foreign.snoc;
@@ -2839,7 +2771,6 @@ var PS = {};
           };
       };
   };                                        
-  var toString = toJsonType(foldJsonString);
   var foldJsonObject = function (d) {
       return function (f) {
           return function (j) {
@@ -2848,14 +2779,6 @@ var PS = {};
       };
   };                                        
   var toObject = toJsonType(foldJsonObject);
-  var foldJsonNumber = function (d) {
-      return function (f) {
-          return function (j) {
-              return $foreign._foldJson(Data_Function["const"](d), Data_Function["const"](d), f, Data_Function["const"](d), Data_Function["const"](d), Data_Function["const"](d), j);
-          };
-      };
-  };                                        
-  var toNumber = toJsonType(foldJsonNumber);
   var foldJsonNull = function (d) {
       return function (f) {
           return function (j) {
@@ -2863,15 +2786,7 @@ var PS = {};
           };
       };
   };
-  var isNull = isJsonType(foldJsonNull);
-  var foldJsonBoolean = function (d) {
-      return function (f) {
-          return function (j) {
-              return $foreign._foldJson(Data_Function["const"](d), f, Data_Function["const"](d), Data_Function["const"](d), Data_Function["const"](d), Data_Function["const"](d), j);
-          };
-      };
-  };                                          
-  var toBoolean = toJsonType(foldJsonBoolean);
+  var isNull = isJsonType(foldJsonNull);      
   var foldJsonArray = function (d) {
       return function (f) {
           return function (j) {
@@ -2881,22 +2796,15 @@ var PS = {};
   };                                      
   var toArray = toJsonType(foldJsonArray);
   exports["foldJsonNull"] = foldJsonNull;
-  exports["foldJsonBoolean"] = foldJsonBoolean;
-  exports["foldJsonNumber"] = foldJsonNumber;
   exports["foldJsonString"] = foldJsonString;
   exports["foldJsonArray"] = foldJsonArray;
   exports["foldJsonObject"] = foldJsonObject;
   exports["isNull"] = isNull;
-  exports["toBoolean"] = toBoolean;
-  exports["toNumber"] = toNumber;
-  exports["toString"] = toString;
   exports["toArray"] = toArray;
   exports["toObject"] = toObject;
   exports["jsonEmptyObject"] = jsonEmptyObject;
   exports["jsonSingletonObject"] = jsonSingletonObject;
   exports["showJson"] = showJson;
-  exports["fromBoolean"] = $foreign.fromBoolean;
-  exports["fromNumber"] = $foreign.fromNumber;
   exports["fromString"] = $foreign.fromString;
   exports["fromArray"] = $foreign.fromArray;
   exports["fromObject"] = $foreign.fromObject;
@@ -2998,7 +2906,6 @@ var PS = {};
   };
   exports["fromNumber"] = fromNumber;
   exports["round"] = round;
-  exports["toNumber"] = $foreign.toNumber;
 })(PS["Data.Int"] = PS["Data.Int"] || {});
 (function(exports) {
   // Generated by purs version 0.11.7
@@ -3934,14 +3841,6 @@ var PS = {};
     return c;
   };
 
-  exports._toChar = function (just) {
-    return function (nothing) {
-      return function (s) {
-        return s.length === 1 ? just(s) : nothing;
-      };
-    };
-  };
-
   exports._indexOf = function (just) {
     return function (nothing) {
       return function (x) {
@@ -4039,8 +3938,7 @@ var PS = {};
   var Data_Semiring = PS["Data.Semiring"];
   var Data_Show = PS["Data.Show"];
   var Data_String_Unsafe = PS["Data.String.Unsafe"];
-  var Prelude = PS["Prelude"];
-  var toChar = $foreign._toChar(Data_Maybe.Just.create)(Data_Maybe.Nothing.value);
+  var Prelude = PS["Prelude"];                                                    
   var takeWhile = function (p) {
       return function (s) {
           return $foreign.take($foreign.count(p)(s))(s);
@@ -4059,7 +3957,6 @@ var PS = {};
   };                                                                                      
   var charAt = $foreign._charAt(Data_Maybe.Just.create)(Data_Maybe.Nothing.value);
   exports["charAt"] = charAt;
-  exports["toChar"] = toChar;
   exports["indexOf"] = indexOf;
   exports["indexOf'"] = indexOf$prime;
   exports["takeWhile"] = takeWhile;
@@ -4481,49 +4378,12 @@ var PS = {};
       };
       return SigProd;
   })();
-  var SigRecord = (function () {
-      function SigRecord(value0) {
-          this.value0 = value0;
-      };
-      SigRecord.create = function (value0) {
-          return new SigRecord(value0);
-      };
-      return SigRecord;
-  })();
-  var SigNumber = (function () {
-      function SigNumber() {
-
-      };
-      SigNumber.value = new SigNumber();
-      return SigNumber;
-  })();
-  var SigBoolean = (function () {
-      function SigBoolean() {
-
-      };
-      SigBoolean.value = new SigBoolean();
-      return SigBoolean;
-  })();
-  var SigInt = (function () {
-      function SigInt() {
-
-      };
-      SigInt.value = new SigInt();
-      return SigInt;
-  })();
   var SigString = (function () {
       function SigString() {
 
       };
       SigString.value = new SigString();
       return SigString;
-  })();
-  var SigChar = (function () {
-      function SigChar() {
-
-      };
-      SigChar.value = new SigChar();
-      return SigChar;
   })();
   var SigArray = (function () {
       function SigArray(value0) {
@@ -4533,13 +4393,6 @@ var PS = {};
           return new SigArray(value0);
       };
       return SigArray;
-  })();
-  var SigUnit = (function () {
-      function SigUnit() {
-
-      };
-      SigUnit.value = new SigUnit();
-      return SigUnit;
   })();
   var Generic = function (fromSpine, toSignature, toSpine) {
       this.fromSpine = fromSpine;
@@ -4849,14 +4702,8 @@ var PS = {};
   exports["SArray"] = SArray;
   exports["SUnit"] = SUnit;
   exports["SigProd"] = SigProd;
-  exports["SigRecord"] = SigRecord;
-  exports["SigNumber"] = SigNumber;
-  exports["SigBoolean"] = SigBoolean;
-  exports["SigInt"] = SigInt;
   exports["SigString"] = SigString;
-  exports["SigChar"] = SigChar;
   exports["SigArray"] = SigArray;
-  exports["SigUnit"] = SigUnit;
   exports["gShow"] = gShow;
   exports["gEq"] = gEq;
   exports["gCompare"] = gCompare;
@@ -9445,179 +9292,6 @@ var PS = {};
   exports["queryParams"] = $foreign.queryParams;
 })(PS["DOM.HTML.Window.Extra"] = PS["DOM.HTML.Window.Extra"] || {});
 (function(exports) {
-  // Generated by purs version 0.11.7
-  "use strict";
-  var Control_Applicative = PS["Control.Applicative"];
-  var Control_Bind = PS["Control.Bind"];
-  var Control_Semigroupoid = PS["Control.Semigroupoid"];
-  var Data_Argonaut_Core = PS["Data.Argonaut.Core"];
-  var Data_Array = PS["Data.Array"];
-  var Data_Either = PS["Data.Either"];
-  var Data_Eq = PS["Data.Eq"];
-  var Data_Foldable = PS["Data.Foldable"];
-  var Data_Function = PS["Data.Function"];
-  var Data_Functor = PS["Data.Functor"];
-  var Data_Generic = PS["Data.Generic"];
-  var Data_Int = PS["Data.Int"];
-  var Data_Maybe = PS["Data.Maybe"];
-  var Data_Semigroup = PS["Data.Semigroup"];
-  var Data_StrMap = PS["Data.StrMap"];
-  var Data_String = PS["Data.String"];
-  var Data_Traversable = PS["Data.Traversable"];
-  var Data_Unit = PS["Data.Unit"];
-  var Prelude = PS["Prelude"];
-  var Type_Proxy = PS["Type.Proxy"];        
-  var gDecodeJson$prime = function (signature) {
-      return function (json) {
-          var mFail = function (msg) {
-              return Data_Maybe.maybe(new Data_Either.Left(msg))(Data_Either.Right.create);
-          };
-          if (signature instanceof Data_Generic.SigNumber) {
-              return Data_Functor.map(Data_Either.functorEither)(Data_Generic.SNumber.create)(mFail("Expected a number")(Data_Argonaut_Core.toNumber(json)));
-          };
-          if (signature instanceof Data_Generic.SigInt) {
-              return Data_Functor.map(Data_Either.functorEither)(Data_Generic.SInt.create)(mFail("Expected an integer number")(Control_Bind.bindFlipped(Data_Maybe.bindMaybe)(Data_Int.fromNumber)(Data_Argonaut_Core.toNumber(json))));
-          };
-          if (signature instanceof Data_Generic.SigString) {
-              return Data_Functor.map(Data_Either.functorEither)(Data_Generic.SString.create)(mFail("Expected a string")(Data_Argonaut_Core.toString(json)));
-          };
-          if (signature instanceof Data_Generic.SigChar) {
-              return Data_Functor.map(Data_Either.functorEither)(Data_Generic.SChar.create)(mFail("Expected a char")(Control_Bind.bindFlipped(Data_Maybe.bindMaybe)(Data_String.toChar)(Data_Argonaut_Core.toString(json))));
-          };
-          if (signature instanceof Data_Generic.SigBoolean) {
-              return Data_Functor.map(Data_Either.functorEither)(Data_Generic.SBoolean.create)(mFail("Expected a boolean")(Data_Argonaut_Core.toBoolean(json)));
-          };
-          if (signature instanceof Data_Generic.SigUnit) {
-              return Control_Applicative.pure(Data_Either.applicativeEither)(Data_Generic.SUnit.value);
-          };
-          if (signature instanceof Data_Generic.SigArray) {
-              return Control_Bind.bind(Data_Either.bindEither)(mFail("Expected an array")(Data_Argonaut_Core.toArray(json)))(function (v) {
-                  return Data_Functor.map(Data_Either.functorEither)(Data_Generic.SArray.create)(Data_Traversable.traverse(Data_Traversable.traversableArray)(Data_Either.applicativeEither)(function ($34) {
-                      return Data_Functor.map(Data_Either.functorEither)(Data_Function["const"])(gDecodeJson$prime(signature.value0(Data_Unit.unit))($34));
-                  })(v));
-              });
-          };
-          if (signature instanceof Data_Generic.SigRecord) {
-              return Control_Bind.bind(Data_Either.bindEither)(mFail("Expected an object")(Data_Argonaut_Core.toObject(json)))(function (v) {
-                  return Data_Functor.map(Data_Either.functorEither)(Data_Generic.SRecord.create)(Data_Traversable["for"](Data_Either.applicativeEither)(Data_Traversable.traversableArray)(signature.value0)(function (v1) {
-                      return Control_Bind.bind(Data_Either.bindEither)(mFail("'" + (v1.recLabel + "' property missing"))(Data_StrMap.lookup(v1.recLabel)(v)))(function (v2) {
-                          return Control_Bind.bind(Data_Either.bindEither)(gDecodeJson$prime(v1.recValue(Data_Unit.unit))(v2))(function (v3) {
-                              return Control_Applicative.pure(Data_Either.applicativeEither)({
-                                  recLabel: v1.recLabel,
-                                  recValue: Data_Function["const"](v3)
-                              });
-                          });
-                      });
-                  }));
-              });
-          };
-          if (signature instanceof Data_Generic.SigProd) {
-              var decodingErr = function (msg) {
-                  return "When decoding a " + (signature.value0 + (": " + msg));
-              };
-              return Control_Bind.bind(Data_Either.bindEither)(mFail(decodingErr("expected an object"))(Data_Argonaut_Core.toObject(json)))(function (v) {
-                  return Control_Bind.bind(Data_Either.bindEither)(mFail(decodingErr("'tag' property is missing"))(Data_StrMap.lookup("tag")(v)))(function (v1) {
-                      return Control_Bind.bind(Data_Either.bindEither)(mFail(decodingErr("'tag' property is not a string"))(Data_Argonaut_Core.toString(v1)))(function (v2) {
-                          var v3 = Data_Foldable.find(Data_Foldable.foldableArray)(function ($35) {
-                              return (function (v4) {
-                                  return v2 === v4;
-                              })((function (v4) {
-                                  return v4.sigConstructor;
-                              })($35));
-                          })(signature.value1);
-                          if (v3 instanceof Data_Maybe.Nothing) {
-                              return new Data_Either.Left(decodingErr("'" + (v2 + "' isn't a valid constructor")));
-                          };
-                          if (v3 instanceof Data_Maybe.Just) {
-                              return Control_Bind.bind(Data_Either.bindEither)(mFail(decodingErr("'values' array is missing"))(Control_Bind.bindFlipped(Data_Maybe.bindMaybe)(Data_Argonaut_Core.toArray)(Data_StrMap.lookup("values")(v))))(function (v4) {
-                                  return Control_Bind.bind(Data_Either.bindEither)(Data_Array.zipWithA(Data_Either.applicativeEither)(function (k) {
-                                      return gDecodeJson$prime(k(Data_Unit.unit));
-                                  })(v3.value0.sigValues)(v4))(function (v5) {
-                                      return Control_Applicative.pure(Data_Either.applicativeEither)(new Data_Generic.SProd(v2, Data_Functor.map(Data_Functor.functorArray)(Data_Function["const"])(v5)));
-                                  });
-                              });
-                          };
-                          throw new Error("Failed pattern match at Data.Argonaut.Decode.Generic line 50, column 5 - line 55, column 41: " + [ v3.constructor.name ]);
-                      });
-                  });
-              });
-          };
-          throw new Error("Failed pattern match at Data.Argonaut.Decode.Generic line 29, column 31 - line 55, column 41: " + [ signature.constructor.name ]);
-      };
-  };
-  var gDecodeJson = function (dictGeneric) {
-      return Control_Bind.composeKleisliFlipped(Data_Either.bindEither)(function ($36) {
-          return Data_Maybe.maybe(new Data_Either.Left("fromSpine failed"))(Data_Either.Right.create)(Data_Generic.fromSpine(dictGeneric)($36));
-      })(gDecodeJson$prime(Data_Generic.toSignature(dictGeneric)(Type_Proxy["Proxy"].value)));
-  };
-  exports["gDecodeJson"] = gDecodeJson;
-})(PS["Data.Argonaut.Decode.Generic"] = PS["Data.Argonaut.Decode.Generic"] || {});
-(function(exports) {
-  // Generated by purs version 0.11.7
-  "use strict";
-  var Control_Semigroupoid = PS["Control.Semigroupoid"];
-  var Data_Argonaut_Core = PS["Data.Argonaut.Core"];
-  var Data_Argonaut_Encode_Class = PS["Data.Argonaut.Encode.Class"];
-  var Data_Foldable = PS["Data.Foldable"];
-  var Data_Function = PS["Data.Function"];
-  var Data_Functor = PS["Data.Functor"];
-  var Data_Generic = PS["Data.Generic"];
-  var Data_Int = PS["Data.Int"];
-  var Data_StrMap = PS["Data.StrMap"];
-  var Data_String = PS["Data.String"];
-  var Data_Unit = PS["Data.Unit"];
-  var Prelude = PS["Prelude"];        
-  var gEncodeJson$prime = (function () {
-      var addField = function (field) {
-          return Data_StrMap.insert(field.recLabel)(gEncodeJson$prime(field.recValue(Data_Unit.unit)));
-      };
-      return function (v) {
-          if (v instanceof Data_Generic.SInt) {
-              return Data_Argonaut_Core.fromNumber(Data_Int.toNumber(v.value0));
-          };
-          if (v instanceof Data_Generic.SString) {
-              return Data_Argonaut_Core.fromString(v.value0);
-          };
-          if (v instanceof Data_Generic.SChar) {
-              return Data_Argonaut_Core.fromString(Data_String.singleton(v.value0));
-          };
-          if (v instanceof Data_Generic.SNumber) {
-              return Data_Argonaut_Core.fromNumber(v.value0);
-          };
-          if (v instanceof Data_Generic.SBoolean) {
-              return Data_Argonaut_Core.fromBoolean(v.value0);
-          };
-          if (v instanceof Data_Generic.SArray) {
-              return Data_Argonaut_Core.fromArray(Data_Functor.map(Data_Functor.functorArray)(function ($14) {
-                  return gEncodeJson$prime((function (v1) {
-                      return v1(Data_Unit.unit);
-                  })($14));
-              })(v.value0));
-          };
-          if (v instanceof Data_Generic.SUnit) {
-              return Data_Argonaut_Core.jsonNull;
-          };
-          if (v instanceof Data_Generic.SProd) {
-              return Data_Argonaut_Core.fromObject(Data_StrMap.insert("tag")(Data_Argonaut_Encode_Class.encodeJson(Data_Argonaut_Encode_Class.encodeJsonJString)(v.value0))(Data_StrMap.singleton("values")(Data_Argonaut_Encode_Class.encodeJson(Data_Argonaut_Encode_Class.encodeJsonArray(Data_Argonaut_Encode_Class.encodeJsonJson))(Data_Functor.map(Data_Functor.functorArray)(function ($15) {
-                  return gEncodeJson$prime((function (v1) {
-                      return v1(Data_Unit.unit);
-                  })($15));
-              })(v.value1)))));
-          };
-          if (v instanceof Data_Generic.SRecord) {
-              return Data_Argonaut_Core.fromObject(Data_Foldable.foldr(Data_Foldable.foldableArray)(addField)(Data_StrMap.empty)(v.value0));
-          };
-          throw new Error("Failed pattern match at Data.Argonaut.Encode.Generic line 22, column 16 - line 35, column 48: " + [ v.constructor.name ]);
-      };
-  })();
-  var gEncodeJson = function (dictGeneric) {
-      return function ($16) {
-          return gEncodeJson$prime(Data_Generic.toSpine(dictGeneric)($16));
-      };
-  };
-  exports["gEncodeJson"] = gEncodeJson;
-})(PS["Data.Argonaut.Encode.Generic"] = PS["Data.Argonaut.Encode.Generic"] || {});
-(function(exports) {
     "use strict";
 
   exports._jsonParser = function (fail, succ, s) {
@@ -10722,11 +10396,11 @@ var PS = {};
 
   // var frontendEnv = {development: true, facebookClientID: "asdf"};
   exports.envImpl = frontendEnv;
-})(PS["Env"] = PS["Env"] || {});
+})(PS["Types.Env"] = PS["Types.Env"] || {});
 (function(exports) {
   // Generated by purs version 0.11.7
   "use strict";
-  var $foreign = PS["Env"];
+  var $foreign = PS["Types.Env"];
   var Data_Either = PS["Data.Either"];
   var Data_Maybe = PS["Data.Maybe"];
   var LocalCooking_Common_AuthToken = PS["LocalCooking.Common.AuthToken"];
@@ -10740,119 +10414,15 @@ var PS = {};
       salt: $foreign.envImpl.salt
   };
   exports["env"] = env;
-})(PS["Env"] = PS["Env"] || {});
+})(PS["Types.Env"] = PS["Types.Env"] || {});
 (function(exports) {
   // Generated by purs version 0.11.7
   "use strict";
-  var Control_Applicative = PS["Control.Applicative"];
-  var Control_Bind = PS["Control.Bind"];
-  var Control_Monad_Eff = PS["Control.Monad.Eff"];
-  var Control_Monad_Eff_Ref = PS["Control.Monad.Eff.Ref"];
-  var Data_Foldable = PS["Data.Foldable"];
-  var Data_Functor = PS["Data.Functor"];
-  var Data_Maybe = PS["Data.Maybe"];
-  var Data_Show = PS["Data.Show"];
-  var Data_StrMap = PS["Data.StrMap"];
-  var Data_Traversable = PS["Data.Traversable"];
-  var Data_Tuple = PS["Data.Tuple"];
-  var Data_UUID = PS["Data.UUID"];
-  var Data_Unfoldable = PS["Data.Unfoldable"];
-  var Data_Unit = PS["Data.Unit"];
-  var Prelude = PS["Prelude"];
-  var subscribeIxWithKey = function (f) {
-      return function (k) {
-          return function (v) {
-              return function __do() {
-                  var v1 = (function __do() {
-                      var v1 = Data_Functor.map(Control_Monad_Eff.functorEff)(Data_StrMap.lookup(k))(Control_Monad_Eff_Ref.readRef(v.individual))();
-                      if (v1 instanceof Data_Maybe.Nothing) {
-                          return Control_Monad_Eff_Ref.readRef(v.broadcast)();
-                      };
-                      if (v1 instanceof Data_Maybe.Just) {
-                          Control_Monad_Eff_Ref.modifyRef(v.individual)(Data_StrMap["delete"](k))();
-                          return v1.value0;
-                      };
-                      throw new Error("Failed pattern match at IxSignal.Internal line 51, column 5 - line 55, column 15: " + [ v1.constructor.name ]);
-                  })();
-                  f(k)(v1)();
-                  return Control_Monad_Eff_Ref.modifyRef(v.subscribers)(Data_StrMap.insert(k)(f))();
-              };
-          };
-      };
-  };
-  var subscribeIx = function (f) {
-      return subscribeIxWithKey(function (v) {
-          return f;
-      });
-  };
-  var set = function (x) {
-      return function (v) {
-          return function __do() {
-              var v1 = Control_Monad_Eff_Ref.readRef(v.subscribers)();
-              Data_Foldable.traverse_(Control_Monad_Eff.applicativeEff)(Data_Foldable.foldableArray)(function (v2) {
-                  return v2.value1(v2.value0)(x);
-              })(Data_StrMap.toUnfoldable(Data_Unfoldable.unfoldableArray)(v1))();
-              return Control_Monad_Eff_Ref.writeRef(v.broadcast)(x)();
-          };
-      };
-  };
-  var make = function (x) {
-      return function __do() {
-          var v = Control_Monad_Eff_Ref.newRef(Data_StrMap.empty)();
-          var v1 = Control_Monad_Eff_Ref.newRef(x)();
-          var v2 = Control_Monad_Eff_Ref.newRef(Data_StrMap.empty)();
-          return {
-              subscribers: v,
-              individual: v2,
-              broadcast: v1
-          };
-      };
-  };
-  var deleteSubscriber = function (k) {
-      return function (v) {
-          return Control_Monad_Eff_Ref.modifyRef(v.subscribers)(Data_StrMap["delete"](k));
-      };
-  };
-  var deleteIndividual = function (k) {
-      return function (v) {
-          return Control_Monad_Eff_Ref.modifyRef(v.individual)(Data_StrMap["delete"](k));
-      };
-  };
-  var $$delete = function (k) {
-      return function (sig) {
-          return function __do() {
-              var v = deleteSubscriber(k)(sig)();
-              return deleteIndividual(k)(sig)();
-          };
-      };
-  };
-  exports["subscribeIx"] = subscribeIx;
-  exports["subscribeIxWithKey"] = subscribeIxWithKey;
-  exports["set"] = set;
-  exports["deleteSubscriber"] = deleteSubscriber;
-  exports["deleteIndividual"] = deleteIndividual;
-  exports["delete"] = $$delete;
-  exports["make"] = make;
-})(PS["IxSignal.Internal"] = PS["IxSignal.Internal"] || {});
-(function(exports) {
-  // Generated by purs version 0.11.7
-  "use strict";
-  var Control_Alt = PS["Control.Alt"];
-  var Control_Alternative = PS["Control.Alternative"];
-  var Control_Apply = PS["Control.Apply"];
-  var Control_Bind = PS["Control.Bind"];
-  var DOM_HTML_History = PS["DOM.HTML.History"];
   var Data_Argonaut = PS["Data.Argonaut"];
   var Data_Argonaut_Core = PS["Data.Argonaut.Core"];
-  var Data_Argonaut_Decode_Class = PS["Data.Argonaut.Decode.Class"];
-  var Data_Argonaut_Decode_Generic = PS["Data.Argonaut.Decode.Generic"];
   var Data_Argonaut_Encode_Class = PS["Data.Argonaut.Encode.Class"];
-  var Data_Argonaut_Encode_Generic = PS["Data.Argonaut.Encode.Generic"];
   var Data_Either = PS["Data.Either"];
-  var Data_Eq = PS["Data.Eq"];
   var Data_Function = PS["Data.Function"];
-  var Data_Functor = PS["Data.Functor"];
-  var Data_Generic = PS["Data.Generic"];
   var Data_List = PS["Data.List"];
   var Data_List_Types = PS["Data.List.Types"];
   var Data_Maybe = PS["Data.Maybe"];
@@ -10863,30 +10433,57 @@ var PS = {};
   var Data_URI_Authority = PS["Data.URI.Authority"];
   var Data_URI_HierarchicalPart = PS["Data.URI.HierarchicalPart"];
   var Data_URI_Host = PS["Data.URI.Host"];
-  var Data_URI_Location = PS["Data.URI.Location"];
   var Data_URI_Query = PS["Data.URI.Query"];
   var Data_URI_Scheme = PS["Data.URI.Scheme"];
   var Data_URI_URI = PS["Data.URI.URI"];
-  var Env = PS["Env"];
+  var Prelude = PS["Prelude"];
+  var Types_Env = PS["Types.Env"];
+  var facebookLoginLinkToURI = function (dictEncodeJson) {
+      return function (v) {
+          return new Data_URI_URI.URI(Data_Maybe.Just.create("https"), new Data_URI_HierarchicalPart.HierarchicalPart(Data_Maybe.Just.create(new Data_URI_Authority.Authority(Data_Maybe.Nothing.value, [ new Data_Tuple.Tuple(new Data_URI_Host.NameAddress("www.facebook.com"), Data_Maybe.Nothing.value) ])), Data_Maybe.Just.create(Data_Either.Right.create(Data_Path_Pathy.appendPath(Data_Path_Pathy.appendPath(Data_Path_Pathy.appendPath(Data_Path_Pathy.rootDir)(Data_Path_Pathy.dir("v2.12")))(Data_Path_Pathy.dir("dialog")))(Data_Path_Pathy.file("oauth"))))), Data_Maybe.Just.create(Data_URI_Query.Query(Data_List_Types.Cons.create(Data_Tuple.Tuple.create("client_id")(new Data_Maybe.Just(Types_Env.env.facebookClientID)))(Data_List_Types.Cons.create(Data_Tuple.Tuple.create("redirect_uri")(Data_Maybe.Just.create(Data_URI_URI.print(v.redirectURL))))(new Data_List_Types.Cons(Data_Tuple.Tuple.create("state")(Data_Maybe.Just.create(Data_Show.show(Data_Argonaut_Core.showJson)(Data_Argonaut_Encode_Class.encodeJson(dictEncodeJson)(v.state)))), Data_List_Types.Nil.value))))), Data_Maybe.Nothing.value);
+      };
+  };
+  exports["facebookLoginLinkToURI"] = facebookLoginLinkToURI;
+})(PS["Facebook.Call"] = PS["Facebook.Call"] || {});
+(function(exports) {
+  // Generated by purs version 0.11.7
+  "use strict";
+  var Control_Alt = PS["Control.Alt"];
+  var Control_Alternative = PS["Control.Alternative"];
+  var Control_Applicative = PS["Control.Applicative"];
+  var Control_Apply = PS["Control.Apply"];
+  var Control_Bind = PS["Control.Bind"];
+  var DOM_HTML_History = PS["DOM.HTML.History"];
+  var Data_Argonaut = PS["Data.Argonaut"];
+  var Data_Argonaut_Decode_Class = PS["Data.Argonaut.Decode.Class"];
+  var Data_Argonaut_Decode_Generic = PS["Data.Argonaut.Decode.Generic"];
+  var Data_Argonaut_Encode_Class = PS["Data.Argonaut.Encode.Class"];
+  var Data_Argonaut_Encode_Generic = PS["Data.Argonaut.Encode.Generic"];
+  var Data_Argonaut_JCursor = PS["Data.Argonaut.JCursor"];
+  var Data_Either = PS["Data.Either"];
+  var Data_Eq = PS["Data.Eq"];
+  var Data_Function = PS["Data.Function"];
+  var Data_Functor = PS["Data.Functor"];
+  var Data_Generic = PS["Data.Generic"];
+  var Data_List = PS["Data.List"];
+  var Data_Maybe = PS["Data.Maybe"];
+  var Data_Path_Pathy = PS["Data.Path.Pathy"];
+  var Data_Show = PS["Data.Show"];
+  var Data_Tuple = PS["Data.Tuple"];
+  var Data_URI = PS["Data.URI"];
+  var Data_URI_Location = PS["Data.URI.Location"];
+  var Data_URI_URI = PS["Data.URI.URI"];
   var Global = PS["Global"];
   var Prelude = PS["Prelude"];
   var Text_Parsing_StringParser = PS["Text.Parsing.StringParser"];
-  var Text_Parsing_StringParser_String = PS["Text.Parsing.StringParser.String"];        
+  var Text_Parsing_StringParser_String = PS["Text.Parsing.StringParser.String"];
+  var Types_Env = PS["Types.Env"];        
   var FacebookLoginReturn = (function () {
       function FacebookLoginReturn() {
 
       };
       FacebookLoginReturn.value = new FacebookLoginReturn();
       return FacebookLoginReturn;
-  })();
-  var FacebookLoginLink = (function () {
-      function FacebookLoginLink(value0) {
-          this.value0 = value0;
-      };
-      FacebookLoginLink.create = function (value0) {
-          return new FacebookLoginLink(value0);
-      };
-      return FacebookLoginLink;
   })();
   var RootLink = (function () {
       function RootLink() {
@@ -10983,7 +10580,7 @@ var PS = {};
       if (x instanceof IconSvg) {
           return new Data_URI_Location.Location(Data_Either.Right.create(Data_Path_Pathy.appendPath(Data_Path_Pathy.appendPath(Data_Path_Pathy.appendPath(Data_Path_Pathy.rootDir)(Data_Path_Pathy.dir("static")))(Data_Path_Pathy.dir("images")))(Data_Path_Pathy.file("icon.svg"))), Data_Maybe.Nothing.value, Data_Maybe.Nothing.value);
       };
-      throw new Error("Failed pattern match at Links line 40, column 18 - line 46, column 112: " + [ x.constructor.name ]);
+      throw new Error("Failed pattern match at Links line 39, column 18 - line 45, column 112: " + [ x.constructor.name ]);
   });
   var toLocation = function (dict) {
       return dict.toLocation;
@@ -10995,11 +10592,6 @@ var PS = {};
       });
       return facebook;
   })();
-  var thirdPartyLoginLinksToURI = function (dictEncodeJson) {
-      return function (x) {
-          return new Data_URI_URI.URI(Data_Maybe.Just.create("https"), new Data_URI_HierarchicalPart.HierarchicalPart(Data_Maybe.Just.create(new Data_URI_Authority.Authority(Data_Maybe.Nothing.value, [ new Data_Tuple.Tuple(new Data_URI_Host.NameAddress("www.facebook.com"), Data_Maybe.Nothing.value) ])), Data_Maybe.Just.create(Data_Either.Right.create(Data_Path_Pathy.appendPath(Data_Path_Pathy.appendPath(Data_Path_Pathy.appendPath(Data_Path_Pathy.rootDir)(Data_Path_Pathy.dir("v2.12")))(Data_Path_Pathy.dir("dialog")))(Data_Path_Pathy.file("oauth"))))), Data_Maybe.Just.create(Data_URI_Query.Query(Data_List_Types.Cons.create(Data_Tuple.Tuple.create("client_id")(new Data_Maybe.Just(Env.env.facebookClientID)))(Data_List_Types.Cons.create(Data_Tuple.Tuple.create("redirect_uri")(Data_Maybe.Just.create(Data_URI_URI.print(x.value0.redirectURL))))(new Data_List_Types.Cons(Data_Tuple.Tuple.create("state")(Data_Maybe.Just.create(Data_Show.show(Data_Argonaut_Core.showJson)(Data_Argonaut_Encode_Class.encodeJson(dictEncodeJson)(x.value0.state)))), Data_List_Types.Nil.value))))), Data_Maybe.Nothing.value);
-      };
-  };
   var siteLinksToDocumentTitle = function (x) {
       return DOM_HTML_History.DocumentTitle((function () {
           if (x instanceof RootLink) {
@@ -11014,7 +10606,7 @@ var PS = {};
           if (x instanceof ChefsLink) {
               return "Chefs - Local Cooking";
           };
-          throw new Error("Failed pattern match at Links line 75, column 46 - line 81, column 1: " + [ x.constructor.name ]);
+          throw new Error("Failed pattern match at Links line 79, column 46 - line 85, column 1: " + [ x.constructor.name ]);
       })());
   };
   var siteLinksParser = (function () {
@@ -11044,53 +10636,23 @@ var PS = {};
       if (x instanceof ChefsLink) {
           return Data_Path_Pathy.printPath(Data_Path_Pathy.appendPath(Data_Path_Pathy.rootDir)(Data_Path_Pathy.file("chefs")));
       };
-      throw new Error("Failed pattern match at Links line 59, column 12 - line 65, column 1: " + [ x.constructor.name ]);
-  });
-  var genericSiteLinks = new Data_Generic.Generic(function (v) {
-      if (v instanceof Data_Generic.SProd && (v.value0 === "Links.RootLink" && v.value1.length === 0)) {
-          return new Data_Maybe.Just(RootLink.value);
-      };
-      if (v instanceof Data_Generic.SProd && (v.value0 === "Links.AboutLink" && v.value1.length === 0)) {
-          return new Data_Maybe.Just(AboutLink.value);
-      };
-      if (v instanceof Data_Generic.SProd && (v.value0 === "Links.MealsLink" && v.value1.length === 0)) {
-          return new Data_Maybe.Just(MealsLink.value);
-      };
-      if (v instanceof Data_Generic.SProd && (v.value0 === "Links.ChefsLink" && v.value1.length === 0)) {
-          return new Data_Maybe.Just(ChefsLink.value);
-      };
-      return Data_Maybe.Nothing.value;
-  }, function ($dollarq) {
-      return new Data_Generic.SigProd("Links.SiteLinks", [ {
-          sigConstructor: "Links.RootLink",
-          sigValues: [  ]
-      }, {
-          sigConstructor: "Links.AboutLink",
-          sigValues: [  ]
-      }, {
-          sigConstructor: "Links.MealsLink",
-          sigValues: [  ]
-      }, {
-          sigConstructor: "Links.ChefsLink",
-          sigValues: [  ]
-      } ]);
-  }, function (v) {
-      if (v instanceof RootLink) {
-          return new Data_Generic.SProd("Links.RootLink", [  ]);
-      };
-      if (v instanceof AboutLink) {
-          return new Data_Generic.SProd("Links.AboutLink", [  ]);
-      };
-      if (v instanceof MealsLink) {
-          return new Data_Generic.SProd("Links.MealsLink", [  ]);
-      };
-      if (v instanceof ChefsLink) {
-          return new Data_Generic.SProd("Links.ChefsLink", [  ]);
-      };
-      throw new Error("Failed pattern match at Links line 56, column 8 - line 56, column 54: " + [ v.constructor.name ]);
+      throw new Error("Failed pattern match at Links line 58, column 12 - line 64, column 1: " + [ x.constructor.name ]);
   });                                                                  
-  var encodeJsonSiteLinks = new Data_Argonaut_Encode_Class.EncodeJson(Data_Argonaut_Encode_Generic.gEncodeJson(genericSiteLinks));
-  var decodeJsonSiteLinks = new Data_Argonaut_Decode_Class.DecodeJson(Data_Argonaut_Decode_Generic.gDecodeJson(genericSiteLinks));
+  var encodeJsonSiteLinks = new Data_Argonaut_Encode_Class.EncodeJson(function (x) {
+      return Data_Argonaut_Encode_Class.encodeJson(Data_Argonaut_Encode_Class.encodeJsonJString)(Data_Show.show(showSiteLinks)(x));
+  });
+  var decodeJsonSiteLinks = new Data_Argonaut_Decode_Class.DecodeJson(function (json) {
+      return Control_Bind.bind(Data_Either.bindEither)(Data_Argonaut_Decode_Class.decodeJson(Data_Argonaut_Decode_Class.decodeJsonString)(json))(function (v) {
+          var v1 = Text_Parsing_StringParser.runParser(siteLinksParser)(v);
+          if (v1 instanceof Data_Either.Left) {
+              return Data_Argonaut_JCursor.fail(Data_Show.showString)(Data_Show.show(Text_Parsing_StringParser.showParseError)(v1.value0));
+          };
+          if (v1 instanceof Data_Either.Right) {
+              return Control_Applicative.pure(Data_Either.applicativeEither)(v1.value0);
+          };
+          throw new Error("Failed pattern match at Links line 74, column 5 - line 76, column 24: " + [ v1.constructor.name ]);
+      });
+  });
   exports["toLocation"] = toLocation;
   exports["ToLocation"] = ToLocation;
   exports["LogoPng"] = LogoPng;
@@ -11105,17 +10667,127 @@ var PS = {};
   exports["ChefsLink"] = ChefsLink;
   exports["siteLinksToDocumentTitle"] = siteLinksToDocumentTitle;
   exports["siteLinksParser"] = siteLinksParser;
-  exports["FacebookLoginLink"] = FacebookLoginLink;
-  exports["thirdPartyLoginLinksToURI"] = thirdPartyLoginLinksToURI;
   exports["FacebookLoginReturn"] = FacebookLoginReturn;
   exports["thirdPartyLoginReturnLinksParser"] = thirdPartyLoginReturnLinksParser;
   exports["toLocationLogoLinks"] = toLocationLogoLinks;
-  exports["genericSiteLinks"] = genericSiteLinks;
   exports["showSiteLinks"] = showSiteLinks;
   exports["encodeJsonSiteLinks"] = encodeJsonSiteLinks;
   exports["decodeJsonSiteLinks"] = decodeJsonSiteLinks;
   exports["toLocationThirdPartyLoginReturnLinks"] = toLocationThirdPartyLoginReturnLinks;
 })(PS["Links"] = PS["Links"] || {});
+(function(exports) {
+  // Generated by purs version 0.11.7
+  "use strict";
+  var Control_Applicative = PS["Control.Applicative"];
+  var Control_Bind = PS["Control.Bind"];
+  var Data_Argonaut = PS["Data.Argonaut"];
+  var Data_Argonaut_Core = PS["Data.Argonaut.Core"];
+  var Data_Argonaut_Decode_Class = PS["Data.Argonaut.Decode.Class"];
+  var Data_Argonaut_Decode_Combinators = PS["Data.Argonaut.Decode.Combinators"];
+  var Data_Argonaut_Encode_Class = PS["Data.Argonaut.Encode.Class"];
+  var Data_Argonaut_Encode_Combinators = PS["Data.Argonaut.Encode.Combinators"];
+  var Data_Either = PS["Data.Either"];
+  var Data_Function = PS["Data.Function"];
+  var Links = PS["Links"];
+  var Prelude = PS["Prelude"];
+  var encodeJsonFacebookLoginState = new Data_Argonaut_Encode_Class.EncodeJson(function (v) {
+      return Data_Argonaut_Encode_Combinators.extend(Data_Argonaut_Encode_Class.encodeJsonJson)(Data_Argonaut_Encode_Combinators.assoc(Links.encodeJsonSiteLinks)("origin")(v.origin))(Data_Argonaut_Core.jsonEmptyObject);
+  });
+  exports["encodeJsonFacebookLoginState"] = encodeJsonFacebookLoginState;
+})(PS["Facebook.State"] = PS["Facebook.State"] || {});
+(function(exports) {
+  // Generated by purs version 0.11.7
+  "use strict";
+  var Control_Applicative = PS["Control.Applicative"];
+  var Control_Bind = PS["Control.Bind"];
+  var Control_Monad_Eff = PS["Control.Monad.Eff"];
+  var Control_Monad_Eff_Ref = PS["Control.Monad.Eff.Ref"];
+  var Data_Foldable = PS["Data.Foldable"];
+  var Data_Functor = PS["Data.Functor"];
+  var Data_Maybe = PS["Data.Maybe"];
+  var Data_Show = PS["Data.Show"];
+  var Data_StrMap = PS["Data.StrMap"];
+  var Data_Traversable = PS["Data.Traversable"];
+  var Data_Tuple = PS["Data.Tuple"];
+  var Data_UUID = PS["Data.UUID"];
+  var Data_Unfoldable = PS["Data.Unfoldable"];
+  var Data_Unit = PS["Data.Unit"];
+  var Prelude = PS["Prelude"];
+  var subscribeIxWithKey = function (f) {
+      return function (k) {
+          return function (v) {
+              return function __do() {
+                  var v1 = (function __do() {
+                      var v1 = Data_Functor.map(Control_Monad_Eff.functorEff)(Data_StrMap.lookup(k))(Control_Monad_Eff_Ref.readRef(v.individual))();
+                      if (v1 instanceof Data_Maybe.Nothing) {
+                          return Control_Monad_Eff_Ref.readRef(v.broadcast)();
+                      };
+                      if (v1 instanceof Data_Maybe.Just) {
+                          Control_Monad_Eff_Ref.modifyRef(v.individual)(Data_StrMap["delete"](k))();
+                          return v1.value0;
+                      };
+                      throw new Error("Failed pattern match at IxSignal.Internal line 51, column 5 - line 55, column 15: " + [ v1.constructor.name ]);
+                  })();
+                  f(k)(v1)();
+                  return Control_Monad_Eff_Ref.modifyRef(v.subscribers)(Data_StrMap.insert(k)(f))();
+              };
+          };
+      };
+  };
+  var subscribeIx = function (f) {
+      return subscribeIxWithKey(function (v) {
+          return f;
+      });
+  };
+  var set = function (x) {
+      return function (v) {
+          return function __do() {
+              var v1 = Control_Monad_Eff_Ref.readRef(v.subscribers)();
+              Data_Foldable.traverse_(Control_Monad_Eff.applicativeEff)(Data_Foldable.foldableArray)(function (v2) {
+                  return v2.value1(v2.value0)(x);
+              })(Data_StrMap.toUnfoldable(Data_Unfoldable.unfoldableArray)(v1))();
+              return Control_Monad_Eff_Ref.writeRef(v.broadcast)(x)();
+          };
+      };
+  };
+  var make = function (x) {
+      return function __do() {
+          var v = Control_Monad_Eff_Ref.newRef(Data_StrMap.empty)();
+          var v1 = Control_Monad_Eff_Ref.newRef(x)();
+          var v2 = Control_Monad_Eff_Ref.newRef(Data_StrMap.empty)();
+          return {
+              subscribers: v,
+              individual: v2,
+              broadcast: v1
+          };
+      };
+  };
+  var deleteSubscriber = function (k) {
+      return function (v) {
+          return Control_Monad_Eff_Ref.modifyRef(v.subscribers)(Data_StrMap["delete"](k));
+      };
+  };
+  var deleteIndividual = function (k) {
+      return function (v) {
+          return Control_Monad_Eff_Ref.modifyRef(v.individual)(Data_StrMap["delete"](k));
+      };
+  };
+  var $$delete = function (k) {
+      return function (sig) {
+          return function __do() {
+              var v = deleteSubscriber(k)(sig)();
+              return deleteIndividual(k)(sig)();
+          };
+      };
+  };
+  exports["subscribeIx"] = subscribeIx;
+  exports["subscribeIxWithKey"] = subscribeIxWithKey;
+  exports["set"] = set;
+  exports["deleteSubscriber"] = deleteSubscriber;
+  exports["deleteIndividual"] = deleteIndividual;
+  exports["delete"] = $$delete;
+  exports["make"] = make;
+})(PS["IxSignal.Internal"] = PS["IxSignal.Internal"] || {});
 (function(exports) {
     "use strict";
   var inj =require("react-tap-event-plugin"); 
@@ -11644,6 +11316,21 @@ var PS = {};
       ChefsPage.value = new ChefsPage();
       return ChefsPage;
   })();
+  var pageBacklink = function (x) {
+      if (x instanceof RootPage) {
+          return Links.RootLink.value;
+      };
+      if (x instanceof AboutPage) {
+          return Links.AboutLink.value;
+      };
+      if (x instanceof MealsPage) {
+          return Links.MealsLink.value;
+      };
+      if (x instanceof ChefsPage) {
+          return Links.ChefsLink.value;
+      };
+      throw new Error("Failed pattern match at Page line 49, column 18 - line 53, column 16: " + [ x.constructor.name ]);
+  };
   var makePage = function (x) {
       return {
           immediate: (function () {
@@ -11729,6 +11416,7 @@ var PS = {};
   exports["ChefsPage"] = ChefsPage;
   exports["makePage"] = makePage;
   exports["initPage"] = initPage;
+  exports["pageBacklink"] = pageBacklink;
   exports["genericPage"] = genericPage;
   exports["eqPage"] = eqPage;
 })(PS["Page"] = PS["Page"] || {});
@@ -13601,7 +13289,6 @@ var PS = {};
   var Control_Monad_Eff_Uncurried = PS["Control.Monad.Eff.Uncurried"];
   var Control_Monad_Eff_Unsafe = PS["Control.Monad.Eff.Unsafe"];
   var Control_Monad_Free_Trans = PS["Control.Monad.Free.Trans"];
-  var Data_Argonaut_Encode_Class = PS["Data.Argonaut.Encode.Class"];
   var Data_Function = PS["Data.Function"];
   var Data_Functor = PS["Data.Functor"];
   var Data_Maybe = PS["Data.Maybe"];
@@ -13612,6 +13299,8 @@ var PS = {};
   var Data_URI_URI = PS["Data.URI.URI"];
   var Data_UUID = PS["Data.UUID"];
   var Data_Unit = PS["Data.Unit"];
+  var Facebook_Call = PS["Facebook.Call"];
+  var Facebook_State = PS["Facebook.State"];
   var IxSignal_Internal = PS["IxSignal.Internal"];
   var Links = PS["Links"];
   var MaterialUI_Button = PS["MaterialUI.Button"];
@@ -13624,6 +13313,7 @@ var PS = {};
   var MaterialUI_Toolbar = PS["MaterialUI.Toolbar"];
   var MaterialUI_Types = PS["MaterialUI.Types"];
   var MaterialUI_Typography = PS["MaterialUI.Typography"];
+  var Page = PS["Page"];
   var Prelude = PS["Prelude"];
   var Queue_One = PS["Queue.One"];
   var React = PS["React"];
@@ -13658,6 +13348,15 @@ var PS = {};
       };
       return ChangedWindowSize;
   })();
+  var ChangedPage = (function () {
+      function ChangedPage(value0) {
+          this.value0 = value0;
+      };
+      ChangedPage.create = function (value0) {
+          return new ChangedPage(value0);
+      };
+      return ChangedPage;
+  })();
   var spec = function (v) {
       var render = function (dispatch) {
           return function (props) {
@@ -13665,8 +13364,8 @@ var PS = {};
                   return function (children) {
                       return [ (function () {
                           var dialog$prime = (function () {
-                              var $11 = Data_Ord.lessThan(Window.ordWindowSize)(state.windowSize)(Window.Laptop.value);
-                              if ($11) {
+                              var $12 = Data_Ord.lessThan(Window.ordWindowSize)(state.windowSize)(Window.Laptop.value);
+                              if ($12) {
                                   return MaterialUI_Dialog.dialog(Data_Record_Class.srInst())({
                                       open: state.open,
                                       fullScreen: true
@@ -13723,9 +13422,9 @@ var PS = {};
                                                               return "";
                                                           };
                                                           if (mLink instanceof Data_Maybe.Just) {
-                                                              return Data_URI_URI.print(Links.thirdPartyLoginLinksToURI(Data_Argonaut_Encode_Class.encodeJsonUnit)(mLink.value0));
+                                                              return Data_URI_URI.print(Facebook_Call.facebookLoginLinkToURI(Facebook_State.encodeJsonFacebookLoginState)(mLink.value0));
                                                           };
-                                                          throw new Error("Failed pattern match at Spec.Dialogs.Login line 120, column 39 - line 122, column 88: " + [ mLink.constructor.name ]);
+                                                          throw new Error("Failed pattern match at Spec.Dialogs.Login line 127, column 39 - line 129, column 85: " + [ mLink.constructor.name ]);
                                                       })()
                                                   })([ icon ]);
                                               });
@@ -13733,10 +13432,12 @@ var PS = {};
                                       };
                                   };
                               };
-                              return [ mkFab("#3b5998")("#1e3f82")(React_Icons.facebookIcon)(Data_Maybe.Just.create(new Links.FacebookLoginLink({
+                              return [ mkFab("#3b5998")("#1e3f82")(React_Icons.facebookIcon)(Data_Maybe.Just.create({
                                   redirectURL: v.toURI(Links.toLocation(Links.toLocationThirdPartyLoginReturnLinks)(Links.FacebookLoginReturn.value)),
-                                  state: Data_Unit.unit
-                              }))), mkFab("#1da1f3")("#0f8cdb")(React_Icons.twitterIcon)(Data_Maybe.Nothing.value), mkFab("#dd4e40")("#c13627")(React_Icons.googleIcon)(Data_Maybe.Nothing.value) ];
+                                  state: {
+                                      origin: Page.pageBacklink(state.page)
+                                  }
+                              })), mkFab("#1da1f3")("#0f8cdb")(React_Icons.twitterIcon)(Data_Maybe.Nothing.value), mkFab("#dd4e40")("#c13627")(React_Icons.googleIcon)(Data_Maybe.Nothing.value) ];
                           })()) ]), MaterialUI_DialogActions.dialogActions(Data_Record_Class.srInst())({})([ MaterialUI_Button.button(Data_Record_Class.srInst())({
                               color: MaterialUI_Button.secondary
                           })([ React_DOM.text("Register") ]), MaterialUI_Button.button(Data_Record_Class.srInst())({
@@ -13757,41 +13458,53 @@ var PS = {};
               return function (state) {
                   if (action instanceof Open) {
                       return Data_Functor["void"](Control_Monad_Free_Trans.functorFreeT(Control_Coroutine.functorCoTransform)(Control_Monad_Aff.functorAff))(Control_Coroutine.cotransform(Control_Monad_Aff.monadAff)(function (v1) {
-                          var $18 = {};
-                          for (var $19 in v1) {
-                              if ({}.hasOwnProperty.call(v1, $19)) {
-                                  $18[$19] = v1[$19];
+                          var $19 = {};
+                          for (var $20 in v1) {
+                              if ({}.hasOwnProperty.call(v1, $20)) {
+                                  $19[$20] = v1[$20];
                               };
                           };
-                          $18.open = true;
-                          return $18;
+                          $19.open = true;
+                          return $19;
                       }));
                   };
                   if (action instanceof Close) {
                       return Data_Functor["void"](Control_Monad_Free_Trans.functorFreeT(Control_Coroutine.functorCoTransform)(Control_Monad_Aff.functorAff))(Control_Coroutine.cotransform(Control_Monad_Aff.monadAff)(function (v1) {
-                          var $21 = {};
-                          for (var $22 in v1) {
-                              if ({}.hasOwnProperty.call(v1, $22)) {
-                                  $21[$22] = v1[$22];
+                          var $22 = {};
+                          for (var $23 in v1) {
+                              if ({}.hasOwnProperty.call(v1, $23)) {
+                                  $22[$23] = v1[$23];
                               };
                           };
-                          $21.open = false;
-                          return $21;
+                          $22.open = false;
+                          return $22;
                       }));
                   };
                   if (action instanceof ChangedWindowSize) {
                       return Data_Functor["void"](Control_Monad_Free_Trans.functorFreeT(Control_Coroutine.functorCoTransform)(Control_Monad_Aff.functorAff))(Control_Coroutine.cotransform(Control_Monad_Aff.monadAff)(function (v1) {
-                          var $24 = {};
-                          for (var $25 in v1) {
-                              if ({}.hasOwnProperty.call(v1, $25)) {
-                                  $24[$25] = v1[$25];
+                          var $25 = {};
+                          for (var $26 in v1) {
+                              if ({}.hasOwnProperty.call(v1, $26)) {
+                                  $25[$26] = v1[$26];
                               };
                           };
-                          $24.windowSize = action.value0;
-                          return $24;
+                          $25.windowSize = action.value0;
+                          return $25;
                       }));
                   };
-                  throw new Error("Failed pattern match at Spec.Dialogs.Login line 77, column 40 - line 80, column 71: " + [ action.constructor.name ]);
+                  if (action instanceof ChangedPage) {
+                      return Data_Functor["void"](Control_Monad_Free_Trans.functorFreeT(Control_Coroutine.functorCoTransform)(Control_Monad_Aff.functorAff))(Control_Coroutine.cotransform(Control_Monad_Aff.monadAff)(function (v1) {
+                          var $29 = {};
+                          for (var $30 in v1) {
+                              if ({}.hasOwnProperty.call(v1, $30)) {
+                                  $29[$30] = v1[$30];
+                              };
+                          };
+                          $29.page = action.value0;
+                          return $29;
+                      }));
+                  };
+                  throw new Error("Failed pattern match at Spec.Dialogs.Login line 83, column 40 - line 87, column 59: " + [ action.constructor.name ]);
               };
           };
       };
@@ -13799,7 +13512,8 @@ var PS = {};
   };
   var initialState = {
       open: false,
-      windowSize: Control_Monad_Eff_Unsafe.unsafePerformEff(Window.initialWindowSize)
+      windowSize: Control_Monad_Eff_Unsafe.unsafePerformEff(Window.initialWindowSize),
+      page: Page.RootPage.value
   };
   var loginDialog = function (v) {
       var v1 = Thermite.createReactSpec(spec({
@@ -13809,17 +13523,22 @@ var PS = {};
           return function (x) {
               return Control_Monad_Eff_Unsafe.unsafeCoerceEff(v1.dispatcher($$this)(new ChangedWindowSize(x)));
           };
+      })(React_Signal_WhileMounted.whileMountedIxUUID(v.currentPageSignal)(function ($$this) {
+          return function (x) {
+              return Control_Monad_Eff_Unsafe.unsafeCoerceEff(v1.dispatcher($$this)(new ChangedPage(x)));
+          };
       })(React_Queue_WhileMounted.whileMountedOne(v.openLoginSignal)(function ($$this) {
           return function (v2) {
               return Control_Monad_Eff_Unsafe.unsafeCoerceEff(v1.dispatcher($$this)(Open.value));
           };
-      })(v1.spec));
+      })(v1.spec)));
       return React.createElement(React.createClass(reactSpecLogin))(Data_Unit.unit)([  ]);
   };
   exports["initialState"] = initialState;
   exports["Open"] = Open;
   exports["Close"] = Close;
   exports["ChangedWindowSize"] = ChangedWindowSize;
+  exports["ChangedPage"] = ChangedPage;
   exports["spec"] = spec;
   exports["loginDialog"] = loginDialog;
 })(PS["Spec.Dialogs.Login"] = PS["Spec.Dialogs.Login"] || {});
@@ -14580,7 +14299,8 @@ var PS = {};
                       }), Spec_Dialogs_Login.loginDialog({
                           openLoginSignal: Queue_One.readOnly(openLoginSignal),
                           windowSizeSignal: v.windowSizeSignal,
-                          toURI: v.toURI
+                          toURI: v.toURI,
+                          currentPageSignal: v.currentPageSignal
                       }), Spec_Drawers_LeftMenu.leftMenu({
                           mobileDrawerOpenSignal: Queue_One.readOnly(mobileMenuButtonSignal),
                           siteLinks: v.siteLinks
@@ -14669,7 +14389,6 @@ var PS = {};
   var Data_URI_Scheme = PS["Data.URI.Scheme"];
   var Data_UUID = PS["Data.UUID"];
   var Data_Unit = PS["Data.Unit"];
-  var Env = PS["Env"];
   var IxSignal_Internal = PS["IxSignal.Internal"];
   var Links = PS["Links"];
   var MaterialUI_InjectTapEvent = PS["MaterialUI.InjectTapEvent"];
@@ -14687,6 +14406,7 @@ var PS = {};
   var Sparrow_Types = PS["Sparrow.Types"];
   var Spec = PS["Spec"];
   var Text_Parsing_StringParser = PS["Text.Parsing.StringParser"];
+  var Types_Env = PS["Types.Env"];
   var WebSocket = PS["WebSocket"];
   var Window = PS["Window"];        
   var main = function __do() {
@@ -14856,7 +14576,7 @@ var PS = {};
           windowSizeSignal: v8,
           currentPageSignal: v6,
           siteLinks: Queue_One.putQueue(v7),
-          development: Env.env.development
+          development: Types_Env.env.development
       });
       var component = React.createClass(v11.spec);
       return Control_Bind.bindFlipped(Control_Monad_Eff.bindEff)(Data_Foldable.traverse_(Control_Monad_Eff.applicativeEff)(Data_Foldable.foldableMaybe)(function ($101) {

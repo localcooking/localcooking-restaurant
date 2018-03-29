@@ -57,7 +57,13 @@ spec :: forall eff
         , development :: Boolean
         }
      -> T.Spec (Effects eff) State Unit Action
-spec {toURI,windowSizeSignal,siteLinks,currentPageSignal,development} = T.simpleSpec performAction render
+spec
+  { toURI
+  , windowSizeSignal
+  , siteLinks
+  , currentPageSignal
+  , development
+  } = T.simpleSpec performAction render
   where
     performAction action props state = pure unit
 
@@ -78,6 +84,7 @@ spec {toURI,windowSizeSignal,siteLinks,currentPageSignal,development} = T.simple
         { openLoginSignal: readOnly openLoginSignal
         , windowSizeSignal
         , toURI
+        , currentPageSignal
         }
       , leftMenu
         { mobileDrawerOpenSignal: readOnly mobileMenuButtonSignal

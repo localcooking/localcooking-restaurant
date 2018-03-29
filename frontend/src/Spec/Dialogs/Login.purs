@@ -3,6 +3,8 @@ module Spec.Dialogs.Login where
 import Window (WindowSize (..), initialWindowSize)
 import Links (SiteLinks (..), ThirdPartyLoginReturnLinks (..), toLocation)
 import Facebook.Call (FacebookLoginLink (..), facebookLoginLinkToURI)
+import Facebook.State (FacebookLoginState (..))
+import Page (Page (RootPage), pageBacklink)
 
 import Prelude
 import Data.Maybe (Maybe (..))
@@ -47,6 +49,7 @@ import IxSignal.Internal (IxSignal)
 type State =
   { open :: Boolean
   , windowSize :: WindowSize
+  , page :: Page
   }
 
 
@@ -54,6 +57,7 @@ initialState :: State
 initialState =
   { open: false
   , windowSize: unsafePerformEff initialWindowSize
+  , page: RootPage
   }
 
 
@@ -61,6 +65,7 @@ data Action
   = Open
   | Close
   | ChangedWindowSize WindowSize
+  | ChangedPage Page
 
 type Effects eff =
   ( ref :: REF
@@ -79,6 +84,7 @@ spec {toURI} = T.simpleSpec performAction render
       Open -> void $ T.cotransform _ { open = true }
       Close -> void $ T.cotransform _ { open = false }
       ChangedWindowSize w -> void $ T.cotransform _ { windowSize = w }
+      ChangedPage p -> void $ T.cotransform _ { page = p }
 
     render :: T.Render State Unit Action
     render dispatch props state children =
@@ -126,7 +132,9 @@ spec {toURI} = T.simpleSpec performAction render
                   in  [ mkFab "#3b5998" "#1e3f82" facebookIcon $
                          Just $ FacebookLoginLink
                          { redirectURL: toURI (toLocation FacebookLoginReturn)
-                         , state: unit
+                         , state: FacebookLoginState
+                           { origin: pageBacklink state.page
+                           }
                          }
                       , mkFab "#1da1f3" "#0f8cdb" twitterIcon Nothing
                       , mkFab "#dd4e40" "#c13627" googleIcon Nothing
@@ -155,14 +163,18 @@ loginDialog :: forall eff
              . { openLoginSignal :: Queue (read :: READ) (Effects eff) Unit
                , windowSizeSignal :: IxSignal (Effects eff) WindowSize
                , toURI :: Location -> URI
+               , currentPageSignal :: IxSignal (Effects eff) Page
                }
             -> R.ReactElement
-loginDialog {openLoginSignal,windowSizeSignal,toURI} =
+loginDialog {openLoginSignal,windowSizeSignal,toURI,currentPageSignal} =
   let {spec: reactSpec, dispatcher} = T.createReactSpec (spec {toURI}) initialState
       reactSpecLogin =
           Signal.whileMountedIxUUID
             windowSizeSignal
             (\this x -> unsafeCoerceEff $ dispatcher this (ChangedWindowSize x))
+        $ Signal.whileMountedIxUUID
+            currentPageSignal
+            (\this x -> unsafeCoerceEff $ dispatcher this (ChangedPage x))
         $ Queue.whileMountedOne
             openLoginSignal
             (\this _ -> unsafeCoerceEff $ dispatcher this Open)
