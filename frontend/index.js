@@ -9250,6 +9250,20 @@ var PS = {};
 (function(exports) {
     "use strict";
 
+  exports.hash = function (location) {
+    return function () {
+      return location.hash;
+    };
+  };
+
+  exports.setHash = function (hash) {
+    return function (location) {
+      return function () {
+        location.hash = hash;
+      };
+    };
+  };
+
   // ----------------------------------------------------------------------------
 
   exports.hostname = function (location) {
@@ -9290,6 +9304,7 @@ var PS = {};
   var DOM = PS["DOM"];
   var DOM_HTML_Types = PS["DOM.HTML.Types"];
   var Prelude = PS["Prelude"];
+  exports["setHash"] = $foreign.setHash;
   exports["hostname"] = $foreign.hostname;
   exports["pathname"] = $foreign.pathname;
   exports["port"] = $foreign.port;
@@ -15115,6 +15130,7 @@ var PS = {};
                   };
                   throw new Error("Failed pattern match at Main line 101, column 7 - line 105, column 7: " + [ v5.constructor.name ]);
               })()();
+              DOM_HTML_Location.setHash("")(v1)();
               var v5 = DOM_HTML_Location.pathname(v1)();
               var $44 = v5 === "";
               if ($44) {
@@ -15127,7 +15143,7 @@ var PS = {};
               if (v6 instanceof Data_Either.Right) {
                   return v6.value0;
               };
-              throw new Error("Failed pattern match at Main line 109, column 14 - line 111, column 28: " + [ v6.constructor.name ]);
+              throw new Error("Failed pattern match at Main line 112, column 14 - line 114, column 28: " + [ v6.constructor.name ]);
           })();
           var v6 = Page.makePage(v5);
           var v7 = IxSignal_Internal.make(v6.immediate)();
@@ -15138,7 +15154,7 @@ var PS = {};
               if (eX instanceof Data_Either.Right) {
                   return IxSignal_Internal.set(eX.value0)(v7);
               };
-              throw new Error("Failed pattern match at Main line 116, column 37 - line 118, column 36: " + [ eX.constructor.name ]);
+              throw new Error("Failed pattern match at Main line 119, column 37 - line 121, column 36: " + [ eX.constructor.name ]);
           })();
           DOM_HTML_Window_Extra.onPopState(function (x) {
               return function __do() {
@@ -15150,7 +15166,7 @@ var PS = {};
                       if (v8 instanceof Data_Either.Right) {
                           return Control_Applicative.pure(Control_Monad_Eff.applicativeEff)(Page.makePage(v8.value0));
                       };
-                      throw new Error("Failed pattern match at Main line 121, column 36 - line 123, column 54: " + [ v8.constructor.name ]);
+                      throw new Error("Failed pattern match at Main line 124, column 36 - line 126, column 54: " + [ v8.constructor.name ]);
                   })()();
                   IxSignal_Internal.set(v8.immediate)(v7)();
                   return Data_Function.flip(Control_Monad_Aff.runAff_)(v8.loadDetails)(function (eX) {
@@ -15160,7 +15176,7 @@ var PS = {};
                       if (eX instanceof Data_Either.Right) {
                           return IxSignal_Internal.set(eX.value0)(v7);
                       };
-                      throw new Error("Failed pattern match at Main line 125, column 41 - line 127, column 42: " + [ eX.constructor.name ]);
+                      throw new Error("Failed pattern match at Main line 128, column 41 - line 130, column 42: " + [ eX.constructor.name ]);
                   })();
               };
           })(v)();
@@ -15180,7 +15196,7 @@ var PS = {};
                       if (eX instanceof Data_Either.Right) {
                           return IxSignal_Internal.set(eX.value0)(v5);
                       };
-                      throw new Error("Failed pattern match at Main line 140, column 39 - line 142, column 52: " + [ eX.constructor.name ]);
+                      throw new Error("Failed pattern match at Main line 143, column 39 - line 145, column 52: " + [ eX.constructor.name ]);
                   })();
               };
           })();
@@ -15215,7 +15231,7 @@ var PS = {};
           if (Types_Env.env.authToken instanceof Data_Maybe.Just) {
               return Control_Applicative.pure(Control_Monad_Eff.applicativeEff)(new Data_Maybe.Just(Types_Env.env.authToken.value0));
           };
-          throw new Error("Failed pattern match at Main line 172, column 37 - line 174, column 61: " + [ Types_Env.env.authToken.constructor.name ]);
+          throw new Error("Failed pattern match at Main line 175, column 37 - line 177, column 61: " + [ Types_Env.env.authToken.constructor.name ]);
       })())();
       var v10 = Spec.app({
           toURI: function (location) {
