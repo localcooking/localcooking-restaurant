@@ -1,4 +1,4 @@
-module DOM.HTML.Window.Extra (onPopState, queryParams) where
+module DOM.HTML.Window.Extra (onPopState, queryParams, removeQueryParam) where
 
 import Prelude
 import Data.Foreign (Foreign)
@@ -19,3 +19,8 @@ onPopState f w = runEffFn2 onPopStateImpl (mkEffFn1 f) w
 
 
 foreign import queryParams :: Location -> StrMap String
+
+foreign import removeQueryParamImpl :: forall eff. EffFn2 (dom :: DOM | eff) Location String Unit
+
+removeQueryParam :: forall eff. Location -> String -> Eff (dom :: DOM | eff) Unit
+removeQueryParam = runEffFn2 removeQueryParamImpl

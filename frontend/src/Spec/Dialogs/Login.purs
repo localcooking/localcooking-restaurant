@@ -1,7 +1,8 @@
 module Spec.Dialogs.Login where
 
 import Window (WindowSize (..), initialWindowSize)
-import Links (SiteLinks (..), ThirdPartyLoginLinks (..), thirdPartyLoginLinksToURI, ThirdPartyLoginReturnLinks (..), toLocation)
+import Links (SiteLinks (..), ThirdPartyLoginReturnLinks (..), toLocation)
+import Facebook.Call (FacebookLoginLink (..), facebookLoginLinkToURI)
 
 import Prelude
 import Data.Maybe (Maybe (..))
@@ -119,7 +120,7 @@ spec {toURI} = T.simpleSpec performAction render
                                 _ -> false
                               , href: case mLink of
                                 Nothing -> ""
-                                Just link -> URI.print $ thirdPartyLoginLinksToURI link
+                                Just link -> URI.print $ facebookLoginLinkToURI link
                               } [icon]
                           )
                   in  [ mkFab "#3b5998" "#1e3f82" facebookIcon $

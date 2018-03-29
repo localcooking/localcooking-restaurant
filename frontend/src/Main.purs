@@ -2,10 +2,14 @@ module Main where
 
 import Spec (app)
 import Window (widthToWindowSize)
-import Links (SiteLinks (..), ThirdPartyLoginReturnLinks (..),siteLinksParser, siteLinksToDocumentTitle, WebSocketLinks (..), toLocation, thirdPartyLoginReturnLinksParser)
+import Links (SiteLinks (..), ThirdPartyLoginReturnLinks (..),siteLinksParser, siteLinksToDocumentTitle, toLocation, thirdPartyLoginReturnLinksParser)
 import Page (makePage)
-import Client (client)
-import Env (env)
+import Types.Env (env)
+import Client.Dependencies.AuthToken (AuthTokenSparrowClientQueues)
+
+import Sparrow.Client.Queue (newSparrowClientQueues, sparrowClientQueues)
+import Sparrow.Client (unpackClient, allocateDependencies)
+import Sparrow.Types (Topic (..))
 
 import Prelude
 import Data.Maybe (Maybe (..))
@@ -42,12 +46,13 @@ import MaterialUI.InjectTapEvent (INJECT_TAP_EVENT, injectTapEvent)
 import DOM (DOM)
 import DOM.HTML (window)
 import DOM.HTML.Window (location, document, history)
-import DOM.HTML.Window.Extra (onPopState, queryParams)
+import DOM.HTML.Window.Extra (onPopState, queryParams, removeQueryParam)
 import DOM.HTML.Document (body)
 import DOM.HTML.History (pushState, URL (..), DocumentTitle (..))
 import DOM.HTML.Location (hostname, protocol, port, pathname)
 import DOM.HTML.Types (HISTORY, htmlElementToElement)
 import WebSocket (WEBSOCKET)
+import Network.HTTP.Affjax (AJAX)
 
 
 main :: Eff ( console        :: CONSOLE
@@ -60,6 +65,7 @@ main :: Eff ( console        :: CONSOLE
             , history        :: HISTORY
             , now            :: NOW
             , ws             :: WEBSOCKET
+            , ajax           :: AJAX
             ) Unit
 main = do
   log "Starting Local Cooking frontend..."
@@ -77,12 +83,16 @@ main = do
     p <- case parseInt p' (toRadix 10) of
       Nothing ->  pure Nothing -- undefined <$ error "Somehow couldn't parse port"
       Just x -> pure (Just (Port x))
-    pure $ Just $ Authority Nothing [Tuple (NameAddress host) p]
+    pure $ Authority Nothing [Tuple (NameAddress host) p]
 
-  toSiteLinksSignal <- One.newQueue -- Just a hack because Eff isn't MonadRec
+  -- FIXME rip out - no need for history-enriched redirection.
+  toSiteLinksSignal <- One.newQueue -- Just a hack for redirections, because Eff isn't MonadRec via `siteLinksSignal`
 
   currentPageSignal <- do
     initSiteLink <- do
+      case StrMap.lookup "authToken" (queryParams l) of
+        Nothing -> pure unit
+        Just _ -> removeQueryParam l "authToken"
       p <- pathname l
       if p == ""
         then pure RootLink
@@ -91,6 +101,7 @@ main = do
             Left e2 -> throw $ "Parsing errors: " <> show e1
                             <> ", " <> show e2
             Right x -> case x of
+              -- FIXME rip out, won't need
               FacebookLoginReturn ->
                 case StrMap.lookup "state" (queryParams l) of
                   Nothing -> throw $ "No `state` key in query params: " <> show (queryParams l)
@@ -151,24 +162,19 @@ main = do
   toLocalCooking <- One.newQueue
 
 
+  ( authTokenQueues :: AuthTokenSparrowClientQueues _
+    ) <- newSparrowClientQueues
+
+  -- Sparrow dependencies
+  allocateDependencies (scheme == Just (Scheme "https")) authority $ do
+    unpackClient (Topic ["authToken"]) (sparrowClientQueues authTokenQueues)
 
 
-
-  client
-    { uri: \sessionID ->
-        toURI
-          { scheme: Just (Scheme "wss")
-          , authority
-          , location: toLocation (Realtime sessionID)
-          }
-    , toLocalCooking: One.readOnly toLocalCooking
-    }
-
-
+  -- React.js view
   let props = unit
       {spec: reactSpec, dispatcher} =
         app
-          { toURI : \location -> toURI {scheme, authority, location}
+          { toURI : \location -> toURI {scheme, authority: Just authority, location}
           , windowSizeSignal
           , currentPageSignal
           , siteLinks: One.putQueue siteLinksSignal

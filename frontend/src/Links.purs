@@ -1,7 +1,6 @@
 module Links where
 
-import LocalCooking.Auth (SessionID)
-import Env (env)
+import Types.Env (env)
 
 import Prelude
 import Data.Maybe (Maybe (..))
@@ -11,13 +10,12 @@ import Data.List (List (..))
 import Data.URI (URI (..), Scheme (..), HierarchicalPart (..), Query (..), Host (..), Authority (..))
 import Data.URI.URI (print) as URI
 import Data.URI.Location (Location (..))
-import Data.Argonaut (encodeJson)
 import Data.Path.Pathy (Path, Abs, File, Sandboxed, (</>), dir, file, rootDir, printPath)
 import Data.Generic (class Generic, gEq)
-import Data.Argonaut (class EncodeJson, class DecodeJson)
+import Data.Argonaut (class EncodeJson, class DecodeJson, encodeJson, decodeJson, fail)
 import Data.Argonaut.Encode.Generic (gEncodeJson)
 import Data.Argonaut.Decode.Generic (gDecodeJson)
-import Text.Parsing.StringParser (Parser, try)
+import Text.Parsing.StringParser (Parser, try, runParser)
 import Text.Parsing.StringParser.String (char, string, eof)
 import Control.Alternative ((<|>))
 import DOM.HTML.History (DocumentTitle (..))
@@ -46,12 +44,6 @@ instance toLocationLogoLinks :: ToLocation LogoLinks where
     IconPng -> Location (Right $ rootDir </> dir "static" </> dir "images" </> file "icon.png") Nothing Nothing
     IconSvg -> Location (Right $ rootDir </> dir "static" </> dir "images" </> file "icon.svg") Nothing Nothing
 
-data WebSocketLinks
-  = Realtime SessionID
-
-instance toLocationWebSocketLinks :: ToLocation WebSocketLinks where
-  toLocation (Realtime sessionID) =
-    Location (Right $ rootDir </> file "realtime") (Just $ Query $ Cons (Tuple "sessionID" $ Just $ show sessionID) Nil) Nothing
 
 
 data SiteLinks
@@ -73,10 +65,15 @@ instance eqSiteLinks :: Eq SiteLinks where
   eq = gEq
 
 instance encodeJsonSiteLinks :: EncodeJson SiteLinks where
-  encodeJson = gEncodeJson
+  encodeJson x = encodeJson (show x)
+
 
 instance decodeJsonSiteLinks :: DecodeJson SiteLinks where
-  decodeJson = gDecodeJson
+  decodeJson json = do
+    s <- decodeJson json
+    case runParser siteLinksParser s of
+      Left e -> fail (show e)
+      Right x -> pure x
 
 siteLinksToDocumentTitle :: SiteLinks -> DocumentTitle
 siteLinksToDocumentTitle x = DocumentTitle $ case x of
@@ -103,33 +100,6 @@ siteLinksParser = do
     <|> root
   where
     divider = char '/'
-
-
-data ThirdPartyLoginLinks a
-  = FacebookLoginLink
-    { redirectURL :: URI
-    , state :: a
-    }
-
-thirdPartyLoginLinksToURI :: forall a. EncodeJson a => ThirdPartyLoginLinks a -> URI
-thirdPartyLoginLinksToURI x = case x of
-  FacebookLoginLink {redirectURL,state} ->
-    URI
-      (Just $ Scheme "https")
-      ( HierarchicalPart
-        (Just $ Authority Nothing [Tuple (NameAddress "www.facebook.com") Nothing])
-        (Just $ Right $ rootDir </> dir "v2.12" </> dir "dialog" </> file "oauth")
-      )
-      ( Just $ Query
-        $ Cons
-          (Tuple "client_id" $ Just env.facebookClientID)
-        $ Cons
-          (Tuple "redirect_uri" $ Just $ URI.print redirectURL)
-        $ Cons
-          (Tuple "state" $ Just $ show $ encodeJson state)
-          Nil
-      )
-      Nothing
 
 
 data ThirdPartyLoginReturnLinks
