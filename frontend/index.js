@@ -10405,7 +10405,7 @@ var PS = {};
   var Data_Maybe = PS["Data.Maybe"];
   var LocalCooking_Common_AuthToken = PS["LocalCooking.Common.AuthToken"];
   var LocalCooking_Common_Password = PS["LocalCooking.Common.Password"];
-  var Login = PS["Login"];
+  var Login_Error = PS["Login.Error"];
   var Prelude = PS["Prelude"];        
   var env = {
       development: $foreign.envImpl.development,

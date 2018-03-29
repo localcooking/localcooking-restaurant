@@ -3,7 +3,7 @@ module Types.Env where
 import Prelude
 import Data.Maybe (Maybe)
 import Data.Either (Either)
-import Login (AuthError)
+import Login.Error (AuthError)
 import LocalCooking.Common.Password (HashedPassword)
 import LocalCooking.Common.AuthToken (AuthToken)
 

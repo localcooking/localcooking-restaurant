@@ -1,4 +1,4 @@
-module Login where
+module Login.Error where
 
 import Prelude
 import Data.Argonaut (class DecodeJson, decodeJson, (.?), fail)
@@ -9,6 +9,7 @@ data AuthError
   = FBLoginReturnBad String String
   | FBLoginReturnDenied String
   | FBLoginReturnBadParse
+  | FBLoginReturnNoUser
 
 
 instance decodeJsonAuthError :: DecodeJson AuthError where
@@ -26,5 +27,6 @@ instance decodeJsonAuthError :: DecodeJson AuthError where
           s <- decodeJson json
           case unit of
             _ | s == "bad-parse" -> pure FBLoginReturnBadParse
+              | s == "no-user" -> pure FBLoginReturnNoUser
               | otherwise -> fail "Not a AuthError"
     obj <|> str
