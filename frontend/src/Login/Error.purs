@@ -6,6 +6,7 @@ import Prelude
 import Data.Either (Either (..))
 import Data.Maybe (Maybe (..))
 import Data.Argonaut (class DecodeJson, decodeJson, (.?), fail)
+import Data.Generic (class Generic, gShow, gEq)
 import Control.Alternative ((<|>))
 
 
@@ -15,6 +16,14 @@ data AuthError
   | FBLoginReturnBadParse
   | FBLoginReturnNoUser
   | AuthExistsFailure
+
+derive instance genericAuthError :: Generic AuthError
+
+instance eqAuthError :: Eq AuthError where
+  eq = gEq
+
+instance showAuthError :: Show AuthError where
+  show = gShow
 
 
 instance decodeJsonAuthError :: DecodeJson AuthError where
@@ -41,6 +50,9 @@ instance decodeJsonAuthError :: DecodeJson AuthError where
 
 newtype PreliminaryAuthToken = PreliminaryAuthToken
   (Maybe (Either AuthError AuthToken))
+
+instance showPreliminaryAuthToken :: Show PreliminaryAuthToken where
+  show (PreliminaryAuthToken mX) = show mX
 
 instance decodeJsonPreliminaryAuthToken :: DecodeJson PreliminaryAuthToken where
   decodeJson json = do

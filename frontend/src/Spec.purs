@@ -189,6 +189,7 @@ app
         ) initialState
       reactSpec' = reactSpec
         { componentWillMount = \this -> do
+          log $ "PreliminaryAuthToken: " <> show preliminaryAuthToken
           case preliminaryAuthToken of
             PreliminaryAuthToken Nothing -> pure unit
             PreliminaryAuthToken (Just eErr) -> case eErr of
@@ -196,7 +197,6 @@ app
                 let resolve (Left e) = throwException e
                     resolve (Right mEInitOut) = case mEInitOut of
                       Nothing -> do
-                        log "Got Auth error..."
                         unsafeCoerceEff $ dispatcher this (GotAuthError AuthExistsFailure)
                         void $ setTimeout 12000 $
                           unsafeCoerceEff $ dispatcher this ClearAuthError
