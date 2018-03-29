@@ -14714,6 +14714,7 @@ var PS = {};
   var Control_Monad_Base = PS["Control.Monad.Base"];
   var Control_Monad_Eff = PS["Control.Monad.Eff"];
   var Control_Monad_Eff_Class = PS["Control.Monad.Eff.Class"];
+  var Control_Monad_Eff_Console = PS["Control.Monad.Eff.Console"];
   var Control_Monad_Eff_Exception = PS["Control.Monad.Eff.Exception"];
   var Control_Monad_Eff_Now = PS["Control.Monad.Eff.Now"];
   var Control_Monad_Eff_Ref = PS["Control.Monad.Eff.Ref"];
@@ -14916,7 +14917,7 @@ var PS = {};
                               return $31;
                           });
                       };
-                      throw new Error("Failed pattern match at Spec line 105, column 47 - line 111, column 68: " + [ action.constructor.name ]);
+                      throw new Error("Failed pattern match at Spec line 107, column 47 - line 113, column 68: " + [ action.constructor.name ]);
                   })());
               };
           };
@@ -14959,6 +14960,7 @@ var PS = {};
                                   if (v3 instanceof Data_Either.Right) {
                                       if (v3.value0 instanceof Data_Maybe.Nothing) {
                                           return function __do() {
+                                              Control_Monad_Eff_Console.log("Got Auth error...")();
                                               Control_Monad_Eff_Unsafe.unsafeCoerceEff(v1.dispatcher($$this)(new GotAuthError(Login_Error.AuthExistsFailure.value)))();
                                               return Data_Functor["void"](Control_Monad_Eff.functorEff)(Control_Monad_Eff_Timer.setTimeout(12000)(Control_Monad_Eff_Unsafe.unsafeCoerceEff(v1.dispatcher($$this)(ClearAuthError.value))))();
                                           };
@@ -14977,11 +14979,11 @@ var PS = {};
                                                   return Data_Functor["void"](Control_Monad_Eff.functorEff)(Control_Monad_Eff_Timer.setTimeout(12000)(Control_Monad_Eff_Unsafe.unsafeCoerceEff(v1.dispatcher($$this)(ClearAuthFailure.value))))();
                                               };
                                           };
-                                          throw new Error("Failed pattern match at Spec line 200, column 40 - line 208, column 79: " + [ v3.value0.value0.constructor.name ]);
+                                          throw new Error("Failed pattern match at Spec line 203, column 40 - line 211, column 79: " + [ v3.value0.value0.constructor.name ]);
                                       };
-                                      throw new Error("Failed pattern match at Spec line 195, column 49 - line 208, column 79: " + [ v3.value0.constructor.name ]);
+                                      throw new Error("Failed pattern match at Spec line 197, column 49 - line 211, column 79: " + [ v3.value0.constructor.name ]);
                                   };
-                                  throw new Error("Failed pattern match at Spec line 194, column 21 - line 194, column 56: " + [ v3.constructor.name ]);
+                                  throw new Error("Failed pattern match at Spec line 196, column 21 - line 196, column 56: " + [ v3.constructor.name ]);
                               };
                               return Control_Monad_Eff_Unsafe.unsafeCoerceEff(Control_Monad_Aff.runAff_(resolve)(Queue_One_Aff.callAsync(v.authTokenQueues.init)(new Client_Dependencies_AuthToken.AuthTokenInitInExists({
                                   exists: v.preliminaryAuthToken.value0.value0
@@ -14993,9 +14995,9 @@ var PS = {};
                                   return Data_Functor["void"](Control_Monad_Eff.functorEff)(Control_Monad_Eff_Timer.setTimeout(12000)(Control_Monad_Eff_Unsafe.unsafeCoerceEff(v1.dispatcher($$this)(ClearAuthError.value))))();
                               };
                           };
-                          throw new Error("Failed pattern match at Spec line 192, column 49 - line 215, column 67: " + [ v.preliminaryAuthToken.value0.constructor.name ]);
+                          throw new Error("Failed pattern match at Spec line 194, column 49 - line 218, column 67: " + [ v.preliminaryAuthToken.value0.constructor.name ]);
                       };
-                      throw new Error("Failed pattern match at Spec line 190, column 11 - line 215, column 67: " + [ v.preliminaryAuthToken.constructor.name ]);
+                      throw new Error("Failed pattern match at Spec line 192, column 11 - line 218, column 67: " + [ v.preliminaryAuthToken.constructor.name ]);
                   })()();
                   return v1.spec.componentWillMount($$this)();
               };

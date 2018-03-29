@@ -25,6 +25,7 @@ import Data.Either (Either (..))
 import Data.Time.Duration (Milliseconds (..))
 import Control.Monad.Aff (runAff_)
 import Control.Monad.Eff (Eff)
+import Control.Monad.Eff.Console (CONSOLE, log)
 import Control.Monad.Eff.Class (liftEff)
 import Control.Monad.Eff.Unsafe (unsafePerformEff, unsafeCoerceEff)
 import Control.Monad.Eff.Ref (REF)
@@ -82,6 +83,7 @@ type Effects eff =
   , now        :: NOW
   , timer      :: TIMER
   , webStorage :: WEB_STORAGE
+  , console    :: CONSOLE
   | eff)
 
 spec :: forall eff
@@ -194,6 +196,7 @@ app
                 let resolve (Left e) = throwException e
                     resolve (Right mEInitOut) = case mEInitOut of
                       Nothing -> do
+                        log "Got Auth error..."
                         unsafeCoerceEff $ dispatcher this (GotAuthError AuthExistsFailure)
                         void $ setTimeout 12000 $
                           unsafeCoerceEff $ dispatcher this ClearAuthError
