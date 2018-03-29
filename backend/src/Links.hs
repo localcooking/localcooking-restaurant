@@ -9,6 +9,8 @@ module Links where
 
 import Data.Monoid ((<>))
 import Path.Extended (ToPath (..), ToLocation (..), Abs, File, fromPath, setFileExt, addQuery, parseAbsFile, parseAbsDir)
+import Data.Aeson (ToJSON (..), FromJSON (..), Value (String))
+import Data.Aeson.Types (typeMismatch)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.UTF8 as BS8
 import qualified Data.ByteString.Base64 as BS64
@@ -49,6 +51,23 @@ instance ToLocation WebAssetLinks Abs File where
 data SiteLinks
   = RootLink
   | AboutLink
+
+-- TODO attoparsec parser? URI / Location parser...?
+
+instance ToJSON SiteLinks where
+  toJSON x = String $ case x of
+    RootLink -> "/"
+    AboutLink -> "/about"
+
+instance FromJSON SiteLinks where
+  parseJSON json = case json of
+    String s
+      | s == "/" -> pure RootLink
+      | s == "/about" -> pure AboutLink
+      | otherwise -> fail
+    _ -> fail
+    where
+      fail = typeMismatch "SiteLinks" json
 
 instance ToPath SiteLinks Abs File where
   toPath x = case x of
