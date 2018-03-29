@@ -72,8 +72,13 @@ router
   matchHere $ \app req resp ->
     case join $ lookup "authToken" $ queryString req of
       Nothing -> (action $ get $ html Nothing "") app req resp
-      Just token -> undefined -- FIXME pack into frontendEnv
-  match (l_ "about" </> o_) $ action $ get $ html Nothing "" -- FIXME SEO
+      Just json -> case Aeson.decode $ LBS.fromStrict json of
+        Nothing -> do
+          log' $ "Bad authToken encoding: " <> T.pack (show json)
+          (action $ get $ html Nothing "") app req resp
+        Just eToken -> (action $ get $ html (Just eToken) "") app req resp
+
+  match (l_ "about" </> o_) $ action $ get $ html Nothing "" -- FIXME SEO, authToken handling forall endpoints
 
   forM_ favicons $ \(file, content) -> do
     let (file', ext) = T.breakOn "." (T.pack file)
@@ -98,13 +103,13 @@ router
       ) <- case do  let bad = do
                           errorCode <- join $ lookup "error_code" qs
                           errorMessage <- join $ lookup "error_message" qs
-                          pure $ Left $ FBLoginReturnBad errorCode errorMessage
+                          pure $ Left $ FBLoginReturnBad (T.decodeUtf8 errorCode) (T.decodeUtf8 errorMessage)
                         denied = do
                           error' <- join $ lookup "error" qs
                           errorReason <- join $ lookup "error_reason" qs
                           errorDescription <- join $ lookup "error_description" qs
                           if error' == "access_denied" && errorReason == "user_denied"
-                            then pure $ Left $ FBLoginReturnDenied errorDescription
+                            then pure $ Left $ FBLoginReturnDenied $ T.decodeUtf8 errorDescription
                             else Nothing
                         good = do
                           code <- fmap T.decodeUtf8 $ join $ lookup "code" qs

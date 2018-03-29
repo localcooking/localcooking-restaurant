@@ -4,27 +4,46 @@
 
 module Login where
 
-import Data.Aeson (ToJSON (..), (.=), object, Value (String))
+import Data.Aeson (ToJSON (..), FromJSON (..), (.:), (.=), object, Value (String, Object))
+import Data.Aeson.Types (typeMismatch)
+import Data.Text (Text)
 import qualified Data.Text.Encoding as T
-import qualified Data.ByteString as BS
+import Control.Applicative ((<|>))
 
 
 data AuthError
-  = FBLoginReturnBad BS.ByteString BS.ByteString
-  | FBLoginReturnDenied BS.ByteString
+  = FBLoginReturnBad Text Text
+  | FBLoginReturnDenied Text
   | FBLoginReturnBadParse
 
 instance ToJSON AuthError where
   toJSON x = case x of
     FBLoginReturnBad code msg -> object
       [ "fbBad" .= object
-        [ "code" .= T.decodeUtf8 code
-        , "msg" .= T.decodeUtf8 msg
+        [ "code" .= code
+        , "msg" .= msg
         ]
       ]
     FBLoginReturnDenied desc -> object
       [ "fbDenied" .= object
-        [ "desc" .= T.decodeUtf8 desc
+        [ "desc" .= desc
         ]
       ]
     FBLoginReturnBadParse -> String "bad-parse"
+
+instance FromJSON AuthError where
+  parseJSON json = case json of
+    Object o -> do
+      let denied = do
+            o' <- o .: "fbDenied"
+            FBLoginReturnDenied <$> o' .: "desc"
+          bad = do
+            o' <- o .: "fbBad"
+            FBLoginReturnBad <$> o' .: "code" <*> o' .: "msg"
+      denied <|> bad
+    String s
+      | s == "bad-parse" -> pure FBLoginReturnBadParse
+      | otherwise -> fail
+    _ -> fail
+    where
+      fail = typeMismatch "AuthError" json
