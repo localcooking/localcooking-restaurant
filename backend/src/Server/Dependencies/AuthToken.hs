@@ -8,13 +8,13 @@ module Server.Dependencies.AuthToken where
 
 import Types (AppM)
 import Types.Keys (Keys (..))
-import Types.Env (Env (..), Devices (..), Managers (..), isDevelopment)
-import Links (FacebookLoginVerify (..), facebookLoginVerifyToURI)
-import Login.Facebook (FacebookLoginCode, FacebookLoginGetToken (..))
-import LocalCooking.Password (HashedPassword)
-import LocalCooking.Auth (AuthToken)
-import LocalCooking.Email (Email)
-import LocalCooking.Device (DeviceToken)
+import Types.Env (Env (..), Managers (..), isDevelopment)
+import LocalCooking.Common.Password (HashedPassword)
+import LocalCooking.Common.AuthToken (AuthToken)
+import LocalCooking.Database.Query.User (loginWithFB, usersAuthToken, logout)
+import Text.EmailAddress (EmailAddress)
+import Facebook.Types (FacebookLoginCode)
+import Facebook.Return (handleFacebookLoginReturn)
 
 import Web.Dependencies.Sparrow (Server, ServerContinue (..), ServerReturn (..), ServerArgs (..))
 import Data.Text (Text)
@@ -32,6 +32,7 @@ import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Reader (ask)
 import Control.Exception.Safe (throwM)
 import Control.Logging (log', warn')
+import Network.HTTP.Types.URI (Query)
 import Network.HTTP.Client (httpLbs, responseBody, parseRequest)
 
 
@@ -39,28 +40,46 @@ import Network.HTTP.Client (httpLbs, responseBody, parseRequest)
 -- TODO Google ReCaptcha
 data AuthTokenInitIn
   = AuthTokenInitInLogin
-    { authTokenInitInLoginEmail :: Email
+    { authTokenInitInLoginEmail :: EmailAddress
     , authTokenInitInLoginPassword :: HashedPassword
-    , authTokenInitInLoginDevice :: DeviceToken
     }
   | AuthTokenInitInFacebookCode
     { authTokenInitInFacebookCode :: FacebookLoginCode
     }
   | AuthTokenInitInExists
     { authTokenInitInExists :: AuthToken
-    , authTokenInitInExistsDevice :: DeviceToken
     }
+
+instance FromJSON AuthTokenInitIn where
+  parseJSON json = case json of
+    Object o -> do
+      let exists = AuthTokenInitInExists <$> o .: "exists"
+          code = AuthTokenInitInFacebookCode <$> o .: "fbCode"
+          login = AuthTokenInitInLogin <$> o .: "email" <*> o .: "password"
+      exists <|> code <|> login
+    _ -> fail
+    where
+      fail = typeMismatch "AuthTokenInitIn" json
 
 
 data AuthTokenFailure
-  = DeviceTokenDoesntExist
-  | BadPassword
+  = BadPassword
   | EmailDoesntExist
-  | BadFacebookLoginCode
+  deriving (Eq, Show)
+
+instance ToJSON AuthTokenFailure where
+  toJSON x = String $ case x of
+    BadPassword -> "bad-password"
+    EmailDoesntExist -> "no-email"
 
 data AuthTokenInitOut
   = AuthTokenInitOutSuccess AuthToken
   | AuthTokenInitOutFailure AuthTokenFailure
+
+instance ToJSON AuthTokenInitOut where
+  toJSON x = case x of
+    AuthTokenInitOutFailure e -> object ["failure" .= e]
+    AuthTokenInitOutSuccess y -> object ["success" .= y]
 
 
 data AuthTokenDeltaIn
@@ -68,10 +87,23 @@ data AuthTokenDeltaIn
     -- a session can die, but store the AuthToken in local storage and attempt to use later -
     -- login's discontinuity and session's discontinuity mutually overlay.
 
+instance FromJSON AuthTokenDeltaIn where
+  parseJSON json = case json of
+    String x | x == "logout" -> pure AuthTokenDeltaInLogout
+             | otherwise -> fail
+    _ -> fail
+    where
+      fail = typeMismatch "AuthTokenDeltaIn" json
+
 
 data AuthTokenDeltaOut
   = AuthTokenDeltaOutNew AuthToken
   | AuthTokenDeltaOutRevoked -- remotely logged out
+
+instance ToJSON AuthTokenDeltaOut where
+  toJSON x = case x of
+    AuthTokenDeltaOutRevoked -> String "revoked"
+    AuthTokenDeltaOutNew token -> object ["new" .= token]
 
 
 
@@ -80,39 +112,48 @@ authTokenServer :: Server AppM AuthTokenInitIn
                                AuthTokenDeltaIn
                                AuthTokenDeltaOut
 authTokenServer initIn = case initIn of
-  AuthTokenInitInLogin email password deviceToken -> undefined
-  AuthTokenInitInExists authToken deviceToken -> undefined
+  AuthTokenInitInLogin email password -> undefined
+  AuthTokenInitInExists authToken -> do
+    Env{envDatabase} <- ask
+
+    mUser <- liftIO $ usersAuthToken envDatabase authToken
+    case mUser of
+      Nothing -> pure Nothing
+      Just _ -> pure $ Just ServerContinue
+        { serverOnUnsubscribe = liftIO $ logout envDatabase authToken
+        , serverContinue = \_ -> pure ServerReturn
+          { serverInitOut = AuthTokenInitOutSuccess authToken
+          , serverOnOpen = \_ -> pure Nothing -- FIXME listen for remote logouts? Streaming auth tokens?
+          , serverOnReceive = \_ r -> case r of
+              AuthTokenDeltaInLogout -> liftIO $ logout envDatabase authToken
+          }
+        }
+
   -- invoked on facebookLoginReturn, only when the user exists
   AuthTokenInitInFacebookCode code -> do
     env@Env
       { envManagers = Managers{managersFacebook}
-      , envKeys = Keys{keysFacebookClientID, keysFacebookClientSecret}
+      , envKeys = Keys{keysFacebook}
       , envHostname
+      , envTls
+      , envDatabase
       } <- ask
 
-    let url = printURI $ facebookLoginVerifyToURI FacebookLoginVerify
-          { facebookLoginVerifyClientID = keysFacebookClientID
-          , facebookLoginVerifyClientSecret = keysFacebookClientSecret
-          , facebookLoginVerifyRedirectURI = URI (Strict.Just "https") True envHostname ["facebookLoginReturn"] [] Strict.Nothing
-          , facebookLoginVerifyCode = code
-          }
-
-    req' <- liftIO $ parseRequest (T.unpack url)
-    resp' <- liftIO $ httpLbs req' managersFacebook
-
-    case Aeson.decode (responseBody resp') of
-      Nothing -> do
-        throwM $ userError $ "Somehow couldn't parse facebook verify output: " <> show (responseBody resp')
+    eX <- liftIO $ handleFacebookLoginReturn managersFacebook keysFacebook envTls envHostname code
+    case eX of
+      Left e -> liftIO $ do
+        putStr "Facebook error:"
+        print e
         pure Nothing
-      Just x -> do
-        case x of
-          FacebookLoginGetTokenError{} -> do
-            when (isDevelopment env) $ warn' $
-              "Couldn't verify facebook code due to formatting error: "
-              <> T.pack (show x) <> ", from: " <> url
-            throwM $ userError "Couldn't verify facebook code" -- FIXME
-            pure Nothing
-          FacebookLoginGetToken{facebookLoginGetTokenAccessToken} -> do
-            log' $ "Got facebook access token: " <> T.pack (show x)
-            pure Nothing
-            -- FIXME ping facebook's graph API for details on token, get FB user's static userID
+      Right (fbToken,fbUserId) -> do
+        mAuth <- liftIO $ loginWithFB envDatabase fbToken fbUserId
+        case mAuth of
+          Nothing -> pure Nothing
+          Just authToken -> pure $ Just ServerContinue
+            { serverOnUnsubscribe = pure ()
+            , serverContinue = \_ -> pure ServerReturn
+              { serverInitOut = AuthTokenInitOutSuccess authToken
+              , serverOnOpen = \_ -> pure Nothing
+              , serverOnReceive = \_ _ -> pure ()
+              }
+            }

@@ -4,7 +4,7 @@
 
 module Server.Dependencies where
 
-import Server.Dependencies.DeviceToken (deviceTokenServer)
+import Server.Dependencies.AuthToken (authTokenServer)
 import Types (AppM)
 
 import Web.Routes.Nested (RouterT, l_, o_, (</>))
@@ -14,8 +14,8 @@ import Network.Wai.Trans (MiddlewareT)
 
 dependencies :: SparrowServerT (MiddlewareT AppM) AppM ()
 dependencies = do
-  deviceToken <- unpackServer (Topic ["device-token"]) deviceTokenServer
-  match (l_ "device-token" </> o_) deviceToken
+  authTokenDep <- unpackServer (Topic ["authToken"]) authTokenServer
+  match (l_ "authToken" </> o_) authTokenDep
 
 
 

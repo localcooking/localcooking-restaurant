@@ -9,23 +9,25 @@
 
 module Server.HTTP where
 
--- import Server.HTTP.WebSocket (websocket)
+import LocalCooking.Common.AuthToken (printAuthToken)
+import Server.Dependencies.AuthToken (authTokenServer, AuthTokenInitIn (AuthTokenInitInFacebookCode), AuthTokenInitOut (AuthTokenInitOutSuccess))
 import Server.Assets (favicons, frontend)
 import Types (AppM, runAppM, HTTPException (..))
 import Types.Env (Env (..), Managers (..), isDevelopment, Development (..))
 import Types.FrontendEnv (FrontendEnv (..))
 import Types.Keys (Keys (..))
 import Template (html)
-import Links (FacebookLoginVerify (..), facebookLoginVerifyToURI)
 import Login (ThirdPartyLoginToken (..))
-import Login.Facebook (FacebookLoginReturn (..), FacebookLoginGetToken (..), FacebookLoginCode (..))
+import Facebook.Types (FacebookLoginCode (..))
 
-import Web.Routes.Nested (RouterT, match, matchHere, matchGroup, action, post, get, json, text, l_, (</>), o_, route)
+import Web.Routes.Nested (RouterT, match, matchHere, matchGroup, action, post, get, json, text, textOnly, l_, (</>), o_, route)
+import Web.Dependencies.Sparrow.Types (ServerContinue (ServerContinue, serverContinue), ServerReturn (ServerReturn, serverInitOut))
 import Network.Wai (strictRequestBody, queryString)
 import Network.Wai.Middleware.ContentType (bytestring, FileExt (Other, JavaScript))
 import Network.Wai.Trans (MiddlewareT)
 import Network.WebSockets (defaultConnectionOptions)
 import Network.WebSockets.Trans (websocketsOrT)
+import Network.HTTP.Types (status302)
 import Network.HTTP.Client (httpLbs, responseBody, parseRequest)
 import qualified Data.Text              as T
 import qualified Data.Text.Encoding     as T
@@ -45,6 +47,7 @@ import qualified Data.Attoparsec.Text as Atto
 import qualified Data.IxSet as IxSet
 import Data.Monoid ((<>))
 import qualified Data.Strict.Maybe as Strict
+import Data.Strict.Tuple (Pair (..))
 import Control.Applicative ((<|>))
 import Control.Monad (join, when, forM_)
 import Control.Monad.IO.Class (liftIO)
@@ -84,7 +87,10 @@ import System.IO.Error (userError)
 router :: RouterT (MiddlewareT AppM) sec AppM ()
 router
   = do
-  matchHere $ action $ get $ html Nothing ""
+  matchHere $ \app req resp ->
+    case join $ lookup "authToken" $ queryString req of
+      Nothing -> (action $ get $ html Nothing "") app req resp
+      Just token -> undefined -- FIXME pack into frontendEnv
   match (l_ "about" </> o_) $ action $ get $ html Nothing "" -- FIXME SEO
 
   forM_ favicons $ \(file, content) -> do
@@ -103,171 +109,67 @@ router
           | otherwise -> fail "Wrong cache buster!" -- FIXME make cache buster generic
     (action $ get $ bytestring JavaScript $ LBS.fromStrict frontend) app req resp
 
-  -- match (l_ "register" </> o_) $ \app req respond -> do
-  --   body <- liftIO $ strictRequestBody req
-  --   (u,sid) <- liftIO $ case Aeson.decode body of
-  --     Nothing -> throwM $ JSONDecodingFailed body
-  --     Just RegisterSubmit{..} -> case verifySignedChallenge registerSubmitUserID registerSubmitSignedChallenge of
-  --       Nothing -> throwM $ ChallengeResponseInvalidSignature registerSubmitUserID registerSubmitSignedChallenge
-  --       Just challenge -> do
-  --         r <- liftIO $ atomically $ TimeMap.lookup challenge challenges
-  --         case r of
-  --           Nothing -> throwM $ ChallengeDoesntExist challenge
-  --           Just sid' -> do
-  --             liftIO $ atomically $ TimeMap.delete challenge challenges
-  --             pure
-  --               ( User
-  --                 { userUsername = registerSubmitUsername
-  --                 , userSalt = registerSubmitSalt
-  --                 , userEmail = registerSubmitEmail
-  --                 , userID = registerSubmitUserID
-  --                 }
-  --               , sid'
-  --               )
-  --   -- FIXME request for email confirmation
-  --   Env{envDatabase = Database{dbUsers}} <- ask
-  --   mR <- update' dbUsers $ InsertUser u
-  --   case mR of
-  --     Just e -> error (show e)
-  --     Nothing -> do
-  --       liftIO $ do
-  --         putStr "Added user: "
-  --         print u
-  --       liftIO $ do
-  --         TimeMultiMap.insert (userID u) sid loginSessions
-  --         atomically $ TMapChan.insert outgoingAuth (userID u) $ LocalCookingLoginResult $ LocalCookingLoginSuccess u
-  --         atomically $ TMapChan.insert loginRefs sid (userID u)
-  --       let resp = action $ post $ \_ -> json $ String "success"
-  --       resp app req respond
-
-  -- match (l_ "userSalt" </> o_) $ \app req respond -> do
-  --   username <- case join (lookup "username" (queryString req)) of
-  --     Nothing -> throwM NoUsername
-  --     Just x -> pure $ T.decodeUtf8 x
-  --   Env{envDatabase = Database{dbUsers}} <- ask
-  --   liftIO $ do
-  --     putStr "Looking up user: "
-  --     print username
-  --   s <- query' dbUsers $ GetUserSalt (Username username)
-  --   let resp = action $ get $ json s
-  --   resp app req respond
-
-  -- match (l_ "isUniqueSalt" </> o_) $ \app req respond -> do
-  --   salt' <- case join (lookup "salt" (queryString req)) of
-  --     Nothing -> throwM NoSalt
-  --     Just s -> case Atto.parseOnly salt (T.decodeUtf8 s) of
-  --       Left e -> throwM (SaltParseError e)
-  --       Right x -> pure x
-  --   Env{envDatabase = Database{dbUsers}} <- ask
-  --   r <- query' dbUsers $ IsUniqueSalt salt'
-  --   let resp = action $ get $ json r
-  --   resp app req respond
-
-  -- match (l_ "isUniqueUsername" </> o_) $ \app req respond -> do
-  --   username <- case join (lookup "username" (queryString req)) of
-  --     Nothing -> throwM NoUsername
-  --     Just s -> pure (Username (T.decodeUtf8 s))
-  --   Env{envDatabase = Database{dbUsers}} <- ask
-  --   r <- query' dbUsers $ IsUniqueUsername username
-  --   let resp = action $ get $ json r
-  --   resp app req respond
-
-  -- match (l_ "challenge" </> o_) $ \app req respond ->
-  --   case join (lookup "sessionID" (queryString req)) of
-  --     Nothing -> fail "No session id"
-  --     Just sid' -> case Atto.parseOnly sessionID (T.decodeUtf8 sid') of
-  --       Left e -> fail $ "SessionID parsing failed: " ++ e
-  --       Right sid -> do
-  --         challenge <- ChallengeID <$> liftIO newNonce
-  --         liftIO $ TimeMap.insert challenge sid challenges
-  --         let resp = action $ get $ json challenge
-  --         resp app req respond
-
-  -- env <- lift ask
-  -- when (isDevelopment env) $
-  --   match (l_ "getAllUsers" </> o_) $ \app req respond -> do
-  --     Env{envDatabase = Database{dbUsers}} <- ask
-  --     Users us <- query' dbUsers GetAllUsers
-  --     let resp = action $ get $ json $ IxSet.toList us
-  --     resp app req respond
-
-  -- match (l_ "realtime" </> o_) $ \app req resp ->
-  --   case join (lookup "sessionID" (queryString req)) of
-  --     Nothing -> fail $ "No session id: " ++ show (queryString req)
-  --     Just sid' -> case Atto.parseOnly sessionID (T.decodeUtf8 sid') of
-  --       Left e -> fail $ "SessionID parsing failed: " ++ e
-  --       Right sid -> do
-  --         env <- ask
-  --         (websocketsOrT defaultConnectionOptions
-  --           (websocket sid unauth auth challenges loginSessions loginRefs)) app req resp
-  -- match (l_ "confirmEmail" </> o_) $ \req ->
-  --   let resp = action $ get $ text "yo"
-  --   in  resp req
-
-
-  match (l_ "facebookLoginReturn" </> o_) $ \app req resp ->
+  match (l_ "facebookLoginReturn" </> o_) $ \app req resp -> do
+    let qs = queryString req
     case do let bad = do
-                  errorCode <- join $ lookup "error_code" $ queryString req
-                  errorMessage <- join $ lookup "error_message" $ queryString req
+                  errorCode <- join $ lookup "error_code" qs
+                  errorMessage <- join $ lookup "error_message" qs
                   pure $ FacebookLoginReturnBad errorCode errorMessage
                 denied = do
-                  error' <- join $ lookup "error" $ queryString req
-                  errorReason <- join $ lookup "error_reason" $ queryString req
-                  errorDescription <- join $ lookup "error_description" $ queryString req
+                  error' <- join $ lookup "error" qs
+                  errorReason <- join $ lookup "error_reason" qs
+                  errorDescription <- join $ lookup "error_description" qs
                   if error' == "access_denied" && errorReason == "user_denied"
                     then pure $ FacebookLoginReturnDenied errorDescription
                     else Nothing
                 good = do
-                  code <- fmap T.decodeUtf8 $ join $ lookup "code" $ queryString req
+                  code <- fmap T.decodeUtf8 $ join $ lookup "code" qs
                   (state :: Maybe ()) <- do -- FIXME decide a monomorphic state to share for CSRF prevention
-                    x <- join $ lookup "state" $ queryString req
+                    x <- join $ lookup "state" qs
                     Aeson.decode (LBS.fromStrict x)
                   pure $ FacebookLoginReturnGood (FacebookLoginCode code) state
             bad <|> good <|> denied of
-      Nothing -> fail $ "No parameters: " <> show (queryString req)
-      Just x -> do
-        case x of
-          FacebookLoginReturnDenied{} -> do
-            warn' $ "Got bad facebook login: " <> T.pack (show x) -- FIXME return 200, pack failure in frontendEnv
-            throwM $ userError "Bad facebook login"
-          FacebookLoginReturnBad{} -> do
-            warn' $ "Got bad facebook login: " <> T.pack (show x) -- FIXME return 200, pack failure in frontendEnv
-            throwM $ userError "Bad facebook login"
-          FacebookLoginReturnGood{facebookLoginGoodCode} -> do
-            env@Env
-              { envManagers = Managers{managersFacebook}
-              , envKeys = Keys{keysFacebookClientID, keysFacebookClientSecret}
-              , envHostname
-              } <- ask
-
-            let url = printURI $ facebookLoginVerifyToURI FacebookLoginVerify
-                  { facebookLoginVerifyClientID = keysFacebookClientID
-                  , facebookLoginVerifyClientSecret = keysFacebookClientSecret
-                  , facebookLoginVerifyRedirectURI = URI (Strict.Just "https") True envHostname ["facebookLoginReturn"] [] Strict.Nothing
-                  , facebookLoginVerifyCode = facebookLoginGoodCode
-                  }
-
-            req' <- liftIO $ parseRequest (T.unpack url)
-            resp' <- liftIO $ httpLbs req' managersFacebook
-
-            case Aeson.decode (responseBody resp') of
-              Nothing -> do
-                throwM $ userError $ "Somehow couldn't parse facebook verify output: " <> show (responseBody resp')
-              Just x -> do
-                case x of
-                  FacebookLoginGetTokenError{} -> do
-                    when (isDevelopment env) $ warn' $
-                      "Couldn't verify facebook code due to formatting error: "
-                      <> T.pack (show x) <> ", from: " <> url
-                    throwM $ userError "Couldn't verify facebook code" -- FIXME
-                  FacebookLoginGetToken{facebookLoginGetTokenAccessToken} -> do
-                    log' $ "Got facebook access token: " <> T.pack (show x)
-                    (action $ get $ html (Just $ FacebookLoginToken facebookLoginGetTokenAccessToken) "") app req resp
+      Nothing -> undefined -- TODO redirect with error message for snackbar
+      Just x -> case x of
+        FacebookLoginReturnBad{facebookLoginBadErrorCode,facebookLoginBadErrorMessage} -> undefined
+        FacebookLoginReturnDenied{facebookLoginDeniedErrorDescription} -> undefined
+        FacebookLoginReturnGood{facebookLoginGoodCode} -> do
+          Env{envHostname,envTls} <- ask
+          mCont <- authTokenServer $ AuthTokenInitInFacebookCode facebookLoginGoodCode
+          case mCont of
+            Nothing -> fail "D:"
+            Just ServerContinue{serverContinue} -> do
+              ServerReturn{serverInitOut = AuthTokenInitOutSuccess x} <- serverContinue undefined
+              let redirectUri = URI (Strict.Just $ if envTls then "https" else "http")
+                                    True
+                                    envHostname
+                                    []
+                                    ["authToken" :!: Strict.Just (printAuthToken x)]
+                                    Strict.Nothing
+              resp $ textOnly "" status302 [("Location", T.encodeUtf8 $ printURI redirectUri)]
 
   match (l_ "facebookLoginDeauthorize" </> o_) $ \app req resp -> do
     body <- liftIO $ strictRequestBody req
     log' $ "Got deauthorized: " <> T.pack (show body)
     (action $ post $ \_ -> text "") app req resp
+
+
+
+data FacebookLoginReturn a
+  = FacebookLoginReturnBad
+      { facebookLoginBadErrorCode :: BS.ByteString
+      , facebookLoginBadErrorMessage :: BS.ByteString
+      }
+  | FacebookLoginReturnGood
+      { facebookLoginGoodCode :: FacebookLoginCode
+      , facebookLoginGoodState :: a
+      }
+  | FacebookLoginReturnDenied
+      { facebookLoginDeniedErrorDescription :: BS.ByteString
+      }
+  deriving (Show)
+
+
 
 
 

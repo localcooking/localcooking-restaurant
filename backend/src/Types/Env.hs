@@ -6,7 +6,7 @@
 
 module Types.Env where
 
-import LocalCooking.Device (DeviceToken)
+import LocalCooking.Common.Password (HashedPassword)
 import Types.Keys (Keys)
 
 import Data.TimeMap (TimeMap)
@@ -20,12 +20,14 @@ import Data.Default (Default (..))
 import qualified Data.Strict.Maybe as Strict
 import Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as HashMap
+import Data.Pool (destroyAllResources)
 import Control.Concurrent.Async (Async, cancel)
 import Control.Concurrent.STM (TVar, newTVar, atomically)
 import Crypto.Saltine.Core.Box (Nonce, newNonce)
 import System.IO.Unsafe (unsafePerformIO)
 import Network.HTTP.Client (Manager)
 import Network.HTTP.Client.TLS (newTlsManager)
+import Database.Persist.Sql (ConnectionPool)
 
 
 
@@ -64,21 +66,6 @@ isDevelopment Env{envDevelopment} = case envDevelopment of
   Just _ -> True
 
 
-data Devices = Devices
-  { devicesNames :: TimeMap DeviceToken Text -- FIXME use a Cassandra database shared across apps
-  }
-
-instance Default Devices where
-  def = unsafePerformIO defDevices
-
-
-defDevices :: IO Devices
-defDevices = do
-  devicesNames <- atomically TimeMap.newTimeMap
-  pure Devices
-    { devicesNames
-    }
-
 
 data Env = Env
   { envHostname    :: URIAuth
@@ -87,7 +74,8 @@ data Env = Env
   , envTls         :: Bool
   , envKeys        :: Keys
   , envManagers    :: Managers
-  , envDevices     :: Devices
+  , envDatabase    :: ConnectionPool
+  , envSalt        :: HashedPassword
   }
 
 instance Default Env where
@@ -98,10 +86,11 @@ instance Default Env where
     , envTls         = False
     , envKeys        = error "No access to secret keys in default environment"
     , envManagers    = def
-    , envDevices     = def
+    , envDatabase    = error "No database"
+    , envSalt        = error "No salt"
     }
 
 
 releaseEnv :: Env -> IO ()
-releaseEnv Env{} =
-  pure ()
+releaseEnv Env{envDatabase} =
+  destroyAllResources envDatabase

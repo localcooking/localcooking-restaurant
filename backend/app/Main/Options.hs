@@ -7,8 +7,8 @@
 
 module Main.Options where
 
-import Types.Env (Env (..), Devices (..), defManagers, defDevices, defDevelopment)
-import LocalCooking.Device (watchDeviceTokens)
+import Types.Env (Env (..), defManagers, defDevelopment)
+import LocalCooking.Database.Query.Salt (getPasswordSalt)
 
 import Options.Applicative (Parser, strOption, option, switch, auto, long, help, value, showDefault)
 import Data.Attoparsec.Text (parseOnly)
@@ -17,44 +17,52 @@ import Data.URI.Auth (parseURIAuth, URIAuth (..))
 import Data.URI.Auth.Host (parseURIAuthHost)
 import qualified Data.Text as T
 import qualified Data.ByteString.Lazy as LBS
+import qualified Data.ByteString.UTF8 as BS8
 import Data.Monoid ((<>))
 import qualified Data.Aeson as Aeson
 import qualified Data.Strict.Maybe as Strict
 import Control.Monad (unless, void)
 import Control.Concurrent.STM (newTVar, atomically)
 import Control.Logging (errorL)
+import Control.Monad.Logger (runStderrLoggingT)
 import Path (toFilePath, parent, relfile, (</>))
 import System.Directory (doesDirectoryExist, createDirectory)
 import Foreign.C.Types (CTime (..))
+import Database.Persist.Postgresql (createPostgresqlPool)
 
 
 data ArgsImpl = ArgsImpl
   { argsImplSecretKey  :: FilePath
-  , argsImplStore      :: FilePath
   , argsImplHostname   :: String
   , argsImplPublicPort :: Int
   , argsImplSMTPHost   :: String
   , argsImplProduction :: Bool
   , argsImplTls        :: Bool
+  , argsImplDbHost     :: String
+  , argsImplDbPort     :: Int
+  , argsImplDbUser     :: String
+  , argsImplDbPassword :: String
+  , argsImplDbName     :: String
   }
 
 
 args :: String -> Parser ArgsImpl
 args username = ArgsImpl
              <$> parseSecretKey
-             <*> parseStore
              <*> parseHostname
              <*> parsePublicPort
              <*> parseSMTPHost
              <*> parseProduction
              <*> parseTls
+             <*> parseDbHost
+             <*> parseDbPort
+             <*> parseDbUser
+             <*> parseDbPassword
+             <*> parseDbName
   where
     parseSecretKey = strOption $
       long "secret-key" <> help "File path to the properly accessible secrets file, containing the PayPal API tokens, etc."
         <> value ("/home/" ++ username ++ "/.localcooking/secret") <> showDefault
-    parseStore = strOption $
-      long "store" <> help "File path to the properly accessible directory, containing the database"
-        <> value ("/home/" ++ username ++ "/.localcooking/store/") <> showDefault
     parseHostname = strOption $
       long "host" <> help "Bound name & port of the server (for hyperlinks)"
         <> value "localhost:3000" <> showDefault
@@ -68,18 +76,34 @@ args username = ArgsImpl
       long "production" <> help "Run the server in production-mode (less logging)"
     parseTls = switch $
       long "tls" <> help "Assume the server is running behind a TLS HTTP proxy"
+    parseDbHost = strOption $
+      long "db-host" <> help "Hostname of the PostgreSQL database"
+        <> value "localhost" <> showDefault
+    parseDbPort = option auto $
+      long "db-port" <> help "Port of the PostgreSQL database"
+        <> value 5432 <> showDefault
+    parseDbUser = strOption $
+      long "db-user" <> help "User for the PostgreSQL database"
+    parseDbPassword = strOption $
+      long "db-password" <> help "Password for the PostgreSQL database"
+    parseDbName = strOption $
+      long "db-name" <> help "Database name for the PostgreSQL pooled connection"
 
 
 mkEnv :: ArgsImpl -> IO (Env, Int)
 mkEnv
   ArgsImpl
     { argsImplSecretKey
-    , argsImplStore
     , argsImplHostname
     , argsImplPublicPort
     , argsImplSMTPHost
     , argsImplProduction
     , argsImplTls
+    , argsImplDbHost
+    , argsImplDbUser
+    , argsImplDbPassword
+    , argsImplDbPort
+    , argsImplDbName
     } = do
   envKeys <- case parseOnly absFilePath (T.pack argsImplSecretKey) of
     Left e -> errorL $ "Secret key path not absolute: " <> T.pack e
@@ -109,18 +133,22 @@ mkEnv
     [ "Starting server with environment:"
     , " - hostname: " <> argsImplHostname
     , " - public port: " <> show argsImplPublicPort
-    , " - database location: " <> argsImplStore
+    , " - database location: " <> argsImplDbHost <> ":" <> show (argsImplDbPort)
     , " - secret key location: " <> argsImplSecretKey
     ]
 
   envManagers <- defManagers
   envDevelopment <- if argsImplProduction then pure Nothing else Just <$> defDevelopment
 
-  envDevices@Devices
-    { devicesNames
-    } <- defDevices
+  envDatabase <- do
+    let connStr = "host=" <> BS8.fromString argsImplDbHost
+               <> " port=" <> BS8.fromString (show argsImplDbPort)
+               <> " user=" <> BS8.fromString argsImplDbUser
+               <> " password=" <> BS8.fromString argsImplDbPassword
+               <> " dbname=" <> BS8.fromString argsImplDbName
+    runStderrLoggingT (createPostgresqlPool connStr 10)
 
-  void $ watchDeviceTokens devicesNames
+  envSalt <- getPasswordSalt envDatabase
 
   pure
     ( Env
@@ -130,7 +158,8 @@ mkEnv
       , envTls = argsImplTls
       , envKeys
       , envManagers
-      , envDevices
+      , envDatabase
+      , envSalt
       }
     , fromIntegral boundPort
     )

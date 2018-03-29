@@ -15,6 +15,7 @@ import           Types.FrontendEnv (FrontendEnv (..))
 import           Types.Keys (Keys (..))
 import           Links (WebAssetLinks (..))
 import           Login (ThirdPartyLoginToken (..))
+import           Facebook.App (Credentials (..))
 
 import           Lucid (renderBST, HtmlT, Attribute, content_, name_, meta_, httpEquiv_, charset_, link_, rel_, type_, href_, sizes_, script_)
 import           Lucid.Base (makeAttribute)
@@ -105,10 +106,10 @@ masterPage mToken =
           Env{envDevelopment = mDev} <- lift ask
           deploy M.JavaScript M.Remote =<< lift (toLocation $ IndexJs $ devCacheBuster <$> mDev)
         , afterStylesScripts = do
-          env@Env{envKeys = Keys{keysFacebookClientID}} <- lift ask
+          env@Env{envKeys = Keys{keysFacebook = Credentials{clientId}}} <- lift ask
           let frontendEnv = FrontendEnv
                 { frontendEnvDevelopment = isDevelopment env
-                , frontendEnvFacebookClientID = keysFacebookClientID
+                , frontendEnvFacebookClientID = clientId
                 , frontendEnvLoginToken = mToken
                 }
           script_ [] $ renderJavascriptUrl (\_ _ -> undefined) $ inlineScripts frontendEnv

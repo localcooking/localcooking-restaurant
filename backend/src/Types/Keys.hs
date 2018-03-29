@@ -9,20 +9,18 @@ module Types.Keys where
 import Data.Aeson (FromJSON (..), Value (Object), (.:))
 import Data.Aeson.Types (typeMismatch)
 import qualified Data.Text as T
-
+import Facebook.App (Credentials)
 
 
 
 data Keys = Keys
-  { keysFacebookClientSecret :: T.Text
-  , keysFacebookClientID :: T.Text
+  { keysFacebook :: Credentials
   }
 
 
 
 instance FromJSON Keys where
   parseJSON (Object o) = do
-    keysFacebookClientSecret <- o .: "facebook-client-secret"
-    keysFacebookClientID <- o .: "facebook-client-id"
-    pure Keys{keysFacebookClientSecret,keysFacebookClientID}
+    keysFacebook <- o .: "facebook"
+    pure Keys{keysFacebook}
   parseJSON x = typeMismatch "Keys" x

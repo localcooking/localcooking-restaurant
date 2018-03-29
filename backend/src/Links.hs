@@ -7,8 +7,6 @@
 
 module Links where
 
-import Login.Facebook (FacebookLoginCode (getFacebookLoginCode))
-
 import Data.Monoid ((<>))
 import Path.Extended (ToPath (..), ToLocation (..), Abs, File, fromPath, setFileExt, addQuery, parseAbsFile, parseAbsDir)
 import qualified Data.ByteString as BS
@@ -84,26 +82,3 @@ instance ToLocation LogoLinks Abs File where
     LogoWhitePng -> (setFileExt (Just "png") . fromPath) <$> toPath x
     IconPng      -> (setFileExt (Just "png") . fromPath) <$> toPath x
     IconSvg      -> (setFileExt (Just "svg") . fromPath) <$> toPath x
-
-
-data FacebookLoginVerify = FacebookLoginVerify
-  { facebookLoginVerifyClientID :: T.Text
-  , facebookLoginVerifyRedirectURI :: URI
-  , facebookLoginVerifyClientSecret :: T.Text
-  , facebookLoginVerifyCode :: FacebookLoginCode
-  }
-
-
-facebookLoginVerifyToURI :: FacebookLoginVerify -> URI
-facebookLoginVerifyToURI FacebookLoginVerify{..} =
-  URI
-    (Strict.Just "https")
-    True
-    (URIAuth Strict.Nothing (Host ["graph", "facebook"] "com") Strict.Nothing)
-    ["v2.12", "oauth", "access_token"]
-    [ "client_id" :!: Strict.Just facebookLoginVerifyClientID
-    , "redirect_uri" :!: Strict.Just (printURI facebookLoginVerifyRedirectURI)
-    , "client_secret" :!: Strict.Just facebookLoginVerifyClientSecret
-    , "code" :!: Strict.Just (getFacebookLoginCode facebookLoginVerifyCode)
-    ]
-    Strict.Nothing

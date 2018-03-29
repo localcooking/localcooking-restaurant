@@ -1,10 +1,10 @@
 name:                localcooking
-version:             0.1.0.0
-github:              "athanclark/localcooking"
+version:             0.0.0
+git:                 "git://git.localcooking.com/localcooking/localcooking-mitch.git"
 license:             BSD3
 author:              "Athan Clark"
-maintainer:          "athan.clark@gmail.com"
-copyright:           "BSD-3-Clause"
+maintainer:          "athan.clark@localcooking.com"
+copyright:           "2018 (c) Local Cooking Inc."
 
 extra-source-files:
 - README.md
@@ -22,9 +22,15 @@ description:         Please see the README on Github at <https://github.com/atha
 dependencies:
 - base >= 4.7 && < 5
 
+ghc-options:
+  - -Wall
+
 library:
   source-dirs: src
   dependencies:
+    - localcooking-shared
+    - localcooking-db
+    - localcooking-fb
     - aeson
     - aeson-attoparsec
     - async
@@ -36,6 +42,7 @@ library:
     - bytestring
     - chan
     - data-default
+    - emailaddress
     - extractable-singleton
     - file-embed
     - hashable
@@ -54,6 +61,8 @@ library:
     - nested-routes >= 9.0.0.1
     - path
     - path-extra
+    - persistent
+    - resource-pool
     - safecopy
     - safe-exceptions
     - saltine
@@ -86,6 +95,7 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - localcooking
+    - localcooking-db
     - aeson
     - attoparsec
     - attoparsec-uri
@@ -93,12 +103,15 @@ executables:
     - bytestring
     - directory
     - logging
+    - monad-logger
     - optparse-applicative
     - path
+    - persistent-postgresql
     - safe-exceptions
     - stm
     - strict
     - text
+    - utf8-string
 
 tests:
   localcooking-test:
