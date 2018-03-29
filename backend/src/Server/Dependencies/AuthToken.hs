@@ -11,7 +11,7 @@ import Types.Keys (Keys (..))
 import Types.Env (Env (..), Managers (..), isDevelopment)
 import LocalCooking.Common.Password (HashedPassword)
 import LocalCooking.Common.AuthToken (AuthToken)
-import LocalCooking.Database.Query.User (loginWithFB, usersAuthToken, logout)
+import LocalCooking.Database.Query.User (loginWithFB, usersAuthToken, login, logout, AuthTokenFailure)
 import Text.EmailAddress (EmailAddress)
 import Facebook.Types (FacebookLoginCode)
 import Facebook.Return (handleFacebookLoginReturn)
@@ -61,17 +61,6 @@ instance FromJSON AuthTokenInitIn where
     where
       fail = typeMismatch "AuthTokenInitIn" json
 
-
-data AuthTokenFailure
-  = BadPassword
-  | EmailDoesntExist
-  deriving (Eq, Show)
-
-instance ToJSON AuthTokenFailure where
-  toJSON x = String $ case x of
-    BadPassword -> "bad-password"
-    EmailDoesntExist -> "no-email"
-
 data AuthTokenInitOut
   = AuthTokenInitOutSuccess AuthToken
   | AuthTokenInitOutFailure AuthTokenFailure
@@ -112,7 +101,34 @@ authTokenServer :: Server AppM AuthTokenInitIn
                                AuthTokenDeltaIn
                                AuthTokenDeltaOut
 authTokenServer initIn = case initIn of
-  AuthTokenInitInLogin email password -> undefined
+  -- invoked remotely from a client whenever casually attempting a normal login
+  AuthTokenInitInLogin email password -> do
+    Env{envDatabase} <- ask
+
+    mToken <- liftIO $ login envDatabase email password
+
+    case mToken of
+      Left e -> pure $ Just ServerContinue
+        { serverOnUnsubscribe = pure ()
+        , serverContinue = \_ -> pure ServerReturn
+          { serverInitOut = AuthTokenInitOutFailure e
+          , serverOnOpen = \ServerArgs{serverDeltaReject} -> do
+              serverDeltaReject
+              pure Nothing
+          , serverOnReceive = \_ _ -> pure ()
+          }
+        }
+      Right authToken -> pure $ Just ServerContinue
+        { serverOnUnsubscribe = pure ()
+        , serverContinue = \_ -> pure ServerReturn
+          { serverInitOut = AuthTokenInitOutSuccess authToken
+          , serverOnOpen = \_ -> pure Nothing -- FIXME listen for remote logouts? Streaming auth tokens?
+          , serverOnReceive = \_ r -> case r of
+              AuthTokenDeltaInLogout -> liftIO $ logout envDatabase authToken
+          }
+        }
+
+  -- invoked remotely from client when started with an authToken in frontendEnv, or in localStorage
   AuthTokenInitInExists authToken -> do
     Env{envDatabase} <- ask
 
@@ -120,7 +136,7 @@ authTokenServer initIn = case initIn of
     case mUser of
       Nothing -> pure Nothing
       Just _ -> pure $ Just ServerContinue
-        { serverOnUnsubscribe = liftIO $ logout envDatabase authToken
+        { serverOnUnsubscribe = pure ()
         , serverContinue = \_ -> pure ServerReturn
           { serverInitOut = AuthTokenInitOutSuccess authToken
           , serverOnOpen = \_ -> pure Nothing -- FIXME listen for remote logouts? Streaming auth tokens?

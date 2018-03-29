@@ -4,15 +4,27 @@
 
 module Login where
 
-import Facebook.Types (FacebookUserAccessToken)
-import Data.Aeson (ToJSON (..), (.=), object)
+import Data.Aeson (ToJSON (..), (.=), object, Value (String))
+import qualified Data.Text.Encoding as T
+import qualified Data.ByteString as BS
 
 
+data AuthError
+  = FBLoginReturnBad BS.ByteString BS.ByteString
+  | FBLoginReturnDenied BS.ByteString
+  | FBLoginReturnBadParse
 
-data ThirdPartyLoginToken
-  = FacebookLoginToken FacebookUserAccessToken
-
-
-instance ToJSON ThirdPartyLoginToken where
+instance ToJSON AuthError where
   toJSON x = case x of
-    FacebookLoginToken token -> object [ "facebookToken" .= token ]
+    FBLoginReturnBad code msg -> object
+      [ "fbBad" .= object
+        [ "code" .= T.decodeUtf8 code
+        , "msg" .= T.decodeUtf8 msg
+        ]
+      ]
+    FBLoginReturnDenied desc -> object
+      [ "fbDenied" .= object
+        [ "desc" .= T.decodeUtf8 desc
+        ]
+      ]
+    FBLoginReturnBadParse -> String "bad-parse"

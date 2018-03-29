@@ -5,8 +5,9 @@
 
 module Types.FrontendEnv where
 
+import LocalCooking.Common.AuthToken (AuthToken)
 import LocalCooking.Common.Password (HashedPassword)
-import Login (ThirdPartyLoginToken)
+import Login (AuthError)
 import Facebook.App (FacebookClientId)
 
 import qualified Data.Text as T
@@ -17,7 +18,7 @@ import Data.Aeson (ToJSON (..), (.=), object)
 data FrontendEnv = FrontendEnv
   { frontendEnvDevelopment :: Bool
   , frontendEnvFacebookClientID :: FacebookClientId
-  , frontendEnvLoginToken :: Maybe ThirdPartyLoginToken
+  , frontendEnvAuthToken :: Maybe (Either AuthError AuthToken)
   , frontendEnvSalt :: HashedPassword
   }
 
@@ -26,11 +27,11 @@ instance ToJSON FrontendEnv where
     FrontendEnv
       { frontendEnvDevelopment
       , frontendEnvFacebookClientID
-      , frontendEnvLoginToken
+      , frontendEnvAuthToken
       , frontendEnvSalt
       } = object
     [ "development" .= frontendEnvDevelopment
     , "facebookClientID" .= frontendEnvFacebookClientID
-    , "loginToken" .= frontendEnvLoginToken
+    , "authToken" .= frontendEnvAuthToken
     , "salt" .= frontendEnvSalt
     ]

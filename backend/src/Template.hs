@@ -14,8 +14,9 @@ import           Types.Env (Env (..), Development (..), isDevelopment)
 import           Types.FrontendEnv (FrontendEnv (..))
 import           Types.Keys (Keys (..))
 import           Links (WebAssetLinks (..))
-import           Login (ThirdPartyLoginToken (..))
+import           Login (AuthError)
 import           Facebook.App (Credentials (..))
+import           LocalCooking.Common.AuthToken (AuthToken)
 
 import           Lucid (renderBST, HtmlT, Attribute, content_, name_, meta_, httpEquiv_, charset_, link_, rel_, type_, href_, sizes_, script_)
 import           Lucid.Base (makeAttribute)
@@ -74,13 +75,13 @@ htmlLight s content = do
                   . mapHeaders ([("content-Type", "text/html")] ++)
 
 
-html :: Maybe ThirdPartyLoginToken
+html :: Maybe (Either AuthError AuthToken)
      -> HtmlT (AbsoluteUrlT AppM) ()
      -> FileExtListenerT AppM ()
 html mToken = htmlLight status200 . mainTemplate mToken
 
 
-masterPage :: Maybe ThirdPartyLoginToken
+masterPage :: Maybe (Either AuthError AuthToken)
            -> WebPage (HtmlT (AbsoluteUrlT AppM) ()) T.Text [Attribute]
 masterPage mToken =
   let page :: WebPage (HtmlT (AbsoluteUrlT AppM) ()) T.Text [Attribute]
@@ -106,11 +107,14 @@ masterPage mToken =
           Env{envDevelopment = mDev} <- lift ask
           deploy M.JavaScript M.Remote =<< lift (toLocation $ IndexJs $ devCacheBuster <$> mDev)
         , afterStylesScripts = do
-          env@Env{envKeys = Keys{keysFacebook = Credentials{clientId}}} <- lift ask
+          env@Env
+            { envKeys = Keys{keysFacebook = Credentials{clientId}}
+            , envSalt
+            } <- lift ask
           let frontendEnv = FrontendEnv
                 { frontendEnvDevelopment = isDevelopment env
                 , frontendEnvFacebookClientID = clientId
-                , frontendEnvLoginToken = mToken
+                , frontendEnvSalt = envSalt
                 }
           script_ [] $ renderJavascriptUrl (\_ _ -> undefined) $ inlineScripts frontendEnv
         }
@@ -140,7 +144,7 @@ var frontendEnv = #{Aeson.toJSON frontendEnv}
 |]
 
 -- | Inject some HTML into the @<body>@ tag of our template
-mainTemplate :: Maybe ThirdPartyLoginToken
+mainTemplate :: Maybe (Either AuthError AuthToken)
              -> HtmlT (AbsoluteUrlT AppM) ()
              -> HtmlT (AbsoluteUrlT AppM) ()
 mainTemplate = template . masterPage
