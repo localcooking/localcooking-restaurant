@@ -9,7 +9,7 @@ import Colors (palette)
 import Window (WindowSize)
 import Page (Page)
 import Links (SiteLinks)
-import Login.Error (AuthError (AuthExistsFailure))
+import Login.Error (AuthError (AuthExistsFailure), PreliminaryAuthToken (..))
 import Login.Storage (storeAuthToken, clearAuthToken)
 import LocalCooking.Common.AuthToken (AuthToken)
 import Client.Dependencies.AuthToken
@@ -159,7 +159,7 @@ app :: forall eff
        , currentPageSignal :: IxSignal (Effects eff) Page
        , siteLinks :: SiteLinks -> Eff (Effects eff) Unit
        , development :: Boolean
-       , preliminaryAuthToken :: Maybe (Either AuthError AuthToken)
+       , preliminaryAuthToken :: PreliminaryAuthToken
        , authTokenQueues :: AuthTokenSparrowClientQueues (Effects eff)
        }
     -> { spec :: R.ReactSpec Unit State (Array R.ReactElement) (Effects eff)
@@ -188,8 +188,8 @@ app
       reactSpec' = reactSpec
         { componentWillMount = \this -> do
           case preliminaryAuthToken of
-            Nothing -> pure unit
-            Just eErr -> case eErr of
+            PreliminaryAuthToken Nothing -> pure unit
+            PreliminaryAuthToken (Just eErr) -> case eErr of
               Right prescribedAuthToken -> do
                 let resolve (Left e) = throwException e
                     resolve (Right mEInitOut) = case mEInitOut of

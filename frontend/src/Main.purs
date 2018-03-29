@@ -5,7 +5,7 @@ import Window (widthToWindowSize)
 import Links (SiteLinks (..), ThirdPartyLoginReturnLinks (..),siteLinksParser, siteLinksToDocumentTitle, toLocation, thirdPartyLoginReturnLinksParser)
 import Page (makePage)
 import Types.Env (env)
-import Login.Error (AuthError)
+import Login.Error (AuthError, PreliminaryAuthToken (..))
 import Login.Storage (getStoredAuthToken)
 import LocalCooking.Common.AuthToken (AuthToken)
 import Client.Dependencies.AuthToken (AuthTokenSparrowClientQueues)
@@ -168,11 +168,10 @@ main = do
     unpackClient (Topic ["authToken"]) (sparrowClientQueues authTokenQueues)
 
 
-  ( preliminaryAuthToken :: Maybe (Either AuthError AuthToken)
-    ) <- do
-    case env.authToken of
-      Nothing -> map Right <$> getStoredAuthToken
-      x -> pure x
+  ( preliminaryAuthToken :: PreliminaryAuthToken
+    ) <- map PreliminaryAuthToken $ case env.authToken of
+      PreliminaryAuthToken Nothing -> map Right <$> getStoredAuthToken
+      PreliminaryAuthToken (Just eErrX) -> pure (Just eErrX)
 
 
   -- React.js view

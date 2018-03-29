@@ -1,6 +1,10 @@
 module Login.Error where
 
+import LocalCooking.Common.AuthToken (AuthToken)
+
 import Prelude
+import Data.Either (Either (..))
+import Data.Maybe (Maybe (..))
 import Data.Argonaut (class DecodeJson, decodeJson, (.?), fail)
 import Control.Alternative ((<|>))
 
@@ -32,3 +36,18 @@ instance decodeJsonAuthError :: DecodeJson AuthError where
               | s == "exists-failure" -> pure AuthExistsFailure
               | otherwise -> fail "Not a AuthError"
     obj <|> str
+
+
+
+newtype PreliminaryAuthToken = PreliminaryAuthToken
+  (Maybe (Either AuthError AuthToken))
+
+instance decodeJsonPreliminaryAuthToken :: DecodeJson PreliminaryAuthToken where
+  decodeJson json = do
+    mO <- decodeJson json
+    case mO of
+      Nothing -> pure (PreliminaryAuthToken Nothing)
+      Just o -> do
+        let err = Left <$> o .? "err"
+            token = Right <$> o .? "token"
+        (PreliminaryAuthToken <<< Just) <$> (err <|> token)
