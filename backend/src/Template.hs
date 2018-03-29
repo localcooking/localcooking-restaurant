@@ -115,6 +115,7 @@ masterPage mToken =
                 { frontendEnvDevelopment = isDevelopment env
                 , frontendEnvFacebookClientID = clientId
                 , frontendEnvSalt = envSalt
+                , frontendEnvAuthToken = mToken
                 }
           script_ [] $ renderJavascriptUrl (\_ _ -> undefined) $ inlineScripts frontendEnv
         }
