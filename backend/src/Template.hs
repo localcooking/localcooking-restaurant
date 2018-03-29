@@ -51,8 +51,6 @@ import           Path.Extended (ToLocation (toLocation))
 import           Text.Julius (julius, renderJavascriptUrl)
 import           Text.Lucius (lucius, renderCssUrl, Color (..))
 
-import Debug.Trace (traceShow)
-
 
 deriving instance Show URIAuthHost
 deriving instance Show URIAuth
@@ -65,9 +63,7 @@ htmlLight :: Status
 htmlLight s content = do
   bs <- lift $ do
     Env{envHostname,envTls} <- ask
-    let locationToURI loc =
-          let uri = packLocation (Strict.Just $ if envTls then "https" else "http") True envHostname loc
-          in  traceShow uri uri
+    let locationToURI loc = packLocation (Strict.Just $ if envTls then "https" else "http") True envHostname loc
     runAbsoluteUrlT (renderBST content) locationToURI
 
   bytestring CT.Html bs
