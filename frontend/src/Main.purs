@@ -5,6 +5,9 @@ import Window (widthToWindowSize)
 import Links (SiteLinks (..), ThirdPartyLoginReturnLinks (..),siteLinksParser, siteLinksToDocumentTitle, toLocation, thirdPartyLoginReturnLinksParser)
 import Page (makePage)
 import Types.Env (env)
+import Login.Error (AuthError)
+import Login.Storage (getStoredAuthToken)
+import LocalCooking.Common.AuthToken (AuthToken)
 import Client.Dependencies.AuthToken (AuthTokenSparrowClientQueues)
 
 import Sparrow.Client.Queue (newSparrowClientQueues, sparrowClientQueues)
@@ -53,20 +56,27 @@ import DOM.HTML.Location (hostname, protocol, port, pathname)
 import DOM.HTML.Types (HISTORY, htmlElementToElement)
 import WebSocket (WEBSOCKET)
 import Network.HTTP.Affjax (AJAX)
+import Browser.WebStorage (WEB_STORAGE)
 
 
-main :: Eff ( console        :: CONSOLE
-            , injectTapEvent :: INJECT_TAP_EVENT
-            , ref            :: REF
-            , dom            :: DOM
-            , timer          :: TIMER
-            , uuid           :: GENUUID
-            , exception      :: EXCEPTION
-            , history        :: HISTORY
-            , now            :: NOW
-            , ws             :: WEBSOCKET
-            , ajax           :: AJAX
-            ) Unit
+-- | All top-level effects
+type Effects =
+  ( console        :: CONSOLE
+  , injectTapEvent :: INJECT_TAP_EVENT
+  , ref            :: REF
+  , dom            :: DOM
+  , timer          :: TIMER
+  , uuid           :: GENUUID
+  , exception      :: EXCEPTION
+  , history        :: HISTORY
+  , now            :: NOW
+  , ws             :: WEBSOCKET
+  , ajax           :: AJAX
+  , webStorage     :: WEB_STORAGE
+  )
+
+
+main :: Eff Effects Unit
 main = do
   log "Starting Local Cooking frontend..."
 
@@ -85,34 +95,22 @@ main = do
       Just x -> pure (Just (Port x))
     pure $ Authority Nothing [Tuple (NameAddress host) p]
 
-  -- FIXME rip out - no need for history-enriched redirection.
-  toSiteLinksSignal <- One.newQueue -- Just a hack for redirections, because Eff isn't MonadRec via `siteLinksSignal`
-
   currentPageSignal <- do
     initSiteLink <- do
+      -- remove auth token
       case StrMap.lookup "authToken" (queryParams l) of
         Nothing -> pure unit
         Just _ -> removeQueryParam l "authToken"
+
+      -- parse foo.com/pathname
       p <- pathname l
       if p == ""
         then pure RootLink
         else case runParser siteLinksParser p of
-          Left e1 -> case runParser thirdPartyLoginReturnLinksParser p of
-            Left e2 -> throw $ "Parsing errors: " <> show e1
-                            <> ", " <> show e2
-            Right x -> case x of
-              -- FIXME rip out, won't need
-              FacebookLoginReturn ->
-                case StrMap.lookup "state" (queryParams l) of
-                  Nothing -> throw $ "No `state` key in query params: " <> show (queryParams l)
-                  Just s -> case jsonParser s >>= decodeJson of
-                    Left e -> throw $ "URI Query parsing error: " <> e
-                    Right (x' :: Maybe Unit) -> do -- FIXME Facebook state
-                      -- redirect
-                      One.putQueue toSiteLinksSignal RootLink
-                      -- assumed original
-                      pure RootLink
+          Left e1 -> throw $ "Parsing error: " <> show e1 -- FIXME account for unknown routes
           Right x -> pure x
+
+    -- fetch resources - FIXME use sparrow to drive it - via currentPageSignal?
     let {immediate,loadDetails} = makePage initSiteLink
     sig <- IxSignal.make immediate
     flip runAff_ loadDetails \eX -> case eX of
@@ -130,6 +128,9 @@ main = do
       ) w
     pure sig
 
+
+  -- history driver - write to this to change the page, with history.
+  -- FIXME hard, firm, soft history links
   siteLinksSignal <- do
     q <- One.newQueue
     One.onQueue q \(x :: SiteLinks) -> do
@@ -141,8 +142,6 @@ main = do
         Right x -> IxSignal.set x currentPageSignal
     pure (One.writeOnly q)
 
-  One.onQueue toSiteLinksSignal (One.putQueue siteLinksSignal)
-  -- end hack
 
   windowSizeSignal <- do
     -- debounces and only relays when the window size changes
@@ -159,15 +158,21 @@ main = do
         IxSignal.set size out
     pure out
 
-  toLocalCooking <- One.newQueue
 
 
-  ( authTokenQueues :: AuthTokenSparrowClientQueues _
+  ( authTokenQueues :: AuthTokenSparrowClientQueues Effects
     ) <- newSparrowClientQueues
 
   -- Sparrow dependencies
   allocateDependencies (scheme == Just (Scheme "https")) authority $ do
     unpackClient (Topic ["authToken"]) (sparrowClientQueues authTokenQueues)
+
+
+  ( preliminaryAuthToken :: Maybe (Either AuthError AuthToken)
+    ) <- do
+    case env.authToken of
+      Nothing -> map Right <$> getStoredAuthToken
+      x -> pure x
 
 
   -- React.js view
@@ -179,6 +184,8 @@ main = do
           , currentPageSignal
           , siteLinks: One.putQueue siteLinksSignal
           , development: env.development
+          , preliminaryAuthToken
+          , authTokenQueues
           }
       component = R.createClass reactSpec
   traverse_ (render (R.createFactory component props) <<< htmlElementToElement) =<< body =<< document w

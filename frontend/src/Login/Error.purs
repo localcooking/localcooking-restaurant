@@ -10,6 +10,7 @@ data AuthError
   | FBLoginReturnDenied String
   | FBLoginReturnBadParse
   | FBLoginReturnNoUser
+  | AuthExistsFailure
 
 
 instance decodeJsonAuthError :: DecodeJson AuthError where
@@ -28,5 +29,6 @@ instance decodeJsonAuthError :: DecodeJson AuthError where
           case unit of
             _ | s == "bad-parse" -> pure FBLoginReturnBadParse
               | s == "no-user" -> pure FBLoginReturnNoUser
+              | s == "exists-failure" -> pure AuthExistsFailure
               | otherwise -> fail "Not a AuthError"
     obj <|> str
