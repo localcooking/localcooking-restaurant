@@ -17,7 +17,7 @@ import Types.Env (Env (..), Managers (..), isDevelopment, Development (..))
 import Types.FrontendEnv (FrontendEnv (..))
 import Types.Keys (Keys (..))
 import Template (html)
-import Login (AuthError (..))
+import Login.Error (AuthError (..))
 import Facebook.Types (FacebookLoginCode (..))
 import Facebook.State (FacebookLoginState (..))
 
@@ -101,6 +101,7 @@ router
     Env{envHostname,envTls} <- ask
     let qs = queryString req
     ( eToken :: Either AuthError AuthToken
+      , mFbState :: Maybe FacebookLoginState
       ) <- case do  let bad = do
                           errorCode <- join $ lookup "error_code" qs
                           errorMessage <- join $ lookup "error_message" qs
@@ -124,18 +125,18 @@ router
                 liftIO $ do
                   putStr "Bad /facebookLoginReturn parse: "
                   print qs
-                pure (Left FBLoginReturnBadParse)
+                pure (Left FBLoginReturnBadParse, Nothing)
               Just eX -> case eX of
-                Left e -> pure (Left e)
+                Left e -> pure (Left e, Nothing)
                 Right (code, state) -> do
-                  -- TODO redirect smart
                   mCont <- authTokenServer $ AuthTokenInitInFacebookCode code
                   case mCont of
-                    Nothing -> fail "Somehow couldn't get FB server's ServerContinue"
+                    Nothing -> pure (Left FBLoginReturnNoUser, Just state)
                     Just ServerContinue{serverContinue} -> do
                       ServerReturn{serverInitOut = AuthTokenInitOutSuccess authToken} <- serverContinue undefined
-                      pure (Right authToken)
+                      pure (Right authToken, Just state)
 
+    -- TODO redirect smart with FacebookLoginState
     let redirectUri = URI (Strict.Just $ if envTls then "https" else "http")
                           True
                           envHostname

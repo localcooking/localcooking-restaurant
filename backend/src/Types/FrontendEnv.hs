@@ -7,7 +7,7 @@ module Types.FrontendEnv where
 
 import LocalCooking.Common.AuthToken (AuthToken)
 import LocalCooking.Common.Password (HashedPassword)
-import Login (AuthError)
+import Login.Error (AuthError)
 import Facebook.App (FacebookClientId)
 
 import qualified Data.Text as T

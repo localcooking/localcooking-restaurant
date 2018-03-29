@@ -14,7 +14,7 @@ import           Types.Env (Env (..), Development (..), isDevelopment)
 import           Types.FrontendEnv (FrontendEnv (..))
 import           Types.Keys (Keys (..))
 import           Links (WebAssetLinks (..))
-import           Login (AuthError)
+import           Login.Error (AuthError)
 import           Facebook.App (Credentials (..))
 import           LocalCooking.Common.AuthToken (AuthToken)
 

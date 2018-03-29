@@ -2,7 +2,9 @@
     OverloadedStrings
   #-}
 
-module Login where
+module Login.Error where
+
+
 
 import Data.Aeson (ToJSON (..), FromJSON (..), (.:), (.=), object, Value (String, Object))
 import Data.Aeson.Types (typeMismatch)
@@ -15,6 +17,7 @@ data AuthError
   = FBLoginReturnBad Text Text
   | FBLoginReturnDenied Text
   | FBLoginReturnBadParse
+  | FBLoginReturnNoUser
 
 instance ToJSON AuthError where
   toJSON x = case x of
@@ -30,6 +33,7 @@ instance ToJSON AuthError where
         ]
       ]
     FBLoginReturnBadParse -> String "bad-parse"
+    FBLoginReturnNoUser -> String "no-user"
 
 instance FromJSON AuthError where
   parseJSON json = case json of
@@ -43,6 +47,7 @@ instance FromJSON AuthError where
       denied <|> bad
     String s
       | s == "bad-parse" -> pure FBLoginReturnBadParse
+      | s == "no-user" -> pure FBLoginReturnNoUser
       | otherwise -> fail
     _ -> fail
     where
