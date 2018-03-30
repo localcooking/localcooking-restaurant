@@ -88,7 +88,7 @@ spec = T.simpleSpec performAction render
           , case state.authError of
               Nothing -> R.text ""
               Just x -> case x of
-                FBLoginReturnBad code msg -> R.text $ "Bad Facebook login respose: " <> code <> ", " <> msg
+                FBLoginReturnBad code msg -> R.text $ "Bad Facebook login response: " <> code <> ", " <> msg
                 FBLoginReturnDenied desc -> R.text $ "Facebook login denied: " <> desc
                 FBLoginReturnBadParse -> R.text "Internal error: Facebook login return unparsable."
                 FBLoginReturnNoUser -> R.text "Facebook user not recognized, please link your account."

@@ -38,7 +38,7 @@ import React as R
 import React.DOM as R
 import React.DOM.Props as RP
 import MaterialUI.MuiThemeProvider (muiThemeProvider, createMuiTheme)
-import MaterialUI.Reboot (reboot)
+import MaterialUI.CssBaseline (cssBaseline)
 import DOM (DOM)
 import DOM.HTML.Types (HISTORY)
 import Browser.WebStorage (WEB_STORAGE)
@@ -145,7 +145,7 @@ spec
       ]
       where
         template content =
-          [ reboot
+          [ cssBaseline
           , muiThemeProvider
               { theme: createMuiTheme {palette}
               }
