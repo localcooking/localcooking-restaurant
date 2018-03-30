@@ -22,7 +22,7 @@ import Data.UUID (GENUUID)
 import Data.Maybe (Maybe (..))
 import Data.Either (Either (..))
 import Data.Time.Duration (Milliseconds (..))
-import Control.Monad.Aff (runAff_)
+import Control.Monad.Aff (delay)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Console (CONSOLE, log)
 import Control.Monad.Eff.Class (liftEff)
@@ -71,6 +71,7 @@ data Action
   | ClearAuthError
   | GotAuthFailure AuthTokenFailure
   | ClearAuthFailure
+  | CallAuthToken AuthTokenInitIn
 
 
 type Effects eff =
@@ -103,13 +104,28 @@ spec
   , authTokenQueues
   } = T.simpleSpec performAction render
   where
-    performAction action props state = void $ case action of
-      GotAuthToken x -> T.cotransform _ { authToken = Just x }
-      ClearAuthToken -> T.cotransform _ { authToken = Nothing }
-      GotAuthError x -> T.cotransform _ { authError = Just x }
-      ClearAuthError -> T.cotransform _ { authError = Nothing }
-      GotAuthFailure x -> T.cotransform _ { authFailure = Just x }
-      ClearAuthFailure -> T.cotransform _ { authFailure = Nothing }
+    performAction action props state = case action of
+      GotAuthToken x   -> void $ T.cotransform _ { authToken = Just x }
+      ClearAuthToken   -> void $ T.cotransform _ { authToken = Nothing }
+      GotAuthError x   -> void $ T.cotransform _ { authError = Just x }
+      ClearAuthError   -> void $ T.cotransform _ { authError = Nothing }
+      GotAuthFailure x -> void $ T.cotransform _ { authFailure = Just x }
+      ClearAuthFailure -> void $ T.cotransform _ { authFailure = Nothing }
+      CallAuthToken initIn -> do
+        initOut <- liftBase $ OneIO.callAsync authTokenQueues.init initIn
+        case initOut of
+          Nothing -> do
+            performAction (GotAuthError AuthExistsFailure) props state
+            liftBase $ delay $ Milliseconds $ 12000.0
+            performAction ClearAuthError props state
+          Just eInitOut -> case eInitOut of
+            AuthTokenInitOutSuccess authToken -> do
+              liftEff $ storeAuthToken authToken
+              performAction (GotAuthToken authToken) props state
+            AuthTokenInitOutFailure e -> do
+              performAction (GotAuthFailure e) props state
+              liftBase $ delay $ Milliseconds $ 12000.0
+              performAction ClearAuthFailure props state
 
 
     render :: T.Render State Unit Action
@@ -130,6 +146,8 @@ spec
         , windowSizeSignal
         , toURI
         , currentPageSignal
+        , login: \email password ->
+            unsafeCoerceEff $ dispatch $ CallAuthToken $ AuthTokenInitInLogin {email,password}
         }
       , leftMenu
         { mobileDrawerOpenSignal: readOnly mobileMenuButtonSignal
@@ -188,28 +206,13 @@ app
         ) initialState
       reactSpec' = reactSpec
         { componentWillMount = \this -> do
-          log $ "PreliminaryAuthToken: " <> show preliminaryAuthToken
           case preliminaryAuthToken of
             PreliminaryAuthToken Nothing -> pure unit
             PreliminaryAuthToken (Just eErr) -> case eErr of
-              Right prescribedAuthToken -> do
-                let resolve (Left e) = throwException e
-                    resolve (Right mEInitOut) = case mEInitOut of
-                      Nothing -> do
-                        unsafeCoerceEff $ dispatcher this (GotAuthError AuthExistsFailure)
-                        void $ setTimeout 12000 $
-                          unsafeCoerceEff $ dispatcher this ClearAuthError
-                      Just eInitOut -> case eInitOut of
-                        AuthTokenInitOutSuccess authToken -> do
-                          unsafeCoerceEff $ dispatcher this (GotAuthToken authToken)
-                          storeAuthToken authToken
-                        AuthTokenInitOutFailure e -> do
-                          clearAuthToken
-                          unsafeCoerceEff $ dispatcher this (GotAuthFailure e)
-                          void $ setTimeout 12000 $
-                            unsafeCoerceEff $ dispatcher this ClearAuthFailure
-
-                unsafeCoerceEff $ runAff_ resolve $ OneIO.callAsync authTokenQueues.init $
+              -- Call the authToken resource when the spec starts, using the preliminary
+              -- auth token
+              Right prescribedAuthToken ->
+                unsafeCoerceEff $ dispatcher this $ CallAuthToken $
                   AuthTokenInitInExists {exists: prescribedAuthToken}
               Left e -> do
                 unsafeCoerceEff $ dispatcher this (GotAuthError e)

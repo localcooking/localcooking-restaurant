@@ -4,6 +4,7 @@ import Window (WindowSize (..), initialWindowSize)
 import Links (SiteLinks (..), ThirdPartyLoginReturnLinks (..), toLocation, initSiteLinks)
 import Facebook.Call (FacebookLoginLink (..), facebookLoginLinkToURI)
 import Facebook.State (FacebookLoginState (..))
+import LocalCooking.Common.Password (HashedPassword)
 
 import Prelude
 import Data.Maybe (Maybe (..))
@@ -11,6 +12,8 @@ import Data.URI (URI)
 import Data.URI.URI (print) as URI
 import Data.URI.Location (Location)
 import Data.UUID (GENUUID)
+import Text.Email.Validate (EmailAddress)
+import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Uncurried (mkEffFn1)
 import Control.Monad.Eff.Unsafe (unsafeCoerceEff, unsafePerformEff)
 import Control.Monad.Eff.Ref (REF)
@@ -163,6 +166,7 @@ loginDialog :: forall eff
                , windowSizeSignal :: IxSignal (Effects eff) WindowSize
                , toURI :: Location -> URI
                , currentPageSignal :: IxSignal (Effects eff) SiteLinks
+               , login :: EmailAddress -> HashedPassword -> Eff (Effects eff) Unit
                }
             -> R.ReactElement
 loginDialog {openLoginSignal,windowSizeSignal,toURI,currentPageSignal} =
