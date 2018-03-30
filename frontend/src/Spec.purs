@@ -22,7 +22,7 @@ import Data.UUID (GENUUID)
 import Data.Maybe (Maybe (..))
 import Data.Either (Either (..))
 import Data.Time.Duration (Milliseconds (..))
-import Control.Monad.Aff (delay)
+import Control.Monad.Aff (delay, makeAff, nonCanceler)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Console (CONSOLE, log)
 import Control.Monad.Eff.Class (liftEff)
@@ -42,6 +42,7 @@ import MaterialUI.CssBaseline (cssBaseline)
 import DOM (DOM)
 import DOM.HTML.Types (HISTORY)
 import Browser.WebStorage (WEB_STORAGE)
+import Crypto.Scrypt (SCRYPT)
 
 import Queue (READ, WRITE)
 import Queue.One.Aff as OneIO
@@ -77,6 +78,7 @@ type Effects eff =
   , timer      :: TIMER
   , webStorage :: WEB_STORAGE
   , console    :: CONSOLE
+  , scrypt     :: SCRYPT
   | eff)
 
 spec :: forall eff
@@ -108,7 +110,9 @@ spec
           Nothing -> liftEff $ One.putQueue authErrorSignal (Left AuthExistsFailure)
           Just eInitOut -> case eInitOut of
             AuthTokenInitOutSuccess authToken -> do
-              liftEff $ storeAuthToken authToken
+              liftEff $ do
+                storeAuthToken authToken
+                One.putQueue loginPendingSignal unit
               performAction (GotAuthToken authToken) props state
             AuthTokenInitOutFailure e -> do
               liftEff $ One.putQueue authErrorSignal (Right e)
@@ -132,8 +136,10 @@ spec
         , windowSizeSignal
         , toURI
         , currentPageSignal
-        , login: \email password ->
+        , login: \email password -> makeAff \resolve -> do
             unsafeCoerceEff $ dispatch $ CallAuthToken $ AuthTokenInitInLogin {email,password}
+            One.onQueue loginPendingSignal \_ -> resolve (Right unit)
+            pure nonCanceler
         }
       , leftMenu
         { mobileDrawerOpenSignal: One.readOnly mobileMenuButtonSignal
@@ -155,6 +161,7 @@ spec
         openLoginSignal = unsafePerformEff One.newQueue
         mobileMenuButtonSignal = unsafePerformEff One.newQueue
 
+    loginPendingSignal = unsafePerformEff One.newQueue
 
 
 app :: forall eff

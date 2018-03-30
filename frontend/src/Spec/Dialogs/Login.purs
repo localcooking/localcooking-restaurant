@@ -1,10 +1,12 @@
 module Spec.Dialogs.Login where
 
+import Types.Env (env)
+
 import Window (WindowSize (..), initialWindowSize)
 import Links (SiteLinks (..), ThirdPartyLoginReturnLinks (..), toLocation, initSiteLinks)
 import Facebook.Call (FacebookLoginLink (..), facebookLoginLinkToURI)
 import Facebook.State (FacebookLoginState (..))
-import LocalCooking.Common.Password (HashedPassword)
+import LocalCooking.Common.Password (HashedPassword, hashPassword)
 
 import Prelude
 import Data.Maybe (Maybe (..))
@@ -15,7 +17,7 @@ import Data.UUID (GENUUID)
 import Data.Time.Duration (Milliseconds (..))
 import Text.Email.Validate (EmailAddress, emailAddress)
 import Control.Monad.Base (liftBase)
-import Control.Monad.Aff (delay)
+import Control.Monad.Aff (Aff, delay)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Uncurried (mkEffFn1)
 import Control.Monad.Eff.Unsafe (unsafeCoerceEff, unsafePerformEff)
@@ -45,6 +47,7 @@ import MaterialUI.Button as Button
 import MaterialUI.TextField (textField)
 import MaterialUI.TextField as TextField
 import MaterialUI.Input as Input
+import Crypto.Scrypt (SCRYPT)
 
 import Queue.One (READ, Queue)
 import IxSignal.Internal (IxSignal)
@@ -58,6 +61,7 @@ type State =
   , currentPage :: SiteLinks
   , email :: String
   , password :: String
+  , pending :: Boolean
   }
 
 
@@ -68,6 +72,7 @@ initialState =
   , currentPage: initSiteLinks
   , email: ""
   , password: ""
+  , pending: false
   }
 
 
@@ -78,17 +83,19 @@ data Action
   | ChangedPage SiteLinks
   | ChangedEmail String
   | ChangedPassword String
+  | SubmitLogin
 
 type Effects eff =
-  ( ref :: REF
-  , uuid :: GENUUID
+  ( ref       :: REF
+  , uuid      :: GENUUID
   , exception :: EXCEPTION
+  , scrypt    :: SCRYPT
   | eff)
 
 
 spec :: forall eff
       . { toURI :: Location -> URI
-        , login :: EmailAddress -> HashedPassword -> Eff (Effects eff) Unit
+        , login :: EmailAddress -> HashedPassword -> Aff (Effects eff) Unit
         }
      -> T.Spec (Effects eff) State Unit Action
 spec {toURI,login} = T.simpleSpec performAction render
@@ -103,6 +110,15 @@ spec {toURI,login} = T.simpleSpec performAction render
       ChangedPage p -> void $ T.cotransform _ { currentPage = p }
       ChangedEmail e -> void $ T.cotransform _ { email = e }
       ChangedPassword p -> void $ T.cotransform _ { password = p }
+      SubmitLogin -> do
+        void $ T.cotransform _ { pending = true }
+        case emailAddress state.email of
+          Nothing -> pure unit -- FIXME bug out somehow?
+          Just email -> do
+            liftBase $ do
+              hashedPassword <- hashPassword {salt: env.salt, password: state.password}
+              login email hashedPassword
+            performAction Close props state
 
     render :: T.Render State Unit Action
     render dispatch props state children =
@@ -197,7 +213,7 @@ loginDialog :: forall eff
                , windowSizeSignal :: IxSignal (Effects eff) WindowSize
                , toURI :: Location -> URI
                , currentPageSignal :: IxSignal (Effects eff) SiteLinks
-               , login :: EmailAddress -> HashedPassword -> Eff (Effects eff) Unit
+               , login :: EmailAddress -> HashedPassword -> Aff (Effects eff) Unit
                }
             -> R.ReactElement
 loginDialog {openLoginSignal,windowSizeSignal,toURI,currentPageSignal,login} =

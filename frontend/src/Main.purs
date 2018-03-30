@@ -57,6 +57,7 @@ import DOM.HTML.Types (HISTORY, htmlElementToElement)
 import WebSocket (WEBSOCKET)
 import Network.HTTP.Affjax (AJAX)
 import Browser.WebStorage (WEB_STORAGE)
+import Crypto.Scrypt (SCRYPT)
 
 
 -- | All top-level effects
@@ -73,6 +74,7 @@ type Effects =
   , ws             :: WEBSOCKET
   , ajax           :: AJAX
   , webStorage     :: WEB_STORAGE
+  , scrypt         :: SCRYPT
   )
 
 
