@@ -7,7 +7,6 @@ import Spec.Drawers.LeftMenu (leftMenu)
 import Spec.Snackbar (messages)
 import Colors (palette)
 import Window (WindowSize)
-import Page (Page)
 import Links (SiteLinks)
 import Login.Error (AuthError (AuthExistsFailure), PreliminaryAuthToken (..))
 import Login.Storage (storeAuthToken, clearAuthToken)
@@ -89,7 +88,7 @@ type Effects eff =
 spec :: forall eff
       . { toURI :: Location -> URI
         , windowSizeSignal :: IxSignal (Effects eff) WindowSize
-        , currentPageSignal :: IxSignal (Effects eff) Page
+        , currentPageSignal :: IxSignal (Effects eff) SiteLinks
         , siteLinks :: SiteLinks -> Eff (Effects eff) Unit
         , development :: Boolean
         , authTokenQueues :: AuthTokenSparrowClientQueues (Effects eff)
@@ -158,7 +157,7 @@ spec
 app :: forall eff
      . { toURI :: Location -> URI
        , windowSizeSignal :: IxSignal (Effects eff) WindowSize
-       , currentPageSignal :: IxSignal (Effects eff) Page
+       , currentPageSignal :: IxSignal (Effects eff) SiteLinks
        , siteLinks :: SiteLinks -> Eff (Effects eff) Unit
        , development :: Boolean
        , preliminaryAuthToken :: PreliminaryAuthToken

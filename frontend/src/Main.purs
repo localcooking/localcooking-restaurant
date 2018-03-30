@@ -3,7 +3,6 @@ module Main where
 import Spec (app)
 import Window (widthToWindowSize)
 import Links (SiteLinks (..), ThirdPartyLoginReturnLinks (..),siteLinksParser, siteLinksToDocumentTitle, toLocation, thirdPartyLoginReturnLinksParser)
-import Page (makePage)
 import Types.Env (env)
 import Login.Error (AuthError, PreliminaryAuthToken (..))
 import Login.Storage (getStoredAuthToken)
@@ -49,7 +48,7 @@ import MaterialUI.InjectTapEvent (INJECT_TAP_EVENT, injectTapEvent)
 import DOM (DOM)
 import DOM.HTML (window)
 import DOM.HTML.Window (location, document, history)
-import DOM.HTML.Window.Extra (onPopState, queryParams, removeQueryParam)
+import DOM.HTML.Window.Extra (onPopState, queryParams)
 import DOM.HTML.Document (body)
 import DOM.HTML.History (pushState, URL (..), DocumentTitle (..))
 import DOM.HTML.Location (hostname, protocol, port, pathname, setHash, hash)
@@ -98,13 +97,13 @@ main = do
   currentPageSignal <- do
     initSiteLink <- do
       -- remove auth token
-      case StrMap.lookup "authToken" (queryParams l) of
-        Nothing -> pure unit
-        Just _ -> removeQueryParam l "authToken"
+      -- case StrMap.lookup "authToken" (queryParams l) of
+      --   Nothing -> pure unit
+      --   Just _ -> removeQueryParam l "authToken" -- FIXME causes a page refresh
 
-      -- remove residual facebook gunk from fragment
-      h' <- hash l
-      when (h' /= "") $ setHash "" l
+      -- -- remove residual facebook gunk from fragment
+      -- h' <- hash l
+      -- when (h' /= "") $ setHash "" l
 
       -- parse foo.com/pathname
       p <- pathname l
@@ -115,20 +114,13 @@ main = do
           Right x -> pure x
 
     -- fetch resources - FIXME use sparrow to drive it - via currentPageSignal?
-    let {immediate,loadDetails} = makePage initSiteLink
-    sig <- IxSignal.make immediate
-    flip runAff_ loadDetails \eX -> case eX of
-      Left e -> throwException e
-      Right x -> IxSignal.set x sig
+    sig <- IxSignal.make initSiteLink
     onPopState
       (\x -> do
-        {immediate,loadDetails} <- case decodeJson (unsafeFromForeign x) of
+        siteLink <- case decodeJson (unsafeFromForeign x) of
           Left e -> throw e
-          Right (x :: SiteLinks) -> pure (makePage x)
-        IxSignal.set immediate sig
-        flip runAff_ loadDetails \eX -> case eX of -- FIXME resource loading section
-          Left e -> throwException e
-          Right x' -> IxSignal.set x' sig
+          Right (x :: SiteLinks) -> pure x
+        IxSignal.set siteLink sig
       ) w
     pure sig
 
@@ -139,11 +131,7 @@ main = do
     q <- One.newQueue
     One.onQueue q \(x :: SiteLinks) -> do
       pushState (toForeign (encodeJson x)) (siteLinksToDocumentTitle x) (URL (show x)) h
-      let {immediate,loadDetails} = makePage x
-      IxSignal.set immediate currentPageSignal
-      flip runAff_ loadDetails \eX -> case eX of
-        Left e -> throwException e
-        Right x -> IxSignal.set x currentPageSignal
+      IxSignal.set x currentPageSignal
     pure (One.writeOnly q)
 
 

@@ -4,8 +4,7 @@ import Spec.Content.About (about)
 import Spec.Content.Root (root)
 import Spec.Content.Chefs (chefs)
 import Spec.Content.Meals (meals)
-import Links (SiteLinks (..))
-import Page (Page (..), initPage)
+import Links (SiteLinks (..), initSiteLinks)
 
 import Prelude
 
@@ -34,16 +33,16 @@ import IxSignal.Internal (IxSignal)
 
 
 type State =
-  { page :: Page
+  { page :: SiteLinks
   }
 
 initialState :: State
 initialState =
-  { page: initPage
+  { page: initSiteLinks
   }
 
 data Action
-  = ChangedCurrentPage Page
+  = ChangedCurrentPage SiteLinks
 
 
 type Effects eff =
@@ -73,10 +72,10 @@ spec = T.simpleSpec performAction render
           }
           [ paper {style: createStyles {minHeight: "30em"}}
             [ case state.page of
-                AboutPage -> about
-                RootPage -> root
-                ChefsPage -> chefs
-                MealsPage -> meals
+                AboutLink -> about
+                RootLink -> root
+                ChefsLink -> chefs
+                MealsLink -> meals
             ]
           , typography
             { variant: Typography.caption
@@ -90,7 +89,7 @@ spec = T.simpleSpec performAction render
 
 
 content :: forall eff
-         . { currentPageSignal :: IxSignal (Effects eff) Page
+         . { currentPageSignal :: IxSignal (Effects eff) SiteLinks
            } -> R.ReactElement
 content {currentPageSignal} =
   let {spec: reactSpec, dispatcher} = T.createReactSpec spec initialState

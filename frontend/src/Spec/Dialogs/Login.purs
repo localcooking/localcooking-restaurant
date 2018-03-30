@@ -1,10 +1,9 @@
 module Spec.Dialogs.Login where
 
 import Window (WindowSize (..), initialWindowSize)
-import Links (SiteLinks (..), ThirdPartyLoginReturnLinks (..), toLocation)
+import Links (SiteLinks (..), ThirdPartyLoginReturnLinks (..), toLocation, initSiteLinks)
 import Facebook.Call (FacebookLoginLink (..), facebookLoginLinkToURI)
 import Facebook.State (FacebookLoginState (..))
-import Page (Page (RootPage), pageBacklink)
 
 import Prelude
 import Data.Maybe (Maybe (..))
@@ -49,7 +48,7 @@ import IxSignal.Internal (IxSignal)
 type State =
   { open :: Boolean
   , windowSize :: WindowSize
-  , page :: Page
+  , page :: SiteLinks
   }
 
 
@@ -57,7 +56,7 @@ initialState :: State
 initialState =
   { open: false
   , windowSize: unsafePerformEff initialWindowSize
-  , page: RootPage
+  , page: initSiteLinks
   }
 
 
@@ -65,7 +64,7 @@ data Action
   = Open
   | Close
   | ChangedWindowSize WindowSize
-  | ChangedPage Page
+  | ChangedPage SiteLinks
 
 type Effects eff =
   ( ref :: REF
@@ -133,7 +132,7 @@ spec {toURI} = T.simpleSpec performAction render
                          Just $ FacebookLoginLink
                          { redirectURL: toURI (toLocation FacebookLoginReturn)
                          , state: FacebookLoginState
-                           { origin: pageBacklink state.page
+                           { origin: state.page
                            }
                          }
                       , mkFab "#1da1f3" "#0f8cdb" twitterIcon Nothing
@@ -163,7 +162,7 @@ loginDialog :: forall eff
              . { openLoginSignal :: Queue (read :: READ) (Effects eff) Unit
                , windowSizeSignal :: IxSignal (Effects eff) WindowSize
                , toURI :: Location -> URI
-               , currentPageSignal :: IxSignal (Effects eff) Page
+               , currentPageSignal :: IxSignal (Effects eff) SiteLinks
                }
             -> R.ReactElement
 loginDialog {openLoginSignal,windowSizeSignal,toURI,currentPageSignal} =

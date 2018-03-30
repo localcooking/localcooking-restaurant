@@ -1,7 +1,6 @@
 module Spec.Topbar where
 
-import Links (toLocation, SiteLinks (..), LogoLinks (..))
-import Page (Page (..), initPage)
+import Links (toLocation, SiteLinks (..), initSiteLinks, LogoLinks (..))
 import Window (WindowSize (..), initialWindowSize)
 
 import Prelude
@@ -42,20 +41,20 @@ import IxSignal.Internal (IxSignal)
 
 type State =
   { windowSize :: WindowSize
-  , currentPage :: Page
+  , currentPage :: SiteLinks
   }
 
 initialState :: State
 initialState =
   { windowSize: unsafePerformEff initialWindowSize
-  , currentPage: initPage
+  , currentPage: initSiteLinks
   }
 
 data Action
   = OpenLogin
   | ClickedMobileMenuButton
   | ChangedWindowSize WindowSize
-  | ChangedCurrentPage Page
+  | ChangedCurrentPage SiteLinks
   | ClickedAboutLink
   | ClickedMealsLink
   | ClickedChefsLink
@@ -107,19 +106,19 @@ spec
                       ] [] -- FIXME make into a link to RootLink
               , button
                 { color: Button.inherit
-                , disabled: state.currentPage == AboutPage
+                , disabled: state.currentPage == AboutLink
                 , onTouchTap: mkEffFn1 \_ -> dispatch ClickedAboutLink
                 } [R.text "About"]
               , button
                 { color: Button.primary
                 , variant: Button.raised
-                , disabled: state.currentPage == MealsPage
+                , disabled: state.currentPage == MealsLink
                 , onTouchTap: mkEffFn1 \_ -> dispatch ClickedMealsLink
                 } [R.text "Meals"]
               , button
                 { color: Button.secondary
                 , variant: Button.raised
-                , disabled: state.currentPage == ChefsPage
+                , disabled: state.currentPage == ChefsLink
                 , onTouchTap: mkEffFn1 \_ -> dispatch ClickedChefsLink
                 } [R.text "Chefs"]
               ]
@@ -141,7 +140,7 @@ topbar :: forall eff
           , openLoginSignal :: Queue (write :: WRITE) (Effects eff) Unit
           , mobileMenuButtonSignal :: Queue (write :: WRITE) (Effects eff) Unit
           , windowSizeSignal :: IxSignal (Effects eff) WindowSize
-          , currentPageSignal :: IxSignal (Effects eff) Page
+          , currentPageSignal :: IxSignal (Effects eff) SiteLinks
           , siteLinks :: SiteLinks -> Eff (Effects eff) Unit
           } -> R.ReactElement
 topbar

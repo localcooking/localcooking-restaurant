@@ -15,6 +15,7 @@
     "purescript-material-ui": "git://github.com/athanclark/purescript-material-ui.git#f9a2fb24e8ca363168308c9491dc0028c679c918",
     "purescript-thermite": "git://github.com/jvliwanag/purescript-thermite.git#94299d6832d92f14bef029f35d07bd5e8b062e05",
     "purescript-zeta": "^0.0.3",
+    "purescript-uri": "4.x",
     "purescript-uri-extra": "^0.0.1",
     "purescript-parseint": "^0.0.0",
     "purescript-typelevel": "^3.0.0",

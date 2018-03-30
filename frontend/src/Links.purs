@@ -52,6 +52,9 @@ data SiteLinks
   | MealsLink -- FIXME search terms
   | ChefsLink -- FIXME search terms or hierarchy
 
+initSiteLinks :: SiteLinks
+initSiteLinks = RootLink
+
 derive instance genericSiteLinks :: Generic SiteLinks
 
 instance showSiteLinks :: Show SiteLinks where
@@ -67,13 +70,19 @@ instance eqSiteLinks :: Eq SiteLinks where
 instance encodeJsonSiteLinks :: EncodeJson SiteLinks where
   encodeJson x = encodeJson (show x)
 
-
 instance decodeJsonSiteLinks :: DecodeJson SiteLinks where
   decodeJson json = do
     s <- decodeJson json
     case runParser siteLinksParser s of
       Left e -> fail (show e)
       Right x -> pure x
+
+instance toLocationSiteLinks :: ToLocation SiteLinks where
+  toLocation x = case x of
+    RootLink  -> Location (Left rootDir) Nothing Nothing
+    AboutLink -> Location (Right $ rootDir </> file "about") Nothing Nothing
+    MealsLink -> Location (Right $ rootDir </> file "meals") Nothing Nothing
+    ChefsLink -> Location (Right $ rootDir </> file "chefs") Nothing Nothing
 
 siteLinksToDocumentTitle :: SiteLinks -> DocumentTitle
 siteLinksToDocumentTitle x = DocumentTitle $ case x of
