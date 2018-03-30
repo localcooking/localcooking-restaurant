@@ -20,7 +20,8 @@ import Data.Either (Either (..))
 import Data.Time.Duration (Milliseconds (..))
 import Data.URI (Scheme (..), Host (..), Port (..), Authority (..))
 import Data.URI.URI as URI
-import Data.URI.Location (toURI, fromURI)
+import Data.URI.Location (toURI, fromURI, Location (..))
+import Data.URI.Query (Query (..))
 import Data.Int.Parse (parseInt, toRadix)
 import Data.String (takeWhile) as String
 import Data.UUID (GENUUID)
@@ -111,9 +112,19 @@ main = do
         Left e -> throw $ "Href parsing error: " <> show e
         Right uri -> case fromURI uri of
           Nothing -> throw $ "URI can't be a location: " <> show uri
-          Just {location} -> case siteLinksParser location of
-            Nothing -> throw $ "Location can't be a SiteLinks: " <> show location
-            Just x -> pure x
+          Just {location: location@(Location _ mQuery _)} -> case siteLinksParser location of
+            Nothing -> do
+              -- FIXME should be able to handle bogus URIs
+              throw $ "Location can't be a SiteLinks: " <> show location
+            Just x -> do
+              -- adjust for possibly present authToken
+              case mQuery of
+                Nothing -> pure unit
+                Just (Query qs) -> case StrMap.lookup "authToken" (StrMap.fromFoldable qs) of
+                  Nothing -> pure unit
+                  Just _ -> replaceState' x h
+
+              pure x
 
     -- fetch resources - FIXME use sparrow to drive it - via currentPageSignal?
     sig <- IxSignal.make initSiteLink

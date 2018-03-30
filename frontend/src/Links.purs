@@ -90,11 +90,13 @@ siteLinksToDocumentTitle x = DocumentTitle $ case x of
   MealsLink -> "Meals - Local Cooking"
   ChefsLink -> "Chefs - Local Cooking"
 
+
+-- Policy: don't fail on bad query params / fragment unless you have to
 siteLinksParser :: Location -> Maybe SiteLinks
 siteLinksParser (Location path mQuery mFrag) = do
   case runParser siteLinksPathParser (URIPath.printPath path) of
     Left _ -> Nothing
-    Right x -> Just x -- TODO somehow parse query strings and fragments independently
+    Right link -> pure link
   where
     siteLinksPathParser :: Parser SiteLinks
     siteLinksPathParser = do
