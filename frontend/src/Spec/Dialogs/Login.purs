@@ -12,7 +12,10 @@ import Data.URI (URI)
 import Data.URI.URI (print) as URI
 import Data.URI.Location (Location)
 import Data.UUID (GENUUID)
-import Text.Email.Validate (EmailAddress)
+import Data.Time.Duration (Milliseconds (..))
+import Text.Email.Validate (EmailAddress, emailAddress)
+import Control.Monad.Base (liftBase)
+import Control.Monad.Aff (delay)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Uncurried (mkEffFn1)
 import Control.Monad.Eff.Unsafe (unsafeCoerceEff, unsafePerformEff)
@@ -45,13 +48,16 @@ import MaterialUI.Input as Input
 
 import Queue.One (READ, Queue)
 import IxSignal.Internal (IxSignal)
+import Unsafe.Coerce (unsafeCoerce)
 
 
 
 type State =
   { open :: Boolean
   , windowSize :: WindowSize
-  , page :: SiteLinks
+  , currentPage :: SiteLinks
+  , email :: String
+  , password :: String
   }
 
 
@@ -59,7 +65,9 @@ initialState :: State
 initialState =
   { open: false
   , windowSize: unsafePerformEff initialWindowSize
-  , page: initSiteLinks
+  , currentPage: initSiteLinks
+  , email: ""
+  , password: ""
   }
 
 
@@ -68,6 +76,8 @@ data Action
   | Close
   | ChangedWindowSize WindowSize
   | ChangedPage SiteLinks
+  | ChangedEmail String
+  | ChangedPassword String
 
 type Effects eff =
   ( ref :: REF
@@ -78,15 +88,21 @@ type Effects eff =
 
 spec :: forall eff
       . { toURI :: Location -> URI
+        , login :: EmailAddress -> HashedPassword -> Eff (Effects eff) Unit
         }
-     -> T.Spec eff State Unit Action
-spec {toURI} = T.simpleSpec performAction render
+     -> T.Spec (Effects eff) State Unit Action
+spec {toURI,login} = T.simpleSpec performAction render
   where
     performAction action props state = case action of
       Open -> void $ T.cotransform _ { open = true }
-      Close -> void $ T.cotransform _ { open = false }
+      Close -> do
+        void $ T.cotransform _ { open = false }
+        liftBase $ delay $ Milliseconds 2000.0
+        void $ T.cotransform _ { email = "", password = "" }
       ChangedWindowSize w -> void $ T.cotransform _ { windowSize = w }
-      ChangedPage p -> void $ T.cotransform _ { page = p }
+      ChangedPage p -> void $ T.cotransform _ { currentPage = p }
+      ChangedEmail e -> void $ T.cotransform _ { email = e }
+      ChangedPassword p -> void $ T.cotransform _ { password = p }
 
     render :: T.Render State Unit Action
     render dispatch props state children =
@@ -106,8 +122,20 @@ spec {toURI} = T.simpleSpec performAction render
         in  dialog'
             [ dialogTitle {} [R.text "Login"]
             , dialogContent {}
-              [ textField {label: R.text "Email", fullWidth: true}
-              , textField {label: R.text "Password", fullWidth: true, "type": Input.passwordType}
+              [ textField
+                { label: R.text "Email"
+                , fullWidth: true
+                , onChange: mkEffFn1 \e -> dispatch $ ChangedEmail (unsafeCoerce e).target.value
+                , error: case emailAddress state.email of
+                  Nothing -> false
+                  Just _ -> true
+                }
+              , textField
+                { label: R.text "Password"
+                , fullWidth: true
+                , "type": Input.passwordType
+                , onChange: mkEffFn1 \p -> dispatch $ ChangedPassword (unsafeCoerce p).target.value
+                }
               , R.div [RP.style {display: "flex", justifyContent: "space-evenly", paddingTop: "2em"}] $
                   let mkFab mainColor darkColor icon mLink =
                         Button.withStyles
@@ -135,7 +163,7 @@ spec {toURI} = T.simpleSpec performAction render
                          Just $ FacebookLoginLink
                          { redirectURL: toURI (toLocation FacebookLoginReturn)
                          , state: FacebookLoginState
-                           { origin: state.page
+                           { origin: state.currentPage
                            }
                          }
                       , mkFab "#1da1f3" "#0f8cdb" twitterIcon Nothing
@@ -150,6 +178,9 @@ spec {toURI} = T.simpleSpec performAction render
               , button
                 { color: Button.primary
                 -- , onTouchTap: mkEffFn1 \_ -> dispatch Close
+                , disabled: case emailAddress state.email of
+                  Nothing -> true
+                  Just _ -> false
                 } [R.text "Submit"]
               , button
                 { color: Button.default
@@ -169,8 +200,8 @@ loginDialog :: forall eff
                , login :: EmailAddress -> HashedPassword -> Eff (Effects eff) Unit
                }
             -> R.ReactElement
-loginDialog {openLoginSignal,windowSizeSignal,toURI,currentPageSignal} =
-  let {spec: reactSpec, dispatcher} = T.createReactSpec (spec {toURI}) initialState
+loginDialog {openLoginSignal,windowSizeSignal,toURI,currentPageSignal,login} =
+  let {spec: reactSpec, dispatcher} = T.createReactSpec (spec {toURI,login}) initialState
       reactSpecLogin =
           Signal.whileMountedIxUUID
             windowSizeSignal
