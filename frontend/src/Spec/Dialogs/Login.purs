@@ -61,6 +61,7 @@ type State =
   , windowSize :: WindowSize
   , currentPage :: SiteLinks
   , email :: String
+  , emailDirty :: Maybe Boolean
   , password :: String
   , pending :: Boolean
   }
@@ -72,6 +73,7 @@ initialState =
   , windowSize: unsafePerformEff initialWindowSize
   , currentPage: initSiteLinks
   , email: ""
+  , emailDirty: Nothing
   , password: ""
   , pending: false
   }
@@ -83,6 +85,7 @@ data Action
   | ChangedWindowSize WindowSize
   | ChangedPage SiteLinks
   | ChangedEmail String
+  | EmailUnfocused
   | ChangedPassword String
   | SubmitLogin
 
@@ -110,7 +113,8 @@ spec {toURI,login} = T.simpleSpec performAction render
         void $ T.cotransform _ { email = "", password = "" }
       ChangedWindowSize w -> void $ T.cotransform _ { windowSize = w }
       ChangedPage p -> void $ T.cotransform _ { currentPage = p }
-      ChangedEmail e -> void $ T.cotransform _ { email = e }
+      ChangedEmail e -> void $ T.cotransform _ { email = e, emailDirty = Just false }
+      EmailUnfocused -> void $ T.cotransform _ { emailDirty = Just true }
       ChangedPassword p -> void $ T.cotransform _ { password = p }
       SubmitLogin -> do
         void $ T.cotransform _ { pending = true }
@@ -146,8 +150,9 @@ spec {toURI,login} = T.simpleSpec performAction render
                 { label: R.text "Email"
                 , fullWidth: true
                 , onChange: mkEffFn1 \e -> dispatch $ ChangedEmail (unsafeCoerce e).target.value
+                , onBlur: mkEffFn1 \_ -> dispatch EmailUnfocused
                 , error: case emailAddress state.email of
-                  Nothing -> true
+                  Nothing -> state.emailDirty == Just true
                   Just _ -> false
                 }
               , textField
@@ -201,6 +206,7 @@ spec {toURI,login} = T.simpleSpec performAction render
                 , disabled: case emailAddress state.email of
                   Nothing -> true
                   Just _ -> false
+                , onTouchTap: mkEffFn1 \_ -> dispatch SubmitLogin
                 } [R.text "Submit"]
               , button
                 { color: Button.default
