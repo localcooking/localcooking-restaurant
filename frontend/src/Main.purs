@@ -19,7 +19,8 @@ import Data.Tuple (Tuple (..))
 import Data.Either (Either (..))
 import Data.Time.Duration (Milliseconds (..))
 import Data.URI (Scheme (..), Host (..), Port (..), Authority (..))
-import Data.URI.Location (toURI)
+import Data.URI.URI as URI
+import Data.URI.Location (toURI, fromURI)
 import Data.Int.Parse (parseInt, toRadix)
 import Data.String (takeWhile) as String
 import Data.UUID (GENUUID)
@@ -48,10 +49,9 @@ import MaterialUI.InjectTapEvent (INJECT_TAP_EVENT, injectTapEvent)
 import DOM (DOM)
 import DOM.HTML (window)
 import DOM.HTML.Window (location, document, history)
-import DOM.HTML.Window.Extra (onPopState, queryParams)
+import DOM.HTML.Window.Extra (onPopState, queryParams, pushState', replaceState')
 import DOM.HTML.Document (body)
-import DOM.HTML.History (pushState, URL (..), DocumentTitle (..))
-import DOM.HTML.Location (hostname, protocol, port, pathname, setHash, hash)
+import DOM.HTML.Location (hostname, protocol, port, pathname, hash, href)
 import DOM.HTML.Types (HISTORY, htmlElementToElement)
 import WebSocket (WEBSOCKET)
 import Network.HTTP.Affjax (AJAX)
@@ -106,21 +106,19 @@ main = do
       -- when (h' /= "") $ setHash "" l
 
       -- parse foo.com/pathname
-      p <- pathname l
-      if p == ""
-        then pure RootLink
-        else case runParser siteLinksParser p of
-          Left e1 -> throw $ "Parsing error: " <> show e1 -- FIXME account for unknown routes
-          Right x -> pure x
+      p <- href l
+      case URI.parse p of
+        Left e -> throw $ "Href parsing error: " <> show e
+        Right uri -> case fromURI uri of
+          Nothing -> throw $ "URI can't be a location: " <> show uri
+          Just {location} -> case siteLinksParser location of
+            Nothing -> throw $ "Location can't be a SiteLinks: " <> show location
+            Just x -> pure x
 
     -- fetch resources - FIXME use sparrow to drive it - via currentPageSignal?
     sig <- IxSignal.make initSiteLink
     onPopState
-      (\x -> do
-        siteLink <- case decodeJson (unsafeFromForeign x) of
-          Left e -> throw e
-          Right (x :: SiteLinks) -> pure x
-        IxSignal.set siteLink sig
+      (\siteLink -> IxSignal.set siteLink sig
       ) w
     pure sig
 
@@ -130,7 +128,7 @@ main = do
   siteLinksSignal <- do
     q <- One.newQueue
     One.onQueue q \(x :: SiteLinks) -> do
-      pushState (toForeign (encodeJson x)) (siteLinksToDocumentTitle x) (URL (show x)) h
+      pushState' x h
       IxSignal.set x currentPageSignal
     pure (One.writeOnly q)
 

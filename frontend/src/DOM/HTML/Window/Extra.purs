@@ -1,25 +1,35 @@
-module DOM.HTML.Window.Extra (onPopState, queryParams) where
+module DOM.HTML.Window.Extra (onPopState, queryParams, pushState', replaceState') where
 
-import Links (SiteLinks, toLocation)
+import Links (SiteLinks, toLocation, siteLinksToDocumentTitle)
 
 import Prelude
-import Data.Foreign (Foreign)
+import Data.Maybe (Maybe (..))
+import Data.Either (Either (..))
 import Data.StrMap (StrMap)
 import Data.URI.URI as URI
 import Data.URI.Location as Location
+import Data.Foreign (Foreign, toForeign, unsafeFromForeign)
+import Data.Argonaut (jsonParser, encodeJson, decodeJson)
 import DOM (DOM)
-import DOM.HTML.Types (Window, Location)
+import DOM.HTML.Types (Window, Location, History, HISTORY)
+import DOM.HTML.History (pushState, replaceState, URL (..), DocumentTitle (..))
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Uncurried (EffFn1, EffFn2, mkEffFn1, runEffFn2)
+import Control.Monad.Eff.Exception (EXCEPTION, throw, throwException)
 
 
 foreign import onPopStateImpl :: forall eff. EffFn2 eff (EffFn1 eff Foreign Unit) Window Unit
 
 onPopState :: forall eff
-            . (Foreign -> Eff (dom :: DOM | eff) Unit)
+            . (SiteLinks -> Eff (dom :: DOM, exception :: EXCEPTION | eff) Unit)
            -> Window
-           -> Eff (dom :: DOM | eff) Unit
-onPopState f w = runEffFn2 onPopStateImpl (mkEffFn1 f) w
+           -> Eff (dom :: DOM, exception :: EXCEPTION | eff) Unit
+onPopState go w =
+  onPopState' \fgn -> case decodeJson (unsafeFromForeign fgn) of
+    Left e -> throw e
+    Right (x :: SiteLinks) -> go x
+  where
+    onPopState' f = runEffFn2 onPopStateImpl (mkEffFn1 f) w
 
 
 foreign import queryParams :: Location -> StrMap String
@@ -30,6 +40,17 @@ foreign import queryParams :: Location -> StrMap String
 -- removeQueryParam = runEffFn2 removeQueryParamImpl
 
 
-pushState' :: forall eff. SiteLinks -> History -> Eff (dom :: DOM | eff) Unit
-pushState' x h =
-  pushState (toForeign (encodeJson x)) (siteLinksToDocumentTitle x) (URL (Location.printLocation $ toLocation x))
+pushState' :: forall eff. SiteLinks -> History -> Eff (history :: HISTORY | eff) Unit
+pushState' x =
+  pushState
+    (toForeign $ encodeJson x)
+    (siteLinksToDocumentTitle x)
+    (URL $ Location.printLocation $ toLocation x)
+
+
+replaceState' :: forall eff. SiteLinks -> History -> Eff (history :: HISTORY | eff) Unit
+replaceState' x =
+  replaceState
+    (toForeign $ encodeJson x)
+    (siteLinksToDocumentTitle x)
+    (URL $ Location.printLocation $ toLocation x)

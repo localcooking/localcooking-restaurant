@@ -9,7 +9,8 @@ import Data.Either (Either (..))
 import Data.List (List (..))
 import Data.URI (URI (..), Scheme (..), HierarchicalPart (..), Query (..), Host (..), Authority (..))
 import Data.URI.URI (print) as URI
-import Data.URI.Location (Location (..))
+import Data.URI.Location (Location (..), printLocation, parseLocation)
+import Data.URI.Path as URIPath
 import Data.Path.Pathy (Path, Abs, File, Sandboxed, (</>), dir, file, rootDir, printPath)
 import Data.Generic (class Generic, gEq)
 import Data.Argonaut (class EncodeJson, class DecodeJson, encodeJson, decodeJson, fail)
@@ -69,9 +70,11 @@ instance encodeJsonSiteLinks :: EncodeJson SiteLinks where
 instance decodeJsonSiteLinks :: DecodeJson SiteLinks where
   decodeJson json = do
     s <- decodeJson json -- FIXME use location parser
-    case runParser siteLinksParser s of
+    case runParser parseLocation s of
       Left e -> fail (show e)
-      Right x -> pure x
+      Right loc -> case siteLinksParser loc of
+        Nothing -> fail "siteLinksParser failed"
+        Just x -> pure x
 
 instance toLocationSiteLinks :: ToLocation SiteLinks where
   toLocation x = case x of
@@ -87,25 +90,30 @@ siteLinksToDocumentTitle x = DocumentTitle $ case x of
   MealsLink -> "Meals - Local Cooking"
   ChefsLink -> "Chefs - Local Cooking"
 
--- TODO FIXME, embed in a Location parser
-siteLinksParser :: Parser SiteLinks
-siteLinksParser = do
-  let root = RootLink <$ (divider *> eof)
-      about = do
-        void divider
-        AboutLink <$ (string "about" *> eof)
-      meals = do
-        void divider
-        MealsLink <$ string "meals" -- FIXME search parameters
-      chefs = do
-        void divider
-        ChefsLink <$ string "chefs" -- FIXME search parameters or hierarchy
-  try about
-    <|> try meals
-    <|> try chefs
-    <|> root
+siteLinksParser :: Location -> Maybe SiteLinks
+siteLinksParser (Location path mQuery mFrag) = do
+  case runParser siteLinksPathParser (URIPath.printPath path) of
+    Left _ -> Nothing
+    Right x -> Just x -- TODO somehow parse query strings and fragments independently
   where
-    divider = char '/'
+    siteLinksPathParser :: Parser SiteLinks
+    siteLinksPathParser = do
+      let root = RootLink <$ (divider *> eof)
+          about = do
+            void divider
+            AboutLink <$ (string "about" *> eof)
+          meals = do
+            void divider
+            MealsLink <$ string "meals" -- FIXME search parameters
+          chefs = do
+            void divider
+            ChefsLink <$ string "chefs" -- FIXME search parameters or hierarchy
+      try about
+        <|> try meals
+        <|> try chefs
+        <|> root
+      where
+        divider = char '/'
 
 
 data ThirdPartyLoginReturnLinks
