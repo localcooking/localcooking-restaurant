@@ -110,14 +110,14 @@ spec
         initOut <- liftBase $ OneIO.callAsync authTokenQueues.init initIn
         case initOut of
           Nothing -> liftEff $ One.putQueue authErrorSignal (Left AuthExistsFailure)
-          Just eInitOut -> case eInitOut of
-            AuthTokenInitOutSuccess authToken -> do
-              liftEff $ do
-                storeAuthToken authToken
-                One.putQueue loginPendingSignal unit
-              performAction (GotAuthToken authToken) props state
-            AuthTokenInitOutFailure e -> do
-              liftEff $ One.putQueue authErrorSignal (Right e)
+          Just eInitOut -> do
+            case eInitOut of
+              AuthTokenInitOutSuccess authToken -> do
+                liftEff $ storeAuthToken authToken
+                performAction (GotAuthToken authToken) props state
+              AuthTokenInitOutFailure e -> do
+                liftEff $ One.putQueue authErrorSignal (Right e)
+            liftEff $ One.putQueue loginPendingSignal unit
 
 
     render :: T.Render State Unit Action

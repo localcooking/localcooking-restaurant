@@ -37,6 +37,7 @@ import Control.Monad.Eff.Timer (TIMER)
 import Control.Monad.Eff.Exception (EXCEPTION, throw, throwException)
 import Control.Monad.Eff.Ref (REF, newRef, readRef, writeRef)
 import Control.Monad.Eff.Console (CONSOLE, log, error)
+import Control.Execution.Immediate (SET_IMMEDIATE_SHIM, registerShim)
 
 import Queue.One as One
 import Signal.Internal as Signal
@@ -62,19 +63,20 @@ import Crypto.Scrypt (SCRYPT)
 
 -- | All top-level effects
 type Effects =
-  ( console        :: CONSOLE
-  , injectTapEvent :: INJECT_TAP_EVENT
-  , ref            :: REF
-  , dom            :: DOM
-  , timer          :: TIMER
-  , uuid           :: GENUUID
-  , exception      :: EXCEPTION
-  , history        :: HISTORY
-  , now            :: NOW
-  , ws             :: WEBSOCKET
-  , ajax           :: AJAX
-  , webStorage     :: WEB_STORAGE
-  , scrypt         :: SCRYPT
+  ( console            :: CONSOLE
+  , injectTapEvent     :: INJECT_TAP_EVENT
+  , set_immediate_shim :: SET_IMMEDIATE_SHIM
+  , ref                :: REF
+  , dom                :: DOM
+  , timer              :: TIMER
+  , uuid               :: GENUUID
+  , exception          :: EXCEPTION
+  , history            :: HISTORY
+  , now                :: NOW
+  , ws                 :: WEBSOCKET
+  , ajax               :: AJAX
+  , webStorage         :: WEB_STORAGE
+  , scrypt             :: SCRYPT
   )
 
 
@@ -83,6 +85,7 @@ main = do
   log "Starting Local Cooking frontend..."
 
   injectTapEvent
+  _ <- registerShim
 
 
   w <- window

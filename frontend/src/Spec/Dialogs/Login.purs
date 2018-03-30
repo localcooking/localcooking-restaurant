@@ -48,6 +48,7 @@ import MaterialUI.Button as Button
 import MaterialUI.TextField (textField)
 import MaterialUI.TextField as TextField
 import MaterialUI.Input as Input
+import MaterialUI.CircularProgress (circularProgress)
 import Crypto.Scrypt (SCRYPT)
 
 import Queue.One (READ, Queue)
@@ -126,6 +127,7 @@ spec {toURI,login} = T.simpleSpec performAction render
               hashedPassword <- hashPassword {salt: env.salt, password: state.password}
               liftEff $ log "hashed password"
               login email hashedPassword
+              liftEff $ log "login sent"
             performAction Close props state
 
     render :: T.Render State Unit Action
@@ -194,6 +196,9 @@ spec {toURI,login} = T.simpleSpec performAction render
                       , mkFab "#1da1f3" "#0f8cdb" twitterIcon Nothing
                       , mkFab "#dd4e40" "#c13627" googleIcon Nothing
                       ]
+              , if state.pending
+                   then circularProgress {}
+                   else R.text ""
               ]
             , dialogActions {}
               [ button
