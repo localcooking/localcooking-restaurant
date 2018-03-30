@@ -79,9 +79,9 @@ router
         Nothing -> do
           log' $ "Bad authToken encoding: " <> T.pack (show json)
           (action $ get $ html Nothing "") app req resp
-        Just eToken -> do
-          log' $ "Got authToken: " <> T.pack (show eToken)
-          (action $ get $ html (Just eToken) "") app req resp
+        Just x@(PreliminaryAuthToken mEToken) -> do
+          log' $ "Got authToken: " <> T.pack (show x)
+          (action $ get $ html mEToken "") app req resp
 
   match (l_ "about" </> o_) $ action $ get $ html Nothing "" -- FIXME SEO, authToken handling forall endpoints
 
