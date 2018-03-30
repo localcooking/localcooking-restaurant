@@ -108,6 +108,7 @@ executables:
     - path
     - persistent
     - persistent-postgresql
+    - QuickCheck
     - safe-exceptions
     - stm
     - strict

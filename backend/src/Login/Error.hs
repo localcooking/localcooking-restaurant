@@ -1,5 +1,6 @@
 {-# LANGUAGE
     OverloadedStrings
+  , DeriveGeneric
   #-}
 
 module Login.Error where
@@ -11,6 +12,9 @@ import Data.Aeson.Types (typeMismatch)
 import Data.Text (Text)
 import qualified Data.Text.Encoding as T
 import Control.Applicative ((<|>))
+import GHC.Generics (Generic)
+import Test.QuickCheck.Aribtrary (Arbitrary)
+import Test.QuickCheck.Gen (oneOf)
 
 
 data AuthError
@@ -18,7 +22,15 @@ data AuthError
   | FBLoginReturnDenied Text
   | FBLoginReturnBadParse
   | FBLoginReturnNoUser
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic)
+
+instance Arbitrary AuthError where
+  arbitrary = oneOf
+    [ FBLoginReturnBad <$> arbitrary <*> arbitrary
+    , FBLoginReturnDenied <*> arbitrary
+    , pure FBLoginReturnBadParse
+    , pure FBLoginReturnNoUser
+    ]
 
 instance ToJSON AuthError where
   toJSON x = case x of
@@ -58,7 +70,7 @@ instance FromJSON AuthError where
 
 newtype PreliminaryAuthToken = PreliminaryAuthToken
   { getPreliminaryAuthToken :: Maybe (Either AuthError AuthToken)
-  } deriving (Eq, Show)
+  } deriving (Eq, Show, Generic, Arbitrary)
 
 instance ToJSON PreliminaryAuthToken where
   toJSON (PreliminaryAuthToken mTkn) = case mTkn of
