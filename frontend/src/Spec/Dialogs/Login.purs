@@ -105,7 +105,7 @@ spec {toURI,login} = T.simpleSpec performAction render
     performAction action props state = case action of
       Open -> void $ T.cotransform _ { open = true }
       Close -> do
-        void $ T.cotransform _ { open = false }
+        void $ T.cotransform _ { open = false, pending = false }
         liftBase $ delay $ Milliseconds 2000.0
         void $ T.cotransform _ { email = "", password = "" }
       ChangedWindowSize w -> void $ T.cotransform _ { windowSize = w }
@@ -115,9 +115,10 @@ spec {toURI,login} = T.simpleSpec performAction render
       SubmitLogin -> do
         void $ T.cotransform _ { pending = true }
         case emailAddress state.email of
-          Nothing -> pure unit -- FIXME bug out somehow?
+          Nothing -> liftEff $ log "bad email!" -- FIXME bug out somehow?
           Just email -> do
             liftBase $ do
+              liftEff $ log "hashing password"
               hashedPassword <- hashPassword {salt: env.salt, password: state.password}
               liftEff $ log "hashed password"
               login email hashedPassword
@@ -146,8 +147,8 @@ spec {toURI,login} = T.simpleSpec performAction render
                 , fullWidth: true
                 , onChange: mkEffFn1 \e -> dispatch $ ChangedEmail (unsafeCoerce e).target.value
                 , error: case emailAddress state.email of
-                  Nothing -> false
-                  Just _ -> true
+                  Nothing -> true
+                  Just _ -> false
                 }
               , textField
                 { label: R.text "Password"
