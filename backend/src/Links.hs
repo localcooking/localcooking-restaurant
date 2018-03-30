@@ -3,6 +3,7 @@
   , RecordWildCards
   , OverloadedStrings
   , OverloadedLists
+  , DeriveGeneric
   #-}
 
 module Links where
@@ -11,19 +12,13 @@ import Data.Monoid ((<>))
 import Path.Extended (ToPath (..), ToLocation (..), Abs, File, fromPath, setFileExt, addQuery, parseAbsFile, parseAbsDir)
 import Data.Aeson (ToJSON (..), FromJSON (..), Value (String))
 import Data.Aeson.Types (typeMismatch)
-import qualified Data.ByteString as BS
 import qualified Data.ByteString.UTF8 as BS8
-import qualified Data.ByteString.Base64 as BS64
 import qualified Data.ByteString.Base16 as BS16
-import qualified Data.Text as T
-import Data.URI (URI (..), printURI)
-import Data.URI.Auth (URIAuth (..))
-import Data.URI.Auth.Host (URIAuthHost (..))
-import qualified Data.Strict.Maybe as Strict
-import Data.Strict.Tuple (Pair (..))
 import Crypto.Saltine.Core.Box (Nonce)
 import qualified Crypto.Saltine.Class as NaCl
 import Unsafe.Coerce (unsafeCoerce)
+import GHC.Generics (Generic)
+import Test.QuickCheck (Arbitrary (..), oneof)
 
 
 data WebAssetLinks
@@ -51,8 +46,15 @@ instance ToLocation WebAssetLinks Abs File where
 data SiteLinks
   = RootLink
   | AboutLink
+  deriving (Eq, Show, Generic)
 
--- TODO attoparsec parser? URI / Location parser...?
+instance Arbitrary SiteLinks where
+  arbitrary = oneof
+    [ pure RootLink
+    , pure AboutLink
+    ]
+
+-- TODO URI / Location parser
 
 instance ToJSON SiteLinks where
   toJSON x = String $ case x of

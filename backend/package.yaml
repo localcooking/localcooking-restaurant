@@ -20,7 +20,7 @@ extra-source-files:
 description:         Please see the README on Github at <https://github.com/athanclark/localcooking#readme>
 
 dependencies:
-- base >= 4.7 && < 5
+- base >= 4.8 && < 5
 
 ghc-options:
   - -Wall
@@ -93,6 +93,7 @@ executables:
     ghc-options:
     - -threaded
     - -rtsopts
+    - -Wall
     - -with-rtsopts=-N
     dependencies:
     - localcooking
@@ -126,3 +127,6 @@ tests:
     - -Wall
     dependencies:
     - localcooking
+    - aeson
+    - tasty
+    - tasty-quickcheck
