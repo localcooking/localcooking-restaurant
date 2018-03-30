@@ -89,6 +89,7 @@ spec :: forall eff
         , development :: Boolean
         , authTokenQueues :: AuthTokenSparrowClientQueues (Effects eff)
         , authErrorSignal :: One.Queue (read :: READ, write :: WRITE) (Effects eff) (Either AuthError AuthTokenFailure)
+        , loginPendingSignal :: One.Queue (read :: READ, write :: WRITE) (Effects eff) Unit
         }
      -> T.Spec (Effects eff) State Unit Action
 spec
@@ -99,6 +100,7 @@ spec
   , development
   , authTokenQueues
   , authErrorSignal
+  , loginPendingSignal
   } = T.simpleSpec performAction render
   where
     performAction action props state = case action of
@@ -161,7 +163,6 @@ spec
         openLoginSignal = unsafePerformEff One.newQueue
         mobileMenuButtonSignal = unsafePerformEff One.newQueue
 
-    loginPendingSignal = unsafePerformEff One.newQueue
 
 
 app :: forall eff
@@ -195,6 +196,7 @@ app
           , development
           , authTokenQueues
           , authErrorSignal
+          , loginPendingSignal
           }
         ) initialState
       reactSpec' = reactSpec
@@ -215,3 +217,4 @@ app
   in  {spec: reactSpec', dispatcher}
   where
     authErrorSignal = unsafePerformEff One.newQueue
+    loginPendingSignal = unsafePerformEff One.newQueue

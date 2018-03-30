@@ -24,6 +24,7 @@ import Control.Monad.Eff.Unsafe (unsafeCoerceEff, unsafePerformEff)
 import Control.Monad.Eff.Ref (REF)
 import Control.Monad.Eff.Exception (EXCEPTION)
 import Control.Monad.Eff.Class (liftEff)
+import Control.Monad.Eff.Console (CONSOLE, log)
 
 import Thermite as T
 import React as R
@@ -90,6 +91,7 @@ type Effects eff =
   , uuid      :: GENUUID
   , exception :: EXCEPTION
   , scrypt    :: SCRYPT
+  , console   :: CONSOLE
   | eff)
 
 
@@ -117,6 +119,7 @@ spec {toURI,login} = T.simpleSpec performAction render
           Just email -> do
             liftBase $ do
               hashedPassword <- hashPassword {salt: env.salt, password: state.password}
+              liftEff $ log "hashed password"
               login email hashedPassword
             performAction Close props state
 
