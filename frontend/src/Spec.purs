@@ -43,34 +43,27 @@ import DOM (DOM)
 import DOM.HTML.Types (HISTORY)
 import Browser.WebStorage (WEB_STORAGE)
 
+import Queue (READ, WRITE)
 import Queue.One.Aff as OneIO
-import Queue.One (newQueue, readOnly, writeOnly)
+import Queue.One as One
 import IxSignal.Internal (IxSignal)
 
 
 
 type State =
   { authToken :: Maybe AuthToken
-  , authError :: Maybe AuthError
-  , authFailure :: Maybe AuthTokenFailure
   }
 
 
 initialState :: State
 initialState =
   { authToken: Nothing
-  , authError: Nothing
-  , authFailure: Nothing
   }
 
 
 data Action
   = GotAuthToken AuthToken
   | ClearAuthToken
-  | GotAuthError AuthError
-  | ClearAuthError
-  | GotAuthFailure AuthTokenFailure
-  | ClearAuthFailure
   | CallAuthToken AuthTokenInitIn
 
 
@@ -93,6 +86,7 @@ spec :: forall eff
         , siteLinks :: SiteLinks -> Eff (Effects eff) Unit
         , development :: Boolean
         , authTokenQueues :: AuthTokenSparrowClientQueues (Effects eff)
+        , authErrorSignal :: One.Queue (read :: READ, write :: WRITE) (Effects eff) (Either AuthError AuthTokenFailure)
         }
      -> T.Spec (Effects eff) State Unit Action
 spec
@@ -102,47 +96,39 @@ spec
   , currentPageSignal
   , development
   , authTokenQueues
+  , authErrorSignal
   } = T.simpleSpec performAction render
   where
     performAction action props state = case action of
       GotAuthToken x   -> void $ T.cotransform _ { authToken = Just x }
       ClearAuthToken   -> void $ T.cotransform _ { authToken = Nothing }
-      GotAuthError x   -> void $ T.cotransform _ { authError = Just x }
-      ClearAuthError   -> void $ T.cotransform _ { authError = Nothing }
-      GotAuthFailure x -> void $ T.cotransform _ { authFailure = Just x }
-      ClearAuthFailure -> void $ T.cotransform _ { authFailure = Nothing }
       CallAuthToken initIn -> do
         initOut <- liftBase $ OneIO.callAsync authTokenQueues.init initIn
         case initOut of
-          Nothing -> do
-            performAction (GotAuthError AuthExistsFailure) props state
-            liftBase $ delay $ Milliseconds $ 12000.0
-            performAction ClearAuthError props state
+          Nothing -> liftEff $ One.putQueue authErrorSignal (Left AuthExistsFailure)
           Just eInitOut -> case eInitOut of
             AuthTokenInitOutSuccess authToken -> do
               liftEff $ storeAuthToken authToken
               performAction (GotAuthToken authToken) props state
             AuthTokenInitOutFailure e -> do
-              performAction (GotAuthFailure e) props state
-              liftBase $ delay $ Milliseconds $ 12000.0
-              performAction ClearAuthFailure props state
+              liftEff $ One.putQueue authErrorSignal (Right e)
 
 
     render :: T.Render State Unit Action
     render dispatch props state children = template
       [ topbar
         { toURI
-        , openLoginSignal: writeOnly openLoginSignal
+        , openLoginSignal: One.writeOnly openLoginSignal
         , windowSizeSignal
         , siteLinks
-        , mobileMenuButtonSignal: writeOnly mobileMenuButtonSignal
+        , mobileMenuButtonSignal: One.writeOnly mobileMenuButtonSignal
         , currentPageSignal
         }
       , content
         { currentPageSignal
         }
       , loginDialog
-        { openLoginSignal: readOnly openLoginSignal
+        { openLoginSignal: One.readOnly openLoginSignal
         , windowSizeSignal
         , toURI
         , currentPageSignal
@@ -150,12 +136,11 @@ spec
             unsafeCoerceEff $ dispatch $ CallAuthToken $ AuthTokenInitInLogin {email,password}
         }
       , leftMenu
-        { mobileDrawerOpenSignal: readOnly mobileMenuButtonSignal
+        { mobileDrawerOpenSignal: One.readOnly mobileMenuButtonSignal
         , siteLinks
         }
       , messages
-        { authFailure: state.authFailure
-        , authError: state.authError
+        { authErrorSignal: One.readOnly authErrorSignal
         }
       ]
       where
@@ -167,8 +152,8 @@ spec
               (R.div [] content)
           ]
 
-        openLoginSignal = unsafePerformEff newQueue
-        mobileMenuButtonSignal = unsafePerformEff newQueue
+        openLoginSignal = unsafePerformEff One.newQueue
+        mobileMenuButtonSignal = unsafePerformEff One.newQueue
 
 
 
@@ -202,6 +187,7 @@ app
           , siteLinks
           , development
           , authTokenQueues
+          , authErrorSignal
           }
         ) initialState
       reactSpec' = reactSpec
@@ -214,11 +200,11 @@ app
               Right prescribedAuthToken ->
                 unsafeCoerceEff $ dispatcher this $ CallAuthToken $
                   AuthTokenInitInExists {exists: prescribedAuthToken}
-              Left e -> do
-                unsafeCoerceEff $ dispatcher this (GotAuthError e)
-                void $ setTimeout 12000 $
-                  unsafeCoerceEff $ dispatcher this ClearAuthError
+              Left e ->
+                unsafeCoerceEff $ One.putQueue authErrorSignal (Left e)
           reactSpec.componentWillMount this
         }
 
   in  {spec: reactSpec', dispatcher}
+  where
+    authErrorSignal = unsafePerformEff One.newQueue

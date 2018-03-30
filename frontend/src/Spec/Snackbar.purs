@@ -11,10 +11,12 @@ import React.DOM as R
 import React.DOM.Props as RP
 import React.Markdown (markdown)
 import React.Signal.WhileMounted as Signal
+import React.Queue.WhileMounted as Queue
 import Data.UUID (GENUUID)
 import Data.Nullable (toNullable)
 import Data.Time.Duration (Milliseconds (..))
 import Data.Maybe (Maybe (..))
+import Data.Either (Either (..))
 import Control.Monad.Eff.Uncurried (mkEffFn2)
 import Control.Monad.Eff.Unsafe (unsafeCoerceEff)
 import Control.Monad.Eff.Ref (REF)
@@ -29,39 +31,61 @@ import MaterialUI.Tabs (tabs, tab)
 import MaterialUI.Tabs as Tabs
 import MaterialUI.Snackbar (snackbar)
 
+import Queue.One as One
 
-type State = Unit
+
+
+type State =
+  { authFailure :: Maybe AuthTokenFailure
+  , authError :: Maybe AuthError
+  }
 
 initialState :: State
-initialState = unit
+initialState =
+  { authFailure: Nothing
+  , authError: Nothing
+  }
 
-type Action = Unit
+data Action
+  = GotAuthFailure AuthTokenFailure
+  | ClearAuthFailure
+  | GotAuthError AuthError
+  | ClearAuthError
+
+type Effects eff =
+  ( ref :: REF
+  | eff)
 
 
-spec :: { authFailure :: Maybe AuthTokenFailure
-        , authError :: Maybe AuthError
-        }
-     -> T.Spec _ State _ Action
-spec {authFailure,authError} = T.simpleSpec performAction render
+spec :: forall eff. T.Spec (Effects eff) State Unit Action
+spec = T.simpleSpec performAction render
   where
-    performAction action props state = pure unit
+    performAction action props state = case action of
+      GotAuthFailure x -> void $ T.cotransform _ { authFailure = Just x }
+      ClearAuthFailure -> void $ T.cotransform _ { authFailure = Nothing }
+      GotAuthError x -> void $ T.cotransform _ { authError = Just x }
+      ClearAuthError -> void $ T.cotransform _ { authError = Nothing }
 
     render :: T.Render State _ Action
     render dispatch props state children =
       [ snackbar
-        { open: case authFailure of
-            Nothing -> case authError of
+        { open: case state.authFailure of
+            Nothing -> case state.authError of
               Nothing -> false
               Just _ -> true
             Just _ -> true
         , autoHideDuration: toNullable $ Just $ Milliseconds 10000.0
+        -- , resumeHideDuration: toNullable $ Just $ Milliseconds 0.0
+        , onClose: mkEffFn2 \_ _ -> do
+            dispatch ClearAuthError
+            dispatch ClearAuthFailure
         , message: R.div []
-          [ case authFailure of
+          [ case state.authFailure of
               Nothing -> R.text ""
               Just x -> case x of
                 BadPassword -> R.text "Password incorrect, please try again."
                 EmailDoesntExist -> R.text "Email address not found, please register."
-          , case authError of
+          , case state.authError of
               Nothing -> R.text ""
               Just x -> case x of
                 FBLoginReturnBad code msg -> R.text $ "Bad Facebook login respose: " <> code <> ", " <> msg
@@ -76,9 +100,15 @@ spec {authFailure,authError} = T.simpleSpec performAction render
 
 
 messages :: forall eff
-          . { authFailure :: Maybe AuthTokenFailure
-            , authError :: Maybe AuthError
+          . { authErrorSignal :: One.Queue (read :: One.READ) (Effects eff) (Either AuthError AuthTokenFailure)
             } -> R.ReactElement
-messages params =
-  let {spec: reactSpec, dispatcher} = T.createReactSpec (spec params) initialState
-  in  R.createElement (R.createClass reactSpec) unit []
+messages {authErrorSignal} =
+  let {spec: reactSpec, dispatcher} = T.createReactSpec spec initialState
+      reactSpec' =
+        Queue.whileMountedOne
+          authErrorSignal
+          (\this eX -> unsafeCoerceEff $ dispatcher this $ case eX of
+              Left err -> GotAuthError err
+              Right fail -> GotAuthFailure fail)
+          reactSpec
+  in  R.createElement (R.createClass reactSpec') unit []
