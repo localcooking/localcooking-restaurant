@@ -196,7 +196,7 @@ spec {toURI,login} = T.simpleSpec performAction render
                       , mkFab "#1da1f3" "#0f8cdb" twitterIcon Nothing
                       , mkFab "#dd4e40" "#c13627" googleIcon Nothing
                       ]
-              , if state.pending
+              , if true -- FIXME state.pending
                    then R.div
                           [ RP.style
                             { zIndex: 1000
@@ -205,6 +205,7 @@ spec {toURI,login} = T.simpleSpec performAction render
                             , bottom: "auto"
                             , left: "auto"
                             , right: "auto"
+                            , background: "rgba(255,255,255, 0.5)"
                             }
                           ]
                           [circularProgress {}]
