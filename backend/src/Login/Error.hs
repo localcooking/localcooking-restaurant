@@ -1,6 +1,7 @@
 {-# LANGUAGE
     OverloadedStrings
   , DeriveGeneric
+  , GeneralizedNewtypeDeriving
   #-}
 
 module Login.Error where
@@ -13,8 +14,8 @@ import Data.Text (Text)
 import qualified Data.Text.Encoding as T
 import Control.Applicative ((<|>))
 import GHC.Generics (Generic)
-import Test.QuickCheck.Aribtrary (Arbitrary)
-import Test.QuickCheck.Gen (oneOf)
+import Test.QuickCheck (Arbitrary (..), oneof)
+import Test.QuickCheck.Instances ()
 
 
 data AuthError
@@ -25,9 +26,9 @@ data AuthError
   deriving (Eq, Show, Generic)
 
 instance Arbitrary AuthError where
-  arbitrary = oneOf
+  arbitrary = oneof
     [ FBLoginReturnBad <$> arbitrary <*> arbitrary
-    , FBLoginReturnDenied <*> arbitrary
+    , FBLoginReturnDenied <$> arbitrary
     , pure FBLoginReturnBadParse
     , pure FBLoginReturnNoUser
     ]

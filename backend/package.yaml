@@ -51,7 +51,6 @@ library:
     - http-client-tls
     - http-types
     - ixset
-    - QuickCheck
     - logging
     - lucid
     - markup
@@ -70,6 +69,8 @@ library:
     - sparrow >= 0.0.1.2
     - stm
     - strict
+    - QuickCheck
+    - quickcheck-instances
     - timemap
     - text
     - tmapchan
@@ -108,7 +109,6 @@ executables:
     - path
     - persistent
     - persistent-postgresql
-    - QuickCheck
     - safe-exceptions
     - stm
     - strict
