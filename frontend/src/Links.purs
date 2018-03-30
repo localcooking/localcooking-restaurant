@@ -1,7 +1,5 @@
 module Links where
 
-import Types.Env (env)
-
 import Prelude
 import Data.Maybe (Maybe (..))
 import Data.Tuple (Tuple (..))
@@ -12,15 +10,18 @@ import Data.URI.URI (print) as URI
 import Data.URI.Location (Location (..), printLocation, parseLocation)
 import Data.URI.Path as URIPath
 import Data.Path.Pathy (Path, Abs, File, Sandboxed, (</>), dir, file, rootDir, printPath)
-import Data.Generic (class Generic, gEq)
+import Data.Generic (class Generic, gEq, gShow)
 import Data.Argonaut (class EncodeJson, class DecodeJson, encodeJson, decodeJson, fail)
 import Data.Argonaut.Encode.Generic (gEncodeJson)
 import Data.Argonaut.Decode.Generic (gDecodeJson)
+import Data.NonEmpty ((:|))
 import Text.Parsing.StringParser (Parser, try, runParser)
 import Text.Parsing.StringParser.String (char, string, eof)
 import Control.Alternative ((<|>))
 import DOM.HTML.History (DocumentTitle (..))
 import Global (encodeURIComponent)
+import Test.QuickCheck (class Arbitrary, arbitrary)
+import Test.QuickCheck.Gen (oneOf)
 
 
 class ToLocation sym where
@@ -52,6 +53,14 @@ data SiteLinks
   | AboutLink
   | MealsLink -- FIXME search terms
   | ChefsLink -- FIXME search terms or hierarchy
+
+instance arbitrarySiteLinks :: Arbitrary SiteLinks where
+  arbitrary = oneOf $
+        (pure RootLink)
+    :|  [ pure AboutLink
+        , pure MealsLink
+        , pure ChefsLink
+        ]
 
 initSiteLinks :: SiteLinks
 initSiteLinks = RootLink

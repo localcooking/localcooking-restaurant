@@ -7,9 +7,10 @@ import Data.Either (Either (..))
 import Data.Maybe (Maybe (..))
 import Data.Argonaut (class DecodeJson, class EncodeJson, decodeJson, encodeJson, (.?), fail, (:=), (~>), jsonEmptyObject, jsonParser)
 import Data.Generic (class Generic, gShow, gEq)
+import Data.NonEmpty ((:|))
 import Control.Alternative ((<|>))
-import Control.Monad.Eff (Eff)
-import Browser.WebStorage (WEB_STORAGE, localStorage, getItem, setItem, removeItem)
+import Test.QuickCheck (class Arbitrary, arbitrary)
+import Test.QuickCheck.Gen (oneOf)
 
 
 data AuthError
@@ -26,6 +27,15 @@ instance eqAuthError :: Eq AuthError where
 
 instance showAuthError :: Show AuthError where
   show = gShow
+
+instance arbitraryAuthError :: Arbitrary AuthError where
+  arbitrary = oneOf $
+        (FBLoginReturnBad <$> arbitrary <*> arbitrary)
+    :|  [ FBLoginReturnDenied <$> arbitrary
+        , pure FBLoginReturnBadParse
+        , pure FBLoginReturnNoUser
+        , pure AuthExistsFailure
+        ]
 
 instance encodeJsonAuthError :: EncodeJson AuthError where
   encodeJson x = case x of
@@ -57,21 +67,6 @@ instance decodeJsonAuthError :: DecodeJson AuthError where
               | otherwise -> fail "Not a AuthError"
     obj <|> str
 
-
--- getStoredAuthError :: forall eff. Eff (webStorage :: WEB_STORAGE | eff) (Maybe AuthError)
--- getStoredAuthError = do
---   mString <- getItem localStorage "authError"
---   removeItem localStorage "authError"
---   case mString of
---     Nothing -> pure Nothing
---     Just string -> case jsonParser string >>= decodeJson of
---       Left e -> pure Nothing
---       Right x -> pure (Just x)
-
-
--- storeAuthError :: forall eff. AuthError -> Eff (webStorage :: WEB_STORAGE | eff) Unit
--- storeAuthError e =
---   setItem localStorage "authError" $ show $ encodeJson e
 
 
 newtype PreliminaryAuthToken = PreliminaryAuthToken

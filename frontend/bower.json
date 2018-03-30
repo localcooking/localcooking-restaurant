@@ -27,7 +27,8 @@
     "purescript-base64": "purescript-base64-2#^1.0.1",
     "purescript-globals": "^3.0.0",
     "purescript-email-validate": "^2.0.0",
-    "purescript-webstorage": "^3.0.1"
+    "purescript-webstorage": "^3.0.1",
+    "purescript-quickcheck": "^4.6.2"
   },
   "devDependencies": {
     "purescript-psci-support": "^3.0.0"
