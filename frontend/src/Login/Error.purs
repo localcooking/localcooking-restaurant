@@ -77,8 +77,10 @@ instance decodeJsonAuthError :: DecodeJson AuthError where
 newtype PreliminaryAuthToken = PreliminaryAuthToken
   (Maybe (Either AuthError AuthToken))
 
+derive instance genericPreliminaryAuthToken :: Generic PreliminaryAuthToken
+
 instance showPreliminaryAuthToken :: Show PreliminaryAuthToken where
-  show (PreliminaryAuthToken mX) = show mX
+  show = gShow
 
 instance decodeJsonPreliminaryAuthToken :: DecodeJson PreliminaryAuthToken where
   decodeJson json = do

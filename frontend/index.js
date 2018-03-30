@@ -5201,8 +5201,7 @@ var PS = {};
       return new Data_Generic.SProd("LocalCooking.Common.AuthToken.AuthToken", [ function ($dollarq) {
           return Data_Generic.toSpine(Data_Generic.genericString)(v);
       } ]);
-  });
-  var showAuthToken = new Data_Show.Show(Data_Generic.gShow(genericAuthToken));
+  });                                                                  
   var encodeJsonAuthToken = new Data_Argonaut_Encode_Class.EncodeJson(function (v) {
       return Data_Argonaut_Encode_Class.encodeJson(Data_Argonaut_Encode_Class.encodeJsonJString)(v);
   });
@@ -5211,7 +5210,6 @@ var PS = {};
   });
   exports["AuthToken"] = AuthToken;
   exports["genericAuthToken"] = genericAuthToken;
-  exports["showAuthToken"] = showAuthToken;
   exports["encodeJsonAuthToken"] = encodeJsonAuthToken;
   exports["decodeJsonAuthToken"] = decodeJsonAuthToken;
 })(PS["LocalCooking.Common.AuthToken"] = PS["LocalCooking.Common.AuthToken"] || {});
@@ -11622,10 +11620,24 @@ var PS = {};
       };
       throw new Error("Failed pattern match at Login.Error line 22, column 8 - line 22, column 54: " + [ v.constructor.name ]);
   });
-  var showAuthError = new Data_Show.Show(Data_Generic.gShow(genericAuthError));
-  var showPreliminaryAuthToken = new Data_Show.Show(function (v) {
-      return Data_Show.show(Data_Maybe.showMaybe(Data_Either.showEither(showAuthError)(LocalCooking_Common_AuthToken.showAuthToken)))(v);
+  var genericPreliminaryAuthToken = new Data_Generic.Generic(function (v) {
+      if (v instanceof Data_Generic.SProd && (v.value0 === "Login.Error.PreliminaryAuthToken" && v.value1.length === 1)) {
+          return Control_Apply.apply(Data_Maybe.applyMaybe)(new Data_Maybe.Just(PreliminaryAuthToken))(Data_Generic.fromSpine(Data_Generic.genericMaybe(Data_Generic.genericEither(genericAuthError)(LocalCooking_Common_AuthToken.genericAuthToken)))(v["value1"][0](Data_Unit.unit)));
+      };
+      return Data_Maybe.Nothing.value;
+  }, function ($dollarq) {
+      return new Data_Generic.SigProd("Login.Error.PreliminaryAuthToken", [ {
+          sigConstructor: "Login.Error.PreliminaryAuthToken",
+          sigValues: [ function ($dollarq1) {
+              return Data_Generic.toSignature(Data_Generic.genericMaybe(Data_Generic.genericEither(genericAuthError)(LocalCooking_Common_AuthToken.genericAuthToken)))(Data_Generic.anyProxy);
+          } ]
+      } ]);
+  }, function (v) {
+      return new Data_Generic.SProd("Login.Error.PreliminaryAuthToken", [ function ($dollarq) {
+          return Data_Generic.toSpine(Data_Generic.genericMaybe(Data_Generic.genericEither(genericAuthError)(LocalCooking_Common_AuthToken.genericAuthToken)))(v);
+      } ]);
   });
+  var showPreliminaryAuthToken = new Data_Show.Show(Data_Generic.gShow(genericPreliminaryAuthToken));
   var decodeJsonAuthError = new Data_Argonaut_Decode_Class.DecodeJson(function (json) {
       var str = Control_Bind.bind(Data_Either.bindEither)(Data_Argonaut_Decode_Class.decodeJson(Data_Argonaut_Decode_Class.decodeJsonString)(json))(function (v) {
           if (v === "bad-parse") {
@@ -11661,11 +11673,11 @@ var PS = {};
           if (v instanceof Data_Maybe.Just) {
               var token = Data_Functor.map(Data_Either.functorEither)(Data_Either.Right.create)(Data_Argonaut_Decode_Combinators.getField(LocalCooking_Common_AuthToken.decodeJsonAuthToken)(v.value0)("token"));
               var err = Data_Functor.map(Data_Either.functorEither)(Data_Either.Left.create)(Data_Argonaut_Decode_Combinators.getField(decodeJsonAuthError)(v.value0)("err"));
-              return Data_Functor.map(Data_Either.functorEither)(function ($45) {
-                  return PreliminaryAuthToken(Data_Maybe.Just.create($45));
+              return Data_Functor.map(Data_Either.functorEither)(function ($52) {
+                  return PreliminaryAuthToken(Data_Maybe.Just.create($52));
               })(Control_Alt.alt(Data_Either.altEither)(err)(token));
           };
-          throw new Error("Failed pattern match at Login.Error line 86, column 5 - line 91, column 59: " + [ v.constructor.name ]);
+          throw new Error("Failed pattern match at Login.Error line 88, column 5 - line 93, column 59: " + [ v.constructor.name ]);
       });
   });
   exports["FBLoginReturnBad"] = FBLoginReturnBad;
@@ -11675,8 +11687,8 @@ var PS = {};
   exports["AuthExistsFailure"] = AuthExistsFailure;
   exports["PreliminaryAuthToken"] = PreliminaryAuthToken;
   exports["genericAuthError"] = genericAuthError;
-  exports["showAuthError"] = showAuthError;
   exports["decodeJsonAuthError"] = decodeJsonAuthError;
+  exports["genericPreliminaryAuthToken"] = genericPreliminaryAuthToken;
   exports["showPreliminaryAuthToken"] = showPreliminaryAuthToken;
   exports["decodeJsonPreliminaryAuthToken"] = decodeJsonPreliminaryAuthToken;
 })(PS["Login.Error"] = PS["Login.Error"] || {});
