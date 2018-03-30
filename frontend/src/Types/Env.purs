@@ -14,7 +14,7 @@ type EnvImpl =
   { development :: Boolean
   , facebookClientID :: String
   , authToken :: Json
-  , salt :: HashedPassword
+  , salt :: Json
   }
 
 foreign import envImpl :: EnvImpl
@@ -34,5 +34,6 @@ env =
   , facebookClientID: envImpl.facebookClientID
   , authToken: unsafePartial $ case decodeJson envImpl.authToken of
     Right x -> x
-  , salt: envImpl.salt
+  , salt: unsafePartial $ case decodeJson envImpl.salt of
+    Right x -> x
   }
