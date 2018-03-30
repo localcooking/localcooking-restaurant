@@ -147,7 +147,7 @@ spec {toURI,login} = T.simpleSpec performAction render
                   }
         in  dialog'
             [ dialogTitle {} [R.text "Login"]
-            , dialogContent {}
+            , dialogContent {style: createStyles {position: "relative"}}
               [ textField
                 { label: R.text "Email"
                 , fullWidth: true
@@ -197,7 +197,17 @@ spec {toURI,login} = T.simpleSpec performAction render
                       , mkFab "#dd4e40" "#c13627" googleIcon Nothing
                       ]
               , if state.pending
-                   then circularProgress {}
+                   then R.div
+                          [ RP.style
+                            { zIndex: 1000
+                            , position: "absolute"
+                            , top: "auto"
+                            , bottom: "auto"
+                            , left: "auto"
+                            , right: "auto"
+                            }
+                          ]
+                          [circularProgress {}]
                    else R.text ""
               ]
             , dialogActions {}
