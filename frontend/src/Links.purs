@@ -58,11 +58,7 @@ initSiteLinks = RootLink
 derive instance genericSiteLinks :: Generic SiteLinks
 
 instance showSiteLinks :: Show SiteLinks where
-  show x = case x of
-    RootLink -> printPath rootDir
-    AboutLink -> printPath $ rootDir </> file "about"
-    MealsLink -> printPath $ rootDir </> file "meals"
-    ChefsLink -> printPath $ rootDir </> file "chefs"
+  show = printLocation <<< toLocation
 
 instance eqSiteLinks :: Eq SiteLinks where
   eq = gEq
@@ -72,7 +68,7 @@ instance encodeJsonSiteLinks :: EncodeJson SiteLinks where
 
 instance decodeJsonSiteLinks :: DecodeJson SiteLinks where
   decodeJson json = do
-    s <- decodeJson json
+    s <- decodeJson json -- FIXME use location parser
     case runParser siteLinksParser s of
       Left e -> fail (show e)
       Right x -> pure x
@@ -91,6 +87,7 @@ siteLinksToDocumentTitle x = DocumentTitle $ case x of
   MealsLink -> "Meals - Local Cooking"
   ChefsLink -> "Chefs - Local Cooking"
 
+-- TODO FIXME, embed in a Location parser
 siteLinksParser :: Parser SiteLinks
 siteLinksParser = do
   let root = RootLink <$ (divider *> eof)
