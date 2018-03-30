@@ -18,6 +18,7 @@ data AuthError
   | FBLoginReturnDenied Text
   | FBLoginReturnBadParse
   | FBLoginReturnNoUser
+  deriving (Eq, Show)
 
 instance ToJSON AuthError where
   toJSON x = case x of

@@ -72,12 +72,16 @@ router
   = do
   matchHere $ \app req resp ->
     case join $ lookup "authToken" $ queryString req of
-      Nothing -> (action $ get $ html Nothing "") app req resp
+      Nothing -> do
+        log' "No authToken..."
+        (action $ get $ html Nothing "") app req resp
       Just json -> case Aeson.decode $ LBS.fromStrict json of
         Nothing -> do
           log' $ "Bad authToken encoding: " <> T.pack (show json)
           (action $ get $ html Nothing "") app req resp
-        Just eToken -> (action $ get $ html (Just eToken) "") app req resp
+        Just eToken -> do
+          log' $ "Got authToken: " <> T.pack (show eToken)
+          (action $ get $ html (Just eToken) "") app req resp
 
   match (l_ "about" </> o_) $ action $ get $ html Nothing "" -- FIXME SEO, authToken handling forall endpoints
 
