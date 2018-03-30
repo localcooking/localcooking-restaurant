@@ -17,6 +17,8 @@ import Data.Nullable (toNullable)
 import Data.Time.Duration (Milliseconds (..))
 import Data.Maybe (Maybe (..))
 import Data.Either (Either (..))
+import Control.Monad.Base (liftBase)
+import Control.Monad.Aff (delay)
 import Control.Monad.Eff.Uncurried (mkEffFn2)
 import Control.Monad.Eff.Unsafe (unsafeCoerceEff)
 import Control.Monad.Eff.Ref (REF)
@@ -62,9 +64,13 @@ spec = T.simpleSpec performAction render
   where
     performAction action props state = case action of
       GotAuthFailure x -> void $ T.cotransform _ { authFailure = Just x }
-      ClearAuthFailure -> void $ T.cotransform _ { authFailure = Nothing }
+      ClearAuthFailure -> do
+        liftBase $ delay $ Milliseconds $ 2000.0
+        void $ T.cotransform _ { authFailure = Nothing }
       GotAuthError x -> void $ T.cotransform _ { authError = Just x }
-      ClearAuthError -> void $ T.cotransform _ { authError = Nothing }
+      ClearAuthError -> do
+        liftBase $ delay $ Milliseconds $ 2000.0
+        void $ T.cotransform _ { authError = Nothing }
 
     render :: T.Render State _ Action
     render dispatch props state children =
