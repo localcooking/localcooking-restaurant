@@ -103,6 +103,7 @@ spec
                          MealsLink -> Button.primary
                          ChefsLink -> Button.secondary
                     , disabled: state.currentPage == x
+                    , onClick: mkEffFn1 preventDefault
                     , onTouchTap: mkEffFn1 \e -> do
                         preventDefault e
                         dispatch (Clicked x)
