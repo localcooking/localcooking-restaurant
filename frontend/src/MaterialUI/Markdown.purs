@@ -16,7 +16,7 @@ markdown source =
     { paragraph: createClassStateless' \(_ :: Unit) children ->
       [ typography
         { variant: Typography.body1
-        , align: Typography.justify
+        , align: Typography.left
         }
         children
       ]

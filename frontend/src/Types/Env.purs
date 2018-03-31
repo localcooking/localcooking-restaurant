@@ -11,6 +11,7 @@ import Partial.Unsafe (unsafePartial)
 type EnvImpl =
   { development :: Boolean
   , facebookClientID :: String
+  , googleReCaptchaSiteKey :: String
   , authToken :: Json
   , salt :: Json
   }
@@ -21,6 +22,7 @@ foreign import envImpl :: EnvImpl
 type Env =
   { development :: Boolean
   , facebookClientID :: String
+  , googleReCaptchaSiteKey :: String
   , authToken :: PreliminaryAuthToken
   , salt :: HashedPassword
   }
@@ -30,6 +32,7 @@ env :: Env
 env =
   { development: envImpl.development
   , facebookClientID: envImpl.facebookClientID
+  , googleReCaptchaSiteKey: envImpl.googleReCaptchaSiteKey
   , authToken: unsafePartial $ case decodeJson envImpl.authToken of
     Right x -> x
   , salt: unsafePartial $ case decodeJson envImpl.salt of

@@ -34,6 +34,7 @@
     "react-dom": "^16.2.0",
     "react-icons": "^2.2.7",
     "react-markdown": "^3.1.5",
+    "react-recaptcha": "^2.3.7",
     "react-tap-event-plugin": "^3.0.2",
     "scrypt-js": "^2.0.3",
     "text-encoding": "^0.6.4",
