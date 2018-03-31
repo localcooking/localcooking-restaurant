@@ -2,7 +2,7 @@ module Window where
 
 import Prelude
 import Data.Tuple (Tuple (..))
-import Data.Generic (class Generic, gEq, gCompare, gShow)
+import Data.Generic (class Generic, gEq, gShow)
 import Control.Monad.Eff (Eff)
 import DOM (DOM)
 import DOM.HTML (window)

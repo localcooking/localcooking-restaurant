@@ -2,25 +2,18 @@ module Links where
 
 import Prelude
 import Data.Maybe (Maybe (..))
-import Data.Tuple (Tuple (..))
 import Data.Either (Either (..))
-import Data.List (List (..))
-import Data.URI (URI (..), Scheme (..), HierarchicalPart (..), Query (..), Host (..), Authority (..))
-import Data.URI.URI (print) as URI
 import Data.URI.Location (Location (..), printLocation, parseLocation)
 import Data.URI.Path as URIPath
-import Data.Path.Pathy (Path, Abs, File, Sandboxed, (</>), dir, file, rootDir, printPath)
-import Data.Generic (class Generic, gEq, gShow)
+import Data.Path.Pathy ((</>), dir, file, rootDir)
+import Data.Generic (class Generic, gEq)
 import Data.Argonaut (class EncodeJson, class DecodeJson, encodeJson, decodeJson, fail)
-import Data.Argonaut.Encode.Generic (gEncodeJson)
-import Data.Argonaut.Decode.Generic (gDecodeJson)
 import Data.NonEmpty ((:|))
 import Text.Parsing.StringParser (Parser, try, runParser)
 import Text.Parsing.StringParser.String (char, string, eof)
 import Control.Alternative ((<|>))
 import DOM.HTML.History (DocumentTitle (..))
-import Global (encodeURIComponent)
-import Test.QuickCheck (class Arbitrary, arbitrary)
+import Test.QuickCheck (class Arbitrary)
 import Test.QuickCheck.Gen (oneOf)
 
 

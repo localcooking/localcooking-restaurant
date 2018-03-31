@@ -3,7 +3,7 @@ module Spec.Dialogs.Login where
 import Types.Env (env)
 
 import Window (WindowSize (..), initialWindowSize)
-import Links (SiteLinks (..), ThirdPartyLoginReturnLinks (..), toLocation, initSiteLinks)
+import Links (SiteLinks, ThirdPartyLoginReturnLinks (..), toLocation, initSiteLinks)
 import Facebook.Call (FacebookLoginLink (..), facebookLoginLinkToURI)
 import Facebook.State (FacebookLoginState (..))
 import LocalCooking.Common.Password (HashedPassword, hashPassword)
@@ -18,7 +18,6 @@ import Data.Time.Duration (Milliseconds (..))
 import Text.Email.Validate (EmailAddress, emailAddress)
 import Control.Monad.Base (liftBase)
 import Control.Monad.Aff (Aff, delay)
-import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Uncurried (mkEffFn1)
 import Control.Monad.Eff.Unsafe (unsafeCoerceEff, unsafePerformEff)
 import Control.Monad.Eff.Ref (REF)
@@ -38,19 +37,14 @@ import DOM.HTML.Types (HISTORY)
 import DOM.HTML.Window.Extra (replaceState')
 
 import MaterialUI.Types (createStyles)
-import MaterialUI.Toolbar (toolbar)
 import MaterialUI.Dialog (dialog)
-import MaterialUI.Dialog as Dialog
 import MaterialUI.DialogContent (dialogContent)
 import MaterialUI.DialogTitle (dialogTitle)
 import MaterialUI.DialogActions (dialogActions)
-import MaterialUI.Typography (typography)
-import MaterialUI.Typography as Typography
 import MaterialUI.Button (button)
 import MaterialUI.Button as Button
-import MaterialUI.TextField (textField)
-import MaterialUI.TextField as TextField
 import MaterialUI.Input as Input
+import MaterialUI.TextField (textField)
 import MaterialUI.CircularProgress (circularProgress)
 import Crypto.Scrypt (SCRYPT)
 

@@ -6,9 +6,6 @@ import Links (SiteLinks (..))
 import Prelude
 import Data.Tuple (Tuple (..))
 import Data.Maybe (Maybe (..))
-import Data.URI (URI)
-import Data.URI.URI (print) as URI
-import Data.URI.Location (Location)
 import Data.UUID (GENUUID)
 import Data.Time.Duration (Milliseconds (..))
 import Data.DateTime.Instant (unInstant)
@@ -18,25 +15,13 @@ import Control.Monad.Eff.Unsafe (unsafeCoerceEff, unsafePerformEff)
 import Control.Monad.Eff.Ref (REF, newRef, readRef, writeRef)
 import Control.Monad.Eff.Exception (EXCEPTION)
 import Control.Monad.Eff.Class (liftEff)
-import Control.Monad.Eff.Console (log)
 import Control.Monad.Eff.Now (NOW, now)
 
 import Thermite as T
 import React as R
-import React.DOM as R
-import React.DOM.Props as RP
 import React.Queue.WhileMounted as Queue
-import React.Signal.WhileMounted as Signal
-import React.Icons (facebookIcon, twitterIcon, googleIcon)
 
-import MaterialUI.Types (createStyles)
-import MaterialUI.Toolbar (toolbar)
 import MaterialUI.Drawer (drawer)
-import MaterialUI.Drawer as Drawer
-import MaterialUI.Typography (typography)
-import MaterialUI.Typography as Typography
-import MaterialUI.Button (button)
-import MaterialUI.Button as Button
 import MaterialUI.List (list)
 import MaterialUI.ListItem (listItem)
 import MaterialUI.ListItemText (listItemText)
@@ -45,8 +30,7 @@ import MaterialUI.Divider (divider)
 import MaterialUI.Icons.PersonPin (personPinIcon)
 import MaterialUI.Icons.RestaurantMenu (restaurantMenuIcon)
 
-import Queue.One (WRITE, READ, Queue, putQueue)
-import IxSignal.Internal (IxSignal)
+import Queue.One (READ, Queue)
 
 
 type State =

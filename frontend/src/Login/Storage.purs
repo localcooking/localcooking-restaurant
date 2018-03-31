@@ -5,7 +5,6 @@ import Data.Maybe (Maybe (..))
 import Data.Either (Either (..))
 import Data.Argonaut (jsonParser, decodeJson, encodeJson)
 import Control.Monad.Eff (Eff)
-import Login.Error (AuthError)
 import LocalCooking.Common.AuthToken (AuthToken)
 
 import Browser.WebStorage (WEB_STORAGE, localStorage, getItem, setItem, removeItem)

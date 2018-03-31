@@ -5,17 +5,7 @@ import Prelude
 import Thermite as T
 import React as R
 import React.DOM as R
-import React.DOM.Props as RP
-import React.Markdown (markdown)
-import Control.Monad.Eff.Uncurried (mkEffFn2)
 
-import MaterialUI.Types (createStyles)
-import MaterialUI.Paper (paper)
-import MaterialUI.Divider (divider)
-import MaterialUI.Typography (typography)
-import MaterialUI.Typography as Typography
-import MaterialUI.Tabs (tabs, tab)
-import MaterialUI.Tabs as Tabs
 
 
 type State = Unit
