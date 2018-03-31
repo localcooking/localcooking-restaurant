@@ -51,6 +51,7 @@ data SiteLinks
   | AboutLink
   | MealsLink
   | ChefsLink
+  | RegisterLink
   deriving (Eq, Show, Generic)
 
 instance Arbitrary SiteLinks where
@@ -59,6 +60,7 @@ instance Arbitrary SiteLinks where
     , pure AboutLink
     , pure MealsLink
     , pure ChefsLink
+    , pure RegisterLink
     ]
 
 -- TODO URI / Location parser
@@ -73,6 +75,7 @@ instance FromJSON SiteLinks where
       | s == "/about" -> pure AboutLink
       | s == "/meals" -> pure MealsLink
       | s == "/chefs" -> pure ChefsLink
+      | s == "/register" -> pure RegisterLink
       | otherwise -> fail
     _ -> fail
     where
@@ -84,6 +87,7 @@ instance ToPath SiteLinks Abs File where
     AboutLink -> [absfile|/about|]
     MealsLink -> [absfile|/meals|]
     ChefsLink -> [absfile|/chefs|]
+    RegisterLink -> [absfile|/register|]
 
 instance ToLocation SiteLinks Abs File where
   toLocation = fromPath . toPath

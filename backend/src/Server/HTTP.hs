@@ -85,6 +85,7 @@ router
   -- main routes
   matchHere handleAuthToken
   match (l_ "about" </> o_) handleAuthToken
+  match (l_ "register" </> o_) handleAuthToken
   matchGroup (l_ "meals" </> o_) $
     matchHere handleAuthToken
   matchGroup (l_ "chefs" </> o_) $
