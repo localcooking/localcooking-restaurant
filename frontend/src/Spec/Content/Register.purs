@@ -12,6 +12,7 @@ import Control.Monad.Eff.Uncurried (mkEffFn1)
 import Thermite as T
 import React as R
 import React.DOM as R
+import React.DOM.Props as RP
 import React.ReCaptcha (reCaptcha, ReCaptchaResponse)
 
 import MaterialUI.Typography (typography)
@@ -21,6 +22,8 @@ import MaterialUI.Button as Button
 import MaterialUI.Divider (divider)
 import MaterialUI.TextField (textField)
 import MaterialUI.Input as Input
+import MaterialUI.Grid (grid)
+import MaterialUI.Grid as Grid
 
 import Unsafe.Coerce (unsafeCoerce)
 
@@ -91,89 +94,101 @@ spec = T.simpleSpec performAction render
         , align: Typography.center
         , color: Typography.primary
         } [R.text "Register"]
+      , R.div [RP.style {marginBotton: "1em"}] []
       , divider {}
-      , textField
-        { label: R.text "Email"
-        , fullWidth: true
-        , onChange: mkEffFn1 \e -> dispatch $ ChangedEmail (unsafeCoerce e).target.value
-        , onBlur: mkEffFn1 \_ -> dispatch EmailUnfocused
-        , error: case emailAddress state.email of
-            Nothing -> state.emailDirty == Just true
-            Just _ -> case state.emailConfirmDirty of
-              Nothing -> false
-              Just dirty
-                | dirty -> state.email /= state.emailConfirm
-                | otherwise -> false
-        , name: "register-email"
-        , id: "register-email"
+      , grid
+        { spacing: Grid.spacing8
+        , container: true
+        , justify: Grid.centerJustify
         }
-      , textField
-        { label: R.text "Email Confirm"
-        , fullWidth: true
-        , onChange: mkEffFn1 \e -> dispatch $ ChangedEmailConfirm (unsafeCoerce e).target.value
-        , onBlur: mkEffFn1 \_ -> dispatch EmailConfirmUnfocused
-        , error: case emailAddress state.emailConfirm of
-            Nothing -> state.emailConfirmDirty == Just true
-            Just _ -> case state.emailDirty of
-              Nothing -> false
+        [ grid
+          { xs: 6
+          , item: true
+          }
+          [ textField
+            { label: R.text "Email"
+            , fullWidth: true
+            , onChange: mkEffFn1 \e -> dispatch $ ChangedEmail (unsafeCoerce e).target.value
+            , onBlur: mkEffFn1 \_ -> dispatch EmailUnfocused
+            , error: case emailAddress state.email of
+                Nothing -> state.emailDirty == Just true
+                Just _ -> case state.emailConfirmDirty of
+                  Nothing -> false
+                  Just dirty
+                    | dirty -> state.email /= state.emailConfirm
+                    | otherwise -> false
+            , name: "register-email"
+            , id: "register-email"
+            }
+          , textField
+            { label: R.text "Email Confirm"
+            , fullWidth: true
+            , onChange: mkEffFn1 \e -> dispatch $ ChangedEmailConfirm (unsafeCoerce e).target.value
+            , onBlur: mkEffFn1 \_ -> dispatch EmailConfirmUnfocused
+            , error: case emailAddress state.emailConfirm of
+                Nothing -> state.emailConfirmDirty == Just true
+                Just _ -> case state.emailDirty of
+                  Nothing -> false
+                  Just _ -> state.email /= state.emailConfirm
+            , name: "register-email-confirm"
+            , id: "register-email-confirm"
+            }
+          , textField
+            { label: R.text "Password"
+            , fullWidth: true
+            , "type": Input.passwordType
+            , onChange: mkEffFn1 \p -> dispatch $ ChangedPassword (unsafeCoerce p).target.value
+            , onBlur: mkEffFn1 \_ -> dispatch PasswordUnfocused
+            , error: case state.passwordDirty of
+                Nothing -> false
+                Just dirty
+                  | not dirty -> false
+                  | otherwise -> case state.passwordConfirmDirty of
+                    Nothing -> false
+                    Just dirty
+                      | not dirty -> false
+                      | otherwise -> state.password /= state.passwordConfirm
+            , name: "register-password"
+            , id: "register-password"
+            }
+          , textField
+            { label: R.text "Password Confirm"
+            , fullWidth: true
+            , "type": Input.passwordType
+            , onChange: mkEffFn1 \p -> dispatch $ ChangedPasswordConfirm (unsafeCoerce p).target.value
+            , onBlur: mkEffFn1 \_ -> dispatch PasswordConfirmUnfocused
+            , error: case state.passwordConfirmDirty of
+                Nothing -> false
+                Just dirty
+                  | not dirty -> false
+                  | otherwise -> case state.passwordDirty of
+                    Nothing -> false
+                    Just dirty
+                      | not dirty -> false
+                      | otherwise -> state.password /= state.passwordConfirm
+            , name: "register-password-confirm"
+            , id: "register-password-confirm"
+            }
+          , reCaptcha
+            { sitekey: env.googleReCaptchaSiteKey
+            , verifyCallback: mkEffFn1 (dispatch <<< GotReCaptchaVerify)
+            , onloadCallback: pure unit
+            }
+          , button
+            { color: Button.primary
+            , disabled: case emailAddress state.email of
+              Nothing -> true
               Just _ -> state.email /= state.emailConfirm
-        , name: "register-email-confirm"
-        , id: "register-email-confirm"
-        }
-      , textField
-        { label: R.text "Password"
-        , fullWidth: true
-        , "type": Input.passwordType
-        , onChange: mkEffFn1 \p -> dispatch $ ChangedPassword (unsafeCoerce p).target.value
-        , onBlur: mkEffFn1 \_ -> dispatch PasswordUnfocused
-        , error: case state.passwordDirty of
-            Nothing -> false
-            Just dirty
-              | not dirty -> false
-              | otherwise -> case state.passwordConfirmDirty of
-                Nothing -> false
-                Just dirty
-                  | not dirty -> false
-                  | otherwise -> state.password /= state.passwordConfirm
-        , name: "register-password"
-        , id: "register-password"
-        }
-      , textField
-        { label: R.text "Password Confirm"
-        , fullWidth: true
-        , "type": Input.passwordType
-        , onChange: mkEffFn1 \p -> dispatch $ ChangedPasswordConfirm (unsafeCoerce p).target.value
-        , onBlur: mkEffFn1 \_ -> dispatch PasswordConfirmUnfocused
-        , error: case state.passwordConfirmDirty of
-            Nothing -> false
-            Just dirty
-              | not dirty -> false
-              | otherwise -> case state.passwordDirty of
-                Nothing -> false
-                Just dirty
-                  | not dirty -> false
-                  | otherwise -> state.password /= state.passwordConfirm
-        , name: "register-password-confirm"
-        , id: "register-password-confirm"
-        }
-      , reCaptcha
-        { sitekey: env.googleReCaptchaSiteKey
-        , verifyCallback: mkEffFn1 (dispatch <<< GotReCaptchaVerify)
-        , onloadCallback: pure unit
-        }
-      , button
-        { color: Button.primary
-        , disabled: case emailAddress state.email of
-          Nothing -> true
-          Just _ -> state.email /= state.emailConfirm
-                 || state.password /= state.passwordConfirm
-                 || case state.passwordDirty of
-                      Nothing -> true
-                      Just _ -> case state.reCaptcha of
-                        Nothing -> true
-                        Just _ -> false
-        , onTouchTap: mkEffFn1 \_ -> dispatch SubmitRegister
-        } [R.text "Submit"]
+                    || state.password /= state.passwordConfirm
+                    || case state.passwordDirty of
+                          Nothing -> true
+                          Just _ -> case state.reCaptcha of
+                            Nothing -> true
+                            Just _ -> false
+            , onTouchTap: mkEffFn1 \_ -> dispatch SubmitRegister
+            } [R.text "Submit"]
+          ]
+        ]
       ]
 
 
