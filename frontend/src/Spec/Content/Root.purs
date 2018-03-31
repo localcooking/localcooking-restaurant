@@ -5,7 +5,9 @@ import Prelude
 import Thermite as T
 import React as R
 import React.DOM as R
+import React.DOM.Props as RP
 
+import MaterialUI.Types (createStyles)
 import MaterialUI.Typography (typography)
 import MaterialUI.Typography as Typography
 import MaterialUI.Markdown (markdown)
@@ -33,6 +35,7 @@ spec = T.simpleSpec performAction render
         { variant: Typography.display1
         , align: Typography.right
         , color: Typography.primary
+        , style: createStyles {marginBottom: "1em"}
         } [R.text "Locally Sourced, Affordable Cuisine for the Average Family"]
       , grid
         { spacing: Grid.spacing8
@@ -42,7 +45,9 @@ spec = T.simpleSpec performAction render
           { xs: 9
           , item: true
           }
-          [ markdown paragraph1
+          [ R.div [RP.style {marginTop: "1em"}] []
+          , markdown paragraph1
+          , R.div [RP.style {marginBottom: "1em"}] []
           ]
         ]
       , divider {}
@@ -50,6 +55,7 @@ spec = T.simpleSpec performAction render
         { variant: Typography.display1
         , align: Typography.left
         , color: Typography.primary
+        , style: createStyles {marginBottom: "1em", marginTop: "1em"}
         } [R.text "Simplified Ordering"]
       ]
 
