@@ -103,7 +103,7 @@ masterPage mToken =
           deploy M.Css Inline $ renderCssUrl (\_ _ -> undefined) inlineStyles
         , bodyScripts = do
           Env{envDevelopment = mDev} <- lift ask
-          deploy M.JavaScript M.Remote =<< lift (toLocation $ IndexJs $ devCacheBuster <$> mDev)
+          deploy M.JavaScript M.Remote $ toLocation $ IndexJs $ devCacheBuster <$> mDev
         , afterStylesScripts = do
           env@Env
             { envKeys = Keys

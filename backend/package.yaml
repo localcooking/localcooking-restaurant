@@ -59,7 +59,7 @@ library:
     - mtl
     - nested-routes >= 9.0.0.1
     - path
-    - path-extra
+    - path-extra >= 0.1.0
     - persistent
     - resource-pool
     - safecopy

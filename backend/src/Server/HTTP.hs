@@ -66,21 +66,28 @@ import qualified Crypto.Saltine.Class as NaCl
 import System.IO.Error (userError)
 
 
+handleAuthToken :: MiddlewareT AppM
+handleAuthToken app req resp =
+  case join $ lookup "authToken" $ queryString req of
+    Nothing -> do
+      (action $ get $ html Nothing "") app req resp
+    Just json -> case Aeson.decode $ LBS.fromStrict json of
+      Nothing -> do
+        (action $ get $ html Nothing "") app req resp
+      Just x@(PreliminaryAuthToken mEToken) -> do
+        (action $ get $ html mEToken "") app req resp
+
+
 
 router :: RouterT (MiddlewareT AppM) sec AppM ()
 router
   = do
-  matchHere $ \app req resp ->
-    case join $ lookup "authToken" $ queryString req of
-      Nothing -> do
-        (action $ get $ html Nothing "") app req resp
-      Just json -> case Aeson.decode $ LBS.fromStrict json of
-        Nothing -> do
-          (action $ get $ html Nothing "") app req resp
-        Just x@(PreliminaryAuthToken mEToken) -> do
-          (action $ get $ html mEToken "") app req resp
-
-  match (l_ "about" </> o_) $ action $ get $ html Nothing "" -- FIXME SEO, authToken handling forall endpoints
+  matchHere handleAuthToken
+  match (l_ "about" </> o_) handleAuthToken
+  matchGroup (l_ "meals" </> o_) $
+    matchHere handleAuthToken
+  matchGroup (l_ "chefs" </> o_) $
+    matchHere handleAuthToken
 
   forM_ favicons $ \(file, content) -> do
     let (file', ext) = T.breakOn "." (T.pack file)
@@ -98,6 +105,7 @@ router
           | otherwise -> fail "Wrong cache buster!" -- FIXME make cache buster generic
     (action $ get $ bytestring JavaScript $ LBS.fromStrict frontend) app req resp
 
+  -- TODO handle authenticated linking
   match (l_ "facebookLoginReturn" </> o_) $ \app req resp -> do
     Env{envHostname,envTls} <- ask
     let qs = queryString req

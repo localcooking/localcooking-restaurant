@@ -54,6 +54,7 @@ extra-deps:
   - logging-3.0.5
   - markup-4.0.4
   - nested-routes-9.0.0.1
+  - path-extra-0.1.0
   - pred-trie-0.6.0.1
   - sparrow-0.0.1.2
   - tmapmvar-0.0.4

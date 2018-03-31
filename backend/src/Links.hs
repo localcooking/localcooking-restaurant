@@ -4,14 +4,17 @@
   , OverloadedStrings
   , OverloadedLists
   , DeriveGeneric
+  , QuasiQuotes
   #-}
 
 module Links where
 
 import Data.Monoid ((<>))
 import Path.Extended (ToPath (..), ToLocation (..), Abs, File, fromPath, setFileExt, addQuery, parseAbsFile, parseAbsDir)
+import Path (absdir, absfile)
 import Data.Aeson (ToJSON (..), FromJSON (..), Value (String))
 import Data.Aeson.Types (typeMismatch)
+import qualified Data.Text as T
 import qualified Data.ByteString.UTF8 as BS8
 import qualified Data.ByteString.Base16 as BS16
 import Crypto.Saltine.Core.Box (Nonce)
@@ -27,45 +30,49 @@ data WebAssetLinks
 
 instance ToPath WebAssetLinks Abs File where
   toPath x = case x of
-    IndexCss -> parseAbsFile "/index"
-    IndexJs _ -> parseAbsFile "/index"
+    IndexCss  -> [absfile|/index|]
+    IndexJs _ -> [absfile|/index|]
 
 instance ToLocation WebAssetLinks Abs File where
   toLocation x = case x of
-    IndexCss -> (setFileExt (Just "css") . fromPath) <$> toPath x
+    IndexCss -> setFileExt (Just "css") $ fromPath $ toPath x
     IndexJs mNonce ->
-      ( setFileExt (Just "js")
-      . ( case mNonce of
+        setFileExt (Just "js")
+      $ ( case mNonce of
             Nothing -> id
             Just nonce -> addQuery ("cache_buster", Just $ BS8.toString $ BS16.encode $ NaCl.encode nonce)
         )
-      . fromPath
-      ) <$> toPath x
+      $ fromPath
+      $ toPath x
 
 
 data SiteLinks
   = RootLink
   | AboutLink
+  | MealsLink
+  | ChefsLink
   deriving (Eq, Show, Generic)
 
 instance Arbitrary SiteLinks where
   arbitrary = oneof
     [ pure RootLink
     , pure AboutLink
+    , pure MealsLink
+    , pure ChefsLink
     ]
 
 -- TODO URI / Location parser
 
 instance ToJSON SiteLinks where
-  toJSON x = String $ case x of
-    RootLink -> "/"
-    AboutLink -> "/about"
+  toJSON = String . T.pack . show . toLocation
 
 instance FromJSON SiteLinks where
   parseJSON json = case json of
     String s
       | s == "/" -> pure RootLink
       | s == "/about" -> pure AboutLink
+      | s == "/meals" -> pure MealsLink
+      | s == "/chefs" -> pure ChefsLink
       | otherwise -> fail
     _ -> fail
     where
@@ -73,11 +80,13 @@ instance FromJSON SiteLinks where
 
 instance ToPath SiteLinks Abs File where
   toPath x = case x of
-    RootLink -> unsafeCoerce <$> parseAbsDir "/"
-    AboutLink -> parseAbsFile "/about"
+    RootLink -> unsafeCoerce [absdir|/|]
+    AboutLink -> [absfile|/about|]
+    MealsLink -> [absfile|/meals|]
+    ChefsLink -> [absfile|/chefs|]
 
 instance ToLocation SiteLinks Abs File where
-  toLocation x = fromPath <$> toPath x
+  toLocation = fromPath . toPath
 
 
 data LogoLinks
@@ -89,17 +98,15 @@ data LogoLinks
 
 instance ToPath LogoLinks Abs File where
   toPath x = case x of
-    LogoPng      -> parseAbsFile (parent <> "logo")
-    LogoWhitePng -> parseAbsFile (parent <> "logo-white")
-    IconPng      -> parseAbsFile (parent <> "icon")
-    IconSvg      -> parseAbsFile (parent <> "icon")
-    where
-      parent = "/static/images/"
+    LogoPng      -> [absfile|/static/images/logo|]
+    LogoWhitePng -> [absfile|/static/images/logo-white|]
+    IconPng      -> [absfile|/static/images/icon|]
+    IconSvg      -> [absfile|/static/images/icon|]
 
 
 instance ToLocation LogoLinks Abs File where
   toLocation x = case x of
-    LogoPng      -> (setFileExt (Just "png") . fromPath) <$> toPath x
-    LogoWhitePng -> (setFileExt (Just "png") . fromPath) <$> toPath x
-    IconPng      -> (setFileExt (Just "png") . fromPath) <$> toPath x
-    IconSvg      -> (setFileExt (Just "svg") . fromPath) <$> toPath x
+    LogoPng      -> setFileExt (Just "png") $ fromPath $ toPath x
+    LogoWhitePng -> setFileExt (Just "png") $ fromPath $ toPath x
+    IconPng      -> setFileExt (Just "png") $ fromPath $ toPath x
+    IconSvg      -> setFileExt (Just "svg") $ fromPath $ toPath x
