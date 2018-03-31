@@ -18,6 +18,7 @@ import           Login.Error (AuthError, PreliminaryAuthToken (..))
 import           Facebook.App (Credentials (..))
 import           Google.Keys (GoogleCredentials (..))
 import           Google.Analytics (googleAnalyticsGTagToURI, GoogleAnalyticsGTag (..))
+import           Google.ReCaptcha (googleReCaptchaAssetURI)
 import           LocalCooking.Common.AuthToken (AuthToken)
 
 import           Lucid (renderBST, HtmlT, Attribute, content_, name_, meta_, httpEquiv_, charset_, link_, rel_, type_, href_, sizes_, script_, src_, async_)
@@ -108,19 +109,21 @@ masterPage mToken =
           env@Env
             { envKeys = Keys
               { keysFacebook = Credentials{clientId}
-              , keysGoogle = GoogleCredentials{googleAnalytics}
+              , keysGoogle = GoogleCredentials{googleAnalytics,googleReCaptcha}
               }
             , envSalt
             } <- lift ask
 
           -- Google Analytics
           script_ [async_ "", src_ $ printURI $ googleAnalyticsGTagToURI googleAnalytics] ("" :: T.Text)
+          script_ [src_ $ printURI googleReCaptchaAssetURI] ("" :: T.Text)
           script_ [] $ renderJavascriptUrl (\_ _ -> undefined) $ googleAnalyticsScript googleAnalytics
 
           -- FrontendEnv
           let frontendEnv = FrontendEnv
                 { frontendEnvDevelopment = isDevelopment env
                 , frontendEnvFacebookClientID = clientId
+                , frontendEnvGoogleReCaptchaSiteKey = googleReCaptcha
                 , frontendEnvSalt = envSalt
                 , frontendEnvAuthToken = PreliminaryAuthToken mToken
                 }
