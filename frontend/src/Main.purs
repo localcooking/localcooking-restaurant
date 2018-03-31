@@ -139,8 +139,11 @@ main = do
   siteLinksSignal <- do
     q <- One.newQueue
     One.onQueue q \(x :: SiteLinks) -> do
-      pushState' x h
-      IxSignal.set x currentPageSignal
+      -- only respect changed pages
+      y <- IxSignal.get currentPageSignal
+      when (y /= x) $ do
+        pushState' x h
+        IxSignal.set x currentPageSignal
     pure (One.writeOnly q)
 
 

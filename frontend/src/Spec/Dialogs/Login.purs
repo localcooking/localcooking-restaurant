@@ -3,7 +3,7 @@ module Spec.Dialogs.Login where
 import Types.Env (env)
 
 import Window (WindowSize (..), initialWindowSize)
-import Links (SiteLinks, ThirdPartyLoginReturnLinks (..), toLocation, initSiteLinks)
+import Links (SiteLinks (RegisterLink), ThirdPartyLoginReturnLinks (..), toLocation, initSiteLinks)
 import Facebook.Call (FacebookLoginLink (..), facebookLoginLinkToURI)
 import Facebook.State (FacebookLoginState (..))
 import LocalCooking.Common.Password (HashedPassword, hashPassword)
@@ -30,6 +30,7 @@ import Thermite as T
 import React as R
 import React.DOM as R
 import React.DOM.Props as RP
+import React.DOM.Props.PreventDefault (preventDefault)
 import React.Queue.WhileMounted as Queue
 import React.Signal.WhileMounted as Signal
 import React.Icons (facebookIcon, twitterIcon, googleIcon)
@@ -227,7 +228,11 @@ spec {toURI,login,toRegister} = T.simpleSpec performAction render
             , dialogActions {}
               [ button
                 { color: Button.secondary
-                , onTouchTap: mkEffFn1 \_ -> dispatch ClickedRegister
+                , onClick: mkEffFn1 preventDefault
+                , onTouchTap: mkEffFn1 \e -> do
+                    preventDefault e
+                    dispatch ClickedRegister
+                , href: URI.print $ toURI $ toLocation RegisterLink
                 } [R.text "Register"]
               , button
                 { color: Button.primary
