@@ -11,7 +11,9 @@ import Data.URI.Location as Location
 import Data.Foreign (Foreign, toForeign, unsafeFromForeign)
 import Data.Argonaut (jsonParser, encodeJson, decodeJson)
 import DOM (DOM)
+import DOM.HTML (window)
 import DOM.HTML.Types (Window, Location, History, HISTORY)
+import DOM.HTML.Window (history)
 import DOM.HTML.History (pushState, replaceState, URL (..), DocumentTitle (..))
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Uncurried (EffFn1, EffFn2, mkEffFn1, runEffFn2)
@@ -40,17 +42,21 @@ foreign import queryParams :: Location -> StrMap String
 -- removeQueryParam = runEffFn2 removeQueryParamImpl
 
 
-pushState' :: forall eff. SiteLinks -> History -> Eff (history :: HISTORY | eff) Unit
-pushState' x =
+pushState' :: forall eff. SiteLinks -> Eff (history :: HISTORY, dom :: DOM | eff) Unit
+pushState' x = do
+  h <- window >>= history
   pushState
     (toForeign $ encodeJson x)
     (siteLinksToDocumentTitle x)
     (URL $ Location.printLocation $ toLocation x)
+    h
 
 
-replaceState' :: forall eff. SiteLinks -> History -> Eff (history :: HISTORY | eff) Unit
-replaceState' x =
+replaceState' :: forall eff. SiteLinks -> Eff (history :: HISTORY, dom :: DOM | eff) Unit
+replaceState' x = do
+  h <- window >>= history
   replaceState
     (toForeign $ encodeJson x)
     (siteLinksToDocumentTitle x)
     (URL $ Location.printLocation $ toLocation x)
+    h

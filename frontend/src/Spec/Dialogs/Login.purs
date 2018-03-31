@@ -33,6 +33,9 @@ import React.DOM.Props as RP
 import React.Queue.WhileMounted as Queue
 import React.Signal.WhileMounted as Signal
 import React.Icons (facebookIcon, twitterIcon, googleIcon)
+import DOM (DOM)
+import DOM.HTML.Types (HISTORY)
+import DOM.HTML.Window.Extra (replaceState')
 
 import MaterialUI.Types (createStyles)
 import MaterialUI.Toolbar (toolbar)
@@ -96,6 +99,8 @@ type Effects eff =
   , exception :: EXCEPTION
   , scrypt    :: SCRYPT
   , console   :: CONSOLE
+  , dom       :: DOM
+  , history   :: HISTORY
   | eff)
 
 
@@ -123,12 +128,10 @@ spec {toURI,login} = T.simpleSpec performAction render
           Nothing -> liftEff $ log "bad email!" -- FIXME bug out somehow?
           Just email -> do
             liftBase $ do
-              liftEff $ log "hashing password"
               hashedPassword <- hashPassword {salt: env.salt, password: state.password}
-              liftEff $ log "hashed password"
               login email hashedPassword
-              liftEff $ log "login sent"
             performAction Close props state
+            liftEff $ replaceState' state.currentPage
 
     render :: T.Render State Unit Action
     render dispatch props state children =
@@ -138,8 +141,6 @@ spec {toURI,login} = T.simpleSpec performAction render
                 dialog
                   { open: state.open
                   , fullScreen: true
-                  , container: R.createClassStateless' \(_ :: Unit) children ->
-                      [R.form [RP._id "login"] children]
                   }
               else
                 dialog
@@ -147,8 +148,6 @@ spec {toURI,login} = T.simpleSpec performAction render
                   , fullWidth: true
                   , onClose: mkEffFn1 \_ ->
                       when (not state.pending) (dispatch Close)
-                  , container: R.createClassStateless' \(_ :: Unit) children ->
-                      [R.form [RP._id "login"] children]
                   }
         in  dialog'
             [ dialogTitle {} [R.text "Login"]
@@ -233,8 +232,6 @@ spec {toURI,login} = T.simpleSpec performAction render
                   Nothing -> state.emailDirty == Just true
                   Just _ -> false
                 , onTouchTap: mkEffFn1 \_ -> dispatch SubmitLogin
-                , component: R.createClassStateless' \(_ :: Unit) children ->
-                  [R.input [RP._type "submit"] children]
                 } [R.text "Submit"]
               , button
                 { color: Button.default

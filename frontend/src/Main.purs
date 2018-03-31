@@ -127,7 +127,7 @@ main = do
                 Nothing -> pure unit
                 Just (Query qs) -> case StrMap.lookup "authToken" (StrMap.fromFoldable qs) of
                   Nothing -> pure unit
-                  Just _ -> replaceState' x h
+                  Just _ -> replaceState' x
 
               pure x
 
@@ -144,7 +144,7 @@ main = do
   siteLinksSignal <- do
     q <- One.newQueue
     One.onQueue q \(x :: SiteLinks) -> do
-      pushState' x h
+      pushState' x
       IxSignal.set x currentPageSignal
     pure (One.writeOnly q)
 
