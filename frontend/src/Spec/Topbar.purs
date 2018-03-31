@@ -19,6 +19,7 @@ import Thermite as T
 import React as R
 import React.DOM as R
 import React.DOM.Props as RP
+import React.DOM.Props.PreventDefault (preventDefault)
 import React.Signal.WhileMounted as Signal
 
 import MaterialUI.Types (createStyles)
@@ -34,6 +35,7 @@ import MaterialUI.Icons.Menu (menuIcon)
 import Queue.One (WRITE, Queue, putQueue)
 import IxSignal.Internal (IxSignal)
 import Unsafe.Coerce (unsafeCoerce)
+import Partial.Unsafe (unsafePartial)
 
 
 
@@ -53,10 +55,7 @@ data Action
   | ClickedMobileMenuButton
   | ChangedWindowSize WindowSize
   | ChangedCurrentPage SiteLinks
-  | ClickedAboutLink
-  | ClickedMealsLink
-  | ClickedChefsLink
-  | ClickedLogo
+  | Clicked SiteLinks
 
 type Effects eff =
   ( ref :: REF
@@ -84,10 +83,7 @@ spec
       ClickedMobileMenuButton -> liftEff (putQueue mobileMenuButtonSignal unit)
       ChangedWindowSize w -> void $ T.cotransform _ { windowSize = w }
       ChangedCurrentPage x -> void $ T.cotransform _ { currentPage = x }
-      ClickedAboutLink -> liftEff (siteLinks AboutLink)
-      ClickedMealsLink -> liftEff (siteLinks MealsLink)
-      ClickedChefsLink -> liftEff (siteLinks ChefsLink)
-      ClickedLogo -> liftEff (siteLinks RootLink)
+      Clicked x -> liftEff (siteLinks x)
 
     render :: T.Render State Unit Action
     render dispatch props state children =
@@ -101,35 +97,37 @@ spec
                 } menuIcon
               ]
             else
-              [ R.a [ RP.href $ URI.print $ toURI $ toLocation RootLink
-                    , RP.onClick \e -> do
-                        (_ :: Unit) <- (unsafeCoerce e).stopPropagation
-                        (_ :: Unit) <- (unsafeCoerce e).nativeEvent.stopImmediatePropagation
-                        (_ :: Unit) <- (unsafeCoerce e).preventDefault
-                        dispatch ClickedLogo
-                    ]
-                 [ R.img  [ RP.src $ URI.print $ toURI $ toLocation Logo40Png
-                          , RP.style {height: "2.5em", border: 0}
-                          ] [] -- FIXME make into a link to RootLink
-                 ]
-              , button
-                { color: Button.inherit
-                , disabled: state.currentPage == AboutLink
-                , onTouchTap: mkEffFn1 \_ -> dispatch ClickedAboutLink
-                } [R.text "About"]
-              , button
-                { color: Button.primary
-                , variant: Button.raised
-                , disabled: state.currentPage == MealsLink
-                , onTouchTap: mkEffFn1 \_ -> dispatch ClickedMealsLink
-                } [R.text "Meals"]
-              , button
-                { color: Button.secondary
-                , variant: Button.raised
-                , disabled: state.currentPage == ChefsLink
-                , onTouchTap: mkEffFn1 \_ -> dispatch ClickedChefsLink
-                } [R.text "Chefs"]
-              ]
+              let mkButton x = button
+                    { color: unsafePartial $ case x of
+                         AboutLink -> Button.inherit
+                         MealsLink -> Button.primary
+                         ChefsLink -> Button.secondary
+                    , disabled: state.currentPage == x
+                    , onTouchTap: mkEffFn1 \e -> do
+                        preventDefault e
+                        dispatch (Clicked x)
+                    , href: URI.print $ toURI $ toLocation x
+                    , variant: case x of
+                      AboutLink -> Button.flat
+                      _ -> Button.raised
+                    } [ R.text $ unsafePartial $ case x of
+                          AboutLink -> "About"
+                          MealsLink -> "Meals"
+                          ChefsLink -> "Chefs"
+                      ]
+              in  [ R.a [ RP.href $ URI.print $ toURI $ toLocation RootLink
+                        , RP.onClick \e -> do
+                            preventDefault e
+                            dispatch (Clicked RootLink)
+                        ]
+                      [ R.img  [ RP.src $ URI.print $ toURI $ toLocation Logo40Png
+                              , RP.style {height: "2.5em", border: 0}
+                              ] [] -- FIXME make into a link to RootLink
+                      ]
+                  , mkButton AboutLink
+                  , mkButton MealsLink
+                  , mkButton ChefsLink
+                  ]
           ) <>
           [ R.div [RP.style {flex: 1, display: "flex", flexDirection: "row-reverse"}]
             [ button

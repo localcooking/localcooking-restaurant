@@ -160,12 +160,16 @@ spec {toURI,login,toRegister} = T.simpleSpec performAction render
                 , error: case emailAddress state.email of
                   Nothing -> state.emailDirty == Just true
                   Just _ -> false
+                , name: "login-email"
+                , id: "login-email"
                 }
               , textField
                 { label: R.text "Password"
                 , fullWidth: true
                 , "type": Input.passwordType
                 , onChange: mkEffFn1 \p -> dispatch $ ChangedPassword (unsafeCoerce p).target.value
+                , name: "login-password"
+                , id: "login-password"
                 }
               , R.div [RP.style {display: "flex", justifyContent: "space-evenly", paddingTop: "2em"}] $
                   let mkFab mainColor darkColor icon mLink =
