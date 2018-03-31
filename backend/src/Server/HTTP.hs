@@ -21,7 +21,7 @@ import Login.Error (AuthError (..), PreliminaryAuthToken (..))
 import Facebook.Types (FacebookLoginCode (..))
 import Facebook.State (FacebookLoginState (..))
 
-import Web.Routes.Nested (RouterT, match, matchHere, matchGroup, action, post, get, json, text, textOnly, l_, (</>), o_, route)
+import Web.Routes.Nested (RouterT, match, matchHere, matchGroup, matchAny, action, post, get, json, text, textOnly, l_, (</>), o_, route)
 import Web.Dependencies.Sparrow.Types (ServerContinue (ServerContinue, serverContinue), ServerReturn (ServerReturn, serverInitOut))
 import Network.Wai (strictRequestBody, queryString)
 import Network.Wai.Middleware.ContentType (bytestring, FileExt (Other, JavaScript))
@@ -82,6 +82,8 @@ handleAuthToken app req resp =
 router :: RouterT (MiddlewareT AppM) sec AppM ()
 router
   = do
+  Env{envHostname,envTls} <- lift ask
+
   -- main routes
   matchHere handleAuthToken
   match (l_ "about" </> o_) handleAuthToken
@@ -90,6 +92,14 @@ router
     matchHere handleAuthToken
   matchGroup (l_ "chefs" </> o_) $
     matchHere handleAuthToken
+  matchAny $ \app req resp -> do
+    let redirectUri = URI (Strict.Just $ if envTls then "https" else "http")
+                          True
+                          envHostname
+                          []
+                          []
+                          Strict.Nothing
+    resp $ textOnly "" status302 [("Location", T.encodeUtf8 $ printURI redirectUri)]
 
   -- favicons
   forM_ favicons $ \(file, content) -> do
@@ -111,7 +121,6 @@ router
 
   -- TODO handle authenticated linking
   match (l_ "facebookLoginReturn" </> o_) $ \app req resp -> do
-    Env{envHostname,envTls} <- ask
     let qs = queryString req
     ( eToken :: Either AuthError AuthToken
       , mFbState :: Maybe FacebookLoginState
