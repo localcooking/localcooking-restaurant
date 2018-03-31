@@ -66,7 +66,7 @@ spec = T.simpleSpec performAction render
             , padding: "1em"
             }
           }
-          [ paper {style: createStyles {minHeight: "30em"}}
+          [ R.div [RP.style {minHeight: "30em", padding: "1em"}]
             [ case state.page of
                 AboutLink -> about
                 RootLink -> root

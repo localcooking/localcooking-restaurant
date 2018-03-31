@@ -131,7 +131,7 @@ spec {toURI,login,toRegister} = T.simpleSpec performAction render
               hashedPassword <- hashPassword {salt: env.salt, password: state.password}
               login email hashedPassword
             performAction Close props state
-            liftEff $ replaceState' state.currentPage
+            -- liftEff $ replaceState' state.currentPage -- FIXME weird password triggering
 
     render :: T.Render State Unit Action
     render dispatch props state children =

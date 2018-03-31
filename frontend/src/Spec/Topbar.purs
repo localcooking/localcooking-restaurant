@@ -105,6 +105,7 @@ spec
                     , RP.onClick \e -> do
                         (_ :: Unit) <- (unsafeCoerce e).stopPropagation
                         (_ :: Unit) <- (unsafeCoerce e).nativeEvent.stopImmediatePropagation
+                        (_ :: Unit) <- (unsafeCoerce e).preventDefault
                         dispatch ClickedLogo
                     ]
                  [ R.img  [ RP.src $ URI.print $ toURI $ toLocation Logo40Png

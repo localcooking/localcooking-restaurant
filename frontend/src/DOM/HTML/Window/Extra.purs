@@ -10,7 +10,7 @@ import Data.Foreign (Foreign, toForeign, unsafeFromForeign)
 import Data.Argonaut (encodeJson, decodeJson)
 import DOM (DOM)
 import DOM.HTML (window)
-import DOM.HTML.Types (Window, Location, HISTORY)
+import DOM.HTML.Types (Window, Location, History, HISTORY)
 import DOM.HTML.Window (history)
 import DOM.HTML.History (pushState, replaceState, URL (..))
 import Control.Monad.Eff (Eff)
@@ -41,9 +41,8 @@ foreign import queryParams :: Location -> StrMap String
 
 
 
-pushState' :: forall eff. SiteLinks -> Eff (history :: HISTORY, dom :: DOM | eff) Unit
-pushState' x = do
-  h <- window >>= history
+pushState' :: forall eff. SiteLinks -> History -> Eff (history :: HISTORY | eff) Unit
+pushState' x h = do
   pushState
     (toForeign $ encodeJson x)
     (siteLinksToDocumentTitle x)
@@ -51,9 +50,8 @@ pushState' x = do
     h
 
 
-replaceState' :: forall eff. SiteLinks -> Eff (history :: HISTORY, dom :: DOM | eff) Unit
-replaceState' x = do
-  h <- window >>= history
+replaceState' :: forall eff. SiteLinks -> History -> Eff (history :: HISTORY | eff) Unit
+replaceState' x h = do
   replaceState
     (toForeign $ encodeJson x)
     (siteLinksToDocumentTitle x)
