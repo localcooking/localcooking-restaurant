@@ -116,9 +116,9 @@ mkEnv
       exists <- doesDirectoryExist $ toFilePath $ parent f
       unless exists $ createDirectory $ toFilePath $ parent f
       x <- LBS.readFile (toFilePath f)
-      case Aeson.decode x of
-        Nothing -> errorL "Secret key file contents cannot be parsed"
-        Just y -> pure y
+      case Aeson.eitherDecode x of
+        Left e -> errorL $ "Secret key file contents cannot be parsed: " <> T.pack e
+        Right y -> pure y
   (envHostname, boundPort) <- case parseOnly parseURIAuth (T.pack argsImplHostname) of
     Left e -> errorL $ "Can't parse hostname: " <> T.pack e
     Right (URIAuth a h mPort) -> pure
