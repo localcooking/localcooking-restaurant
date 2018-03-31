@@ -10,6 +10,8 @@ import MaterialUI.Typography (typography)
 import MaterialUI.Typography as Typography
 import MaterialUI.Markdown (markdown)
 import MaterialUI.Divider (divider)
+import MaterialUI.Grid (grid)
+import MaterialUI.Grid as Grid
 
 
 type State = Unit
@@ -32,7 +34,23 @@ spec = T.simpleSpec performAction render
         , align: Typography.right
         , color: Typography.primary
         } [R.text "Locally Sourced, Affordable Cuisine for the Average Family"]
-      , markdown paragraph1
+      , grid
+        { spacing: Grid.spacing8
+        , container: true
+        }
+        [ grid
+          { xs: 9
+          , item: true
+          }
+          [ markdown paragraph1
+          ]
+        ]
+      , divider {}
+      , typography
+        { variant: Typography.display1
+        , align: Typography.left
+        , color: Typography.primary
+        } [R.text "Simplified Ordering"]
       ]
 
 
