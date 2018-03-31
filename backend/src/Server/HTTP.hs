@@ -82,6 +82,7 @@ handleAuthToken app req resp =
 router :: RouterT (MiddlewareT AppM) sec AppM ()
 router
   = do
+  -- main routes
   matchHere handleAuthToken
   match (l_ "about" </> o_) handleAuthToken
   matchGroup (l_ "meals" </> o_) $
@@ -89,11 +90,13 @@ router
   matchGroup (l_ "chefs" </> o_) $
     matchHere handleAuthToken
 
+  -- favicons
   forM_ favicons $ \(file, content) -> do
     let (file', ext) = T.breakOn "." (T.pack file)
     match (l_ file' </> o_) $ action $ get $
       bytestring (Other (T.dropWhile (== '.') ext)) (LBS.fromStrict content)
 
+  -- application
   match (l_ "index.js" </> o_) $ \app req resp -> do
     Env{envDevelopment} <- ask
     case envDevelopment of
