@@ -143,7 +143,8 @@ spec {toURI,login} = T.simpleSpec performAction render
                 dialog
                   { open: state.open
                   , fullWidth: true
-                  , onClose: mkEffFn1 \_ -> dispatch Close
+                  , onClose: mkEffFn1 \_ ->
+                      when (not state.pending) (dispatch Close)
                   }
         in  dialog'
             [ dialogTitle {} [R.text "Login"]
@@ -196,7 +197,7 @@ spec {toURI,login} = T.simpleSpec performAction render
                       , mkFab "#1da1f3" "#0f8cdb" twitterIcon Nothing
                       , mkFab "#dd4e40" "#c13627" googleIcon Nothing
                       ]
-              , if true -- FIXME state.pending
+              , if state.pending
                    then R.div
                           [ RP.style
                             { zIndex: 1000
