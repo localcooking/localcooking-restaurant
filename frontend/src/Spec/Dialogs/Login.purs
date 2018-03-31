@@ -118,8 +118,8 @@ spec {toURI,login,toRegister} = T.simpleSpec performAction render
       ChangedPage p -> void $ T.cotransform _ { currentPage = p }
       ChangedEmail e -> void $ T.cotransform _ { email = e, emailDirty = Just false }
       ClickedRegister -> do
-        performAction Close props state
         liftEff toRegister
+        performAction Close props state
       EmailUnfocused -> void $ T.cotransform _ { emailDirty = Just true }
       ChangedPassword p -> void $ T.cotransform _ { password = p }
       SubmitLogin -> do

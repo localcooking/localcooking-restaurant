@@ -55,6 +55,7 @@ data Action
   | ClickedAboutLink
   | ClickedMealsLink
   | ClickedChefsLink
+  | ClickedLogo
 
 type Effects eff =
   ( ref :: REF
@@ -85,6 +86,7 @@ spec
       ClickedAboutLink -> liftEff (siteLinks AboutLink)
       ClickedMealsLink -> liftEff (siteLinks MealsLink)
       ClickedChefsLink -> liftEff (siteLinks ChefsLink)
+      ClickedLogo -> liftEff (siteLinks RootLink)
 
     render :: T.Render State Unit Action
     render dispatch props state children =
@@ -100,6 +102,7 @@ spec
             else
               [ R.img [ RP.src $ URI.print $ toURI $ toLocation Logo40Png
                       , RP.style {height: "2.5em"}
+                      , RP.onClick \_ -> dispatch ClickedLogo
                       ] [] -- FIXME make into a link to RootLink
               , button
                 { color: Button.inherit
