@@ -33,6 +33,7 @@ import MaterialUI.Icons.Menu (menuIcon)
 
 import Queue.One (WRITE, Queue, putQueue)
 import IxSignal.Internal (IxSignal)
+import Unsafe.Coerce (unsafeCoerce)
 
 
 
@@ -100,10 +101,16 @@ spec
                 } menuIcon
               ]
             else
-              [ R.img [ RP.src $ URI.print $ toURI $ toLocation Logo40Png
-                      , RP.style {height: "2.5em"}
-                      , RP.onClick \_ -> dispatch ClickedLogo
-                      ] [] -- FIXME make into a link to RootLink
+              [ R.a [ RP.href $ URI.print $ toURI $ toLocation RootLink
+                    , RP.onClick \e -> do
+                        (_ :: Unit) <- (unsafeCoerce e).stopPropagation
+                        (_ :: Unit) <- (unsafeCoerce e).nativeEvent.stopImmediatePropagation
+                        dispatch ClickedLogo
+                    ]
+                 [ R.img  [ RP.src $ URI.print $ toURI $ toLocation Logo40Png
+                          , RP.style {height: "2.5em", border: 0}
+                          ] [] -- FIXME make into a link to RootLink
+                 ]
               , button
                 { color: Button.inherit
                 , disabled: state.currentPage == AboutLink
