@@ -8,11 +8,7 @@ import Prelude
 import Thermite as T
 import React as R
 import React.DOM as R
-import React.DOM.Props as RP
-import React.Markdown (markdown)
-import React.Signal.WhileMounted as Signal
 import React.Queue.WhileMounted as Queue
-import Data.UUID (GENUUID)
 import Data.Nullable (toNullable)
 import Data.Time.Duration (Milliseconds (..))
 import Data.Maybe (Maybe (..))
@@ -22,15 +18,7 @@ import Control.Monad.Aff (delay)
 import Control.Monad.Eff.Uncurried (mkEffFn2)
 import Control.Monad.Eff.Unsafe (unsafeCoerceEff)
 import Control.Monad.Eff.Ref (REF)
-import Control.Monad.Eff.Exception (EXCEPTION)
 
-import MaterialUI.Types (createStyles)
-import MaterialUI.Paper (paper)
-import MaterialUI.Divider (divider)
-import MaterialUI.Typography (typography)
-import MaterialUI.Typography as Typography
-import MaterialUI.Tabs (tabs, tab)
-import MaterialUI.Tabs as Tabs
 import MaterialUI.Snackbar (snackbar)
 
 import Queue.One as One
@@ -72,7 +60,7 @@ spec = T.simpleSpec performAction render
         liftBase $ delay $ Milliseconds $ 2000.0
         void $ T.cotransform _ { authError = Nothing }
 
-    render :: T.Render State _ Action
+    render :: T.Render State Unit Action
     render dispatch props state children =
       [ snackbar
         { open: case state.authFailure of

@@ -5,7 +5,7 @@ import LocalCooking.Common.AuthToken (AuthToken)
 import Prelude
 import Data.Either (Either (..))
 import Data.Maybe (Maybe (..))
-import Data.Argonaut (class DecodeJson, class EncodeJson, decodeJson, encodeJson, (.?), fail, (:=), (~>), jsonEmptyObject, jsonParser)
+import Data.Argonaut (class DecodeJson, class EncodeJson, decodeJson, encodeJson, (.?), fail, (:=), (~>), jsonEmptyObject)
 import Data.Generic (class Generic, gShow, gEq)
 import Data.NonEmpty ((:|))
 import Control.Alternative ((<|>))

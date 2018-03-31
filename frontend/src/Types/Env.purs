@@ -1,12 +1,10 @@
 module Types.Env where
 
 import Prelude
-import Data.Maybe (Maybe)
 import Data.Either (Either (Right))
 import Data.Argonaut (Json, decodeJson)
 import Login.Error (PreliminaryAuthToken)
 import LocalCooking.Common.Password (HashedPassword)
-import LocalCooking.Common.AuthToken (AuthToken)
 import Partial.Unsafe (unsafePartial)
 
 

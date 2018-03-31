@@ -14,7 +14,6 @@ import Control.Monad.Eff.Unsafe (unsafeCoerceEff, unsafePerformEff)
 import Control.Monad.Eff.Ref (REF)
 import Control.Monad.Eff.Exception (EXCEPTION)
 import Control.Monad.Eff.Class (liftEff)
-import Control.Monad.Eff.Console (log)
 
 import Thermite as T
 import React as R
@@ -26,8 +25,6 @@ import MaterialUI.Types (createStyles)
 import MaterialUI.Toolbar (toolbar)
 import MaterialUI.AppBar (appBar)
 import MaterialUI.AppBar as AppBar
-import MaterialUI.Typography (typography)
-import MaterialUI.Typography as Typography
 import MaterialUI.Button (button)
 import MaterialUI.Button as Button
 import MaterialUI.IconButton (iconButton)

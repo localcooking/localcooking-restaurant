@@ -3,8 +3,8 @@ module Facebook.State where
 import Links (SiteLinks)
 
 import Prelude
-import Data.Argonaut (class EncodeJson, class DecodeJson, encodeJson, decodeJson, (:=), (~>), jsonEmptyObject, (.?), fail)
-import Data.Generic (class Generic, gEq, gShow)
+import Data.Argonaut (class EncodeJson, class DecodeJson, decodeJson, (:=), (~>), jsonEmptyObject, (.?))
+import Data.Generic (class Generic, gEq)
 import Test.QuickCheck (class Arbitrary, arbitrary)
 
 

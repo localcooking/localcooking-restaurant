@@ -21,22 +21,20 @@ import Data.URI.Location (Location)
 import Data.UUID (GENUUID)
 import Data.Maybe (Maybe (..))
 import Data.Either (Either (..))
-import Data.Time.Duration (Milliseconds (..))
-import Control.Monad.Aff (delay, makeAff, nonCanceler)
+import Control.Monad.Aff (makeAff, nonCanceler)
 import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.Console (CONSOLE, log)
+import Control.Monad.Eff.Console (CONSOLE)
 import Control.Monad.Eff.Class (liftEff)
 import Control.Monad.Eff.Unsafe (unsafePerformEff, unsafeCoerceEff)
 import Control.Monad.Eff.Ref (REF)
-import Control.Monad.Eff.Exception (EXCEPTION, throwException)
+import Control.Monad.Eff.Exception (EXCEPTION)
 import Control.Monad.Eff.Now (NOW)
-import Control.Monad.Eff.Timer (TIMER, setTimeout)
+import Control.Monad.Eff.Timer (TIMER)
 import Control.Monad.Base (liftBase)
 
 import Thermite as T
 import React as R
 import React.DOM as R
-import React.DOM.Props as RP
 import MaterialUI.MuiThemeProvider (muiThemeProvider, createMuiTheme)
 import MaterialUI.CssBaseline (cssBaseline)
 import DOM (DOM)
@@ -82,13 +80,13 @@ type Effects eff =
   | eff)
 
 spec :: forall eff
-      . { toURI :: Location -> URI
-        , windowSizeSignal :: IxSignal (Effects eff) WindowSize
-        , currentPageSignal :: IxSignal (Effects eff) SiteLinks
-        , siteLinks :: SiteLinks -> Eff (Effects eff) Unit
-        , development :: Boolean
-        , authTokenQueues :: AuthTokenSparrowClientQueues (Effects eff)
-        , authErrorSignal :: One.Queue (read :: READ, write :: WRITE) (Effects eff) (Either AuthError AuthTokenFailure)
+      . { toURI              :: Location -> URI
+        , windowSizeSignal   :: IxSignal (Effects eff) WindowSize
+        , currentPageSignal  :: IxSignal (Effects eff) SiteLinks
+        , siteLinks          :: SiteLinks -> Eff (Effects eff) Unit
+        , development        :: Boolean
+        , authTokenQueues    :: AuthTokenSparrowClientQueues (Effects eff)
+        , authErrorSignal    :: One.Queue (read :: READ, write :: WRITE) (Effects eff) (Either AuthError AuthTokenFailure)
         , loginPendingSignal :: One.Queue (read :: READ, write :: WRITE) (Effects eff) Unit
         }
      -> T.Spec (Effects eff) State Unit Action
@@ -166,13 +164,13 @@ spec
 
 
 app :: forall eff
-     . { toURI :: Location -> URI
-       , windowSizeSignal :: IxSignal (Effects eff) WindowSize
-       , currentPageSignal :: IxSignal (Effects eff) SiteLinks
-       , siteLinks :: SiteLinks -> Eff (Effects eff) Unit
-       , development :: Boolean
+     . { toURI                :: Location -> URI
+       , windowSizeSignal     :: IxSignal (Effects eff) WindowSize
+       , currentPageSignal    :: IxSignal (Effects eff) SiteLinks
+       , siteLinks            :: SiteLinks -> Eff (Effects eff) Unit
+       , development          :: Boolean
        , preliminaryAuthToken :: PreliminaryAuthToken
-       , authTokenQueues :: AuthTokenSparrowClientQueues (Effects eff)
+       , authTokenQueues      :: AuthTokenSparrowClientQueues (Effects eff)
        }
     -> { spec :: R.ReactSpec Unit State (Array R.ReactElement) (Effects eff)
        , dispatcher :: R.ReactThis Unit State -> Action -> T.EventHandler
