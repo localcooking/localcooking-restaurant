@@ -165,13 +165,13 @@ spec = T.simpleSpec performAction render
         { color: Button.primary
         , disabled: case emailAddress state.email of
           Nothing -> true
-          Just _ -> state.email == state.emailConfirm
-                 && state.password == state.passwordConfirm
-                 && case state.passwordDirty of
-                      Nothing -> false
+          Just _ -> state.email /= state.emailConfirm
+                 || state.password /= state.passwordConfirm
+                 || case state.passwordDirty of
+                      Nothing -> true
                       Just _ -> case state.reCaptcha of
-                        Nothing -> false
-                        Just _ -> true
+                        Nothing -> true
+                        Just _ -> false
         , onTouchTap: mkEffFn1 \_ -> dispatch SubmitRegister
         } [R.text "Submit"]
       ]
