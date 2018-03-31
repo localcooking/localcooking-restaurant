@@ -201,14 +201,19 @@ spec {toURI,login} = T.simpleSpec performAction render
                           [ RP.style
                             { zIndex: 1000
                             , position: "absolute"
-                            , top: "auto"
-                            , bottom: "auto"
-                            , left: "auto"
-                            , right: "auto"
-                            , background: "rgba(255,255,255, 0.5)"
+                            , top: "0"
+                            , left: "0"
+                            , right: "0"
+                            , bottom: "0"
+                            , display: "flex"
+                            , flexDirection: "column"
+                            , alignItems: "center"
+                            , justifyContent: "center"
+                            , background: "rgba(255,255,255, 0.6)"
                             }
                           ]
-                          [circularProgress {}]
+                          [ circularProgress {size: 50}
+                          ]
                    else R.text ""
               ]
             , dialogActions {}
