@@ -17,6 +17,7 @@ import Types.Env (Env (..), Managers (..), isDevelopment, Development (..))
 import Types.FrontendEnv (FrontendEnv (..))
 import Types.Keys (Keys (..))
 import Template (html)
+import Links (SiteLinks (RootLink))
 import Login.Error (AuthError (..), PreliminaryAuthToken (..))
 import Facebook.Types (FacebookLoginCode (..))
 import Facebook.State (FacebookLoginState (..))
@@ -30,13 +31,15 @@ import Network.WebSockets (defaultConnectionOptions)
 import Network.WebSockets.Trans (websocketsOrT)
 import Network.HTTP.Types (status302)
 import Network.HTTP.Client (httpLbs, responseBody, parseRequest)
-import qualified Data.Text              as T
-import qualified Data.Text.Encoding     as T
-import qualified Data.ByteString        as BS
-import qualified Data.ByteString.Base64 as BS64
-import qualified Data.ByteString.Base16 as BS16
-import qualified Data.ByteString.Lazy   as LBS
+import qualified Data.Text                 as T
+import qualified Data.Text.Encoding        as T
+import qualified Data.ByteString           as BS
+import qualified Data.ByteString.Base64    as BS64
+import qualified Data.ByteString.Base16    as BS16
+import qualified Data.ByteString.Lazy      as LBS
+import qualified Data.ByteString.Lazy.UTF8 as LBS8
 import Data.URI (URI (..), printURI)
+import Data.Url (packLocation)
 import Data.Aeson (FromJSON (..), (.:))
 import Data.Aeson.Types (typeMismatch, Value (String, Object))
 import qualified Data.Aeson as Aeson
@@ -49,6 +52,7 @@ import qualified Data.IxSet as IxSet
 import Data.Monoid ((<>))
 import qualified Data.Strict.Maybe as Strict
 import Data.Strict.Tuple (Pair (..))
+import Path.Extended ((<&>), ToLocation (..))
 import Control.Applicative ((<|>))
 import Control.Monad (join, when, forM_)
 import Control.Monad.IO.Class (liftIO)
@@ -158,13 +162,22 @@ router
                       ServerReturn{serverInitOut = AuthTokenInitOutSuccess authToken} <- serverContinue undefined
                       pure (Right authToken, Just state)
 
+    let redirectUri = packLocation
+                        (Strict.Just $ if envTls then "https" else "http")
+                        True
+                        envHostname $
+                          let loc = toLocation $
+                                      case mFbState of
+                                        Nothing -> RootLink
+                                        Just FacebookLoginState{facebookLoginStateOrigin} -> facebookLoginStateOrigin
+                          in  loc <&> ("authToken", Just $ LBS8.toString $ Aeson.encode $ PreliminaryAuthToken $ Just eToken)
     -- TODO redirect smart with FacebookLoginState
-    let redirectUri = URI (Strict.Just $ if envTls then "https" else "http")
-                          True
-                          envHostname
-                          []
-                          ["authToken" :!: Strict.Just (T.decodeUtf8 $ LBS.toStrict $ Aeson.encode $ PreliminaryAuthToken $ Just eToken)]
-                          Strict.Nothing
+    -- let redirectUri = URI (Strict.Just $ if envTls then "https" else "http")
+    --                       True
+    --                       envHostname
+    --                       []
+    --                       ["authToken" :!: Strict.Just (T.decodeUtf8 $ LBS.toStrict $ Aeson.encode $ PreliminaryAuthToken $ Just eToken)]
+    --                       Strict.Nothing
     resp $ textOnly "" status302 [("Location", T.encodeUtf8 $ printURI redirectUri)]
 
   match (l_ "facebookLoginDeauthorize" </> o_) $ \app req resp -> do
