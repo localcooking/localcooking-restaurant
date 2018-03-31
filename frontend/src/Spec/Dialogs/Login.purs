@@ -237,7 +237,7 @@ spec {toURI,login,toRegister} = T.simpleSpec performAction render
               , button
                 { color: Button.primary
                 , disabled: case emailAddress state.email of
-                  Nothing -> state.emailDirty == Just true
+                  Nothing -> state.password == ""
                   Just _ -> false
                 , onTouchTap: mkEffFn1 \_ -> dispatch SubmitLogin
                 } [R.text "Submit"]

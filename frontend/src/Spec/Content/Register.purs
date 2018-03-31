@@ -16,6 +16,8 @@ import React.ReCaptcha (reCaptcha, ReCaptchaResponse)
 
 import MaterialUI.Typography (typography)
 import MaterialUI.Typography as Typography
+import MaterialUI.Button (button)
+import MaterialUI.Button as Button
 import MaterialUI.Divider (divider)
 import MaterialUI.TextField (textField)
 import MaterialUI.Input as Input
@@ -58,6 +60,7 @@ data Action
   | ChangedPasswordConfirm String
   | PasswordUnfocused
   | PasswordConfirmUnfocused
+  | SubmitRegister
 
 
 type Effects eff =
@@ -78,6 +81,7 @@ spec = T.simpleSpec performAction render
       EmailConfirmUnfocused -> void $ T.cotransform _ { emailConfirmDirty = Just true }
       PasswordUnfocused -> void $ T.cotransform _ { passwordDirty = Just true }
       PasswordConfirmUnfocused -> void $ T.cotransform _ { passwordConfirmDirty = Just true }
+      SubmitRegister -> pure unit
 
 
     render :: T.Render State Unit Action
@@ -98,7 +102,7 @@ spec = T.simpleSpec performAction render
             Just _ -> case state.emailConfirmDirty of
               Nothing -> false
               Just dirty
-                | dirty -> state.email == state.emailConfirm
+                | dirty -> state.email /= state.emailConfirm
                 | otherwise -> false
         , name: "register-email"
         , id: "register-email"
@@ -112,7 +116,7 @@ spec = T.simpleSpec performAction render
             Nothing -> state.emailConfirmDirty == Just true
             Just _ -> case state.emailDirty of
               Nothing -> false
-              Just _ -> state.email == state.emailConfirm
+              Just _ -> state.email /= state.emailConfirm
         , name: "register-email-confirm"
         , id: "register-email-confirm"
         }
@@ -130,7 +134,7 @@ spec = T.simpleSpec performAction render
                 Nothing -> false
                 Just dirty
                   | not dirty -> false
-                  | otherwise -> state.password == state.passwordConfirm
+                  | otherwise -> state.password /= state.passwordConfirm
         , name: "register-password"
         , id: "register-password"
         }
@@ -148,7 +152,7 @@ spec = T.simpleSpec performAction render
                 Nothing -> false
                 Just dirty
                   | not dirty -> false
-                  | otherwise -> state.password == state.passwordConfirm
+                  | otherwise -> state.password /= state.passwordConfirm
         , name: "register-password-confirm"
         , id: "register-password-confirm"
         }
@@ -157,6 +161,19 @@ spec = T.simpleSpec performAction render
         , verifyCallback: mkEffFn1 (dispatch <<< GotReCaptchaVerify)
         , onloadCallback: pure unit
         }
+      , button
+        { color: Button.primary
+        , disabled: case emailAddress state.email of
+          Nothing -> true
+          Just _ -> state.email == state.emailConfirm
+                 && state.password == state.passwordConfirm
+                 && case state.passwordDirty of
+                      Nothing -> false
+                      Just _ -> case state.reCaptcha of
+                        Nothing -> false
+                        Just _ -> true
+        , onTouchTap: mkEffFn1 \_ -> dispatch SubmitRegister
+        } [R.text "Submit"]
       ]
 
 
