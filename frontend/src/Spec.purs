@@ -7,7 +7,7 @@ import Spec.Drawers.LeftMenu (leftMenu)
 import Spec.Snackbar (messages)
 import Colors (palette)
 import Window (WindowSize)
-import Links (SiteLinks)
+import Links (SiteLinks (RegisterLink))
 import Login.Error (AuthError (AuthExistsFailure), PreliminaryAuthToken (..))
 import Login.Storage (storeAuthToken, clearAuthToken)
 import LocalCooking.Common.AuthToken (AuthToken)
@@ -140,6 +140,7 @@ spec
             unsafeCoerceEff $ dispatch $ CallAuthToken $ AuthTokenInitInLogin {email,password}
             One.onQueue loginPendingSignal \_ -> resolve (Right unit)
             pure nonCanceler
+        , toRegister: siteLinks RegisterLink
         }
       , leftMenu
         { mobileDrawerOpenSignal: One.readOnly mobileMenuButtonSignal

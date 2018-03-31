@@ -4,6 +4,7 @@ import Spec.Content.About (about)
 import Spec.Content.Root (root)
 import Spec.Content.Chefs (chefs)
 import Spec.Content.Meals (meals)
+import Spec.Content.Register (register)
 import Links (SiteLinks (..), initSiteLinks)
 
 import Prelude
@@ -71,6 +72,7 @@ spec = T.simpleSpec performAction render
                 RootLink -> root
                 ChefsLink -> chefs
                 MealsLink -> meals
+                RegisterLink -> register
             ]
           , typography
             { variant: Typography.caption

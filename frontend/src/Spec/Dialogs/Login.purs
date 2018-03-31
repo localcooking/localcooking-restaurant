@@ -17,6 +17,7 @@ import Data.UUID (GENUUID)
 import Data.Time.Duration (Milliseconds (..))
 import Text.Email.Validate (EmailAddress, emailAddress)
 import Control.Monad.Base (liftBase)
+import Control.Monad.Eff (Eff)
 import Control.Monad.Aff (Aff, delay)
 import Control.Monad.Eff.Uncurried (mkEffFn1)
 import Control.Monad.Eff.Unsafe (unsafeCoerceEff, unsafePerformEff)
@@ -86,6 +87,7 @@ data Action
   | EmailUnfocused
   | ChangedPassword String
   | SubmitLogin
+  | ClickedRegister
 
 type Effects eff =
   ( ref       :: REF
@@ -101,9 +103,10 @@ type Effects eff =
 spec :: forall eff
       . { toURI :: Location -> URI
         , login :: EmailAddress -> HashedPassword -> Aff (Effects eff) Unit
+        , toRegister :: Eff (Effects eff) Unit
         }
      -> T.Spec (Effects eff) State Unit Action
-spec {toURI,login} = T.simpleSpec performAction render
+spec {toURI,login,toRegister} = T.simpleSpec performAction render
   where
     performAction action props state = case action of
       Open -> void $ T.cotransform _ { open = true }
@@ -114,6 +117,9 @@ spec {toURI,login} = T.simpleSpec performAction render
       ChangedWindowSize w -> void $ T.cotransform _ { windowSize = w }
       ChangedPage p -> void $ T.cotransform _ { currentPage = p }
       ChangedEmail e -> void $ T.cotransform _ { email = e, emailDirty = Just false }
+      ClickedRegister -> do
+        performAction Close props state
+        liftEff toRegister
       EmailUnfocused -> void $ T.cotransform _ { emailDirty = Just true }
       ChangedPassword p -> void $ T.cotransform _ { password = p }
       SubmitLogin -> do
@@ -217,11 +223,10 @@ spec {toURI,login} = T.simpleSpec performAction render
             , dialogActions {}
               [ button
                 { color: Button.secondary
-                -- , onTouchTap: mkEffFn1 \_ -> dispatch Close
+                , onTouchTap: mkEffFn1 \_ -> dispatch ClickedRegister
                 } [R.text "Register"]
               , button
                 { color: Button.primary
-                -- , onTouchTap: mkEffFn1 \_ -> dispatch Close
                 , disabled: case emailAddress state.email of
                   Nothing -> state.emailDirty == Just true
                   Just _ -> false
@@ -238,15 +243,16 @@ spec {toURI,login} = T.simpleSpec performAction render
 
 
 loginDialog :: forall eff
-             . { openLoginSignal :: Queue (read :: READ) (Effects eff) Unit
-               , windowSizeSignal :: IxSignal (Effects eff) WindowSize
-               , toURI :: Location -> URI
+             . { openLoginSignal   :: Queue (read :: READ) (Effects eff) Unit
+               , windowSizeSignal  :: IxSignal (Effects eff) WindowSize
+               , toURI             :: Location -> URI
                , currentPageSignal :: IxSignal (Effects eff) SiteLinks
-               , login :: EmailAddress -> HashedPassword -> Aff (Effects eff) Unit
+               , login             :: EmailAddress -> HashedPassword -> Aff (Effects eff) Unit
+               , toRegister        :: Eff (Effects eff) Unit
                }
             -> R.ReactElement
-loginDialog {openLoginSignal,windowSizeSignal,toURI,currentPageSignal,login} =
-  let {spec: reactSpec, dispatcher} = T.createReactSpec (spec {toURI,login}) initialState
+loginDialog {openLoginSignal,windowSizeSignal,toURI,currentPageSignal,login,toRegister} =
+  let {spec: reactSpec, dispatcher} = T.createReactSpec (spec {toURI,login,toRegister}) initialState
       reactSpecLogin =
           Signal.whileMountedIxUUID
             windowSizeSignal

@@ -44,6 +44,7 @@ instance toLocationLogoLinks :: ToLocation LogoLinks where
 data SiteLinks
   = RootLink
   | AboutLink
+  | RegisterLink
   | MealsLink -- FIXME search terms
   | ChefsLink -- FIXME search terms or hierarchy
 
@@ -53,6 +54,7 @@ instance arbitrarySiteLinks :: Arbitrary SiteLinks where
     :|  [ pure AboutLink
         , pure MealsLink
         , pure ChefsLink
+        , pure RegisterLink
         ]
 
 initSiteLinks :: SiteLinks
@@ -84,6 +86,7 @@ instance toLocationSiteLinks :: ToLocation SiteLinks where
     AboutLink -> Location (Right $ rootDir </> file "about") Nothing Nothing
     MealsLink -> Location (Right $ rootDir </> file "meals") Nothing Nothing
     ChefsLink -> Location (Right $ rootDir </> file "chefs") Nothing Nothing
+    RegisterLink -> Location (Right $ rootDir </> file "register") Nothing Nothing
 
 siteLinksToDocumentTitle :: SiteLinks -> DocumentTitle
 siteLinksToDocumentTitle x = DocumentTitle $ case x of
@@ -91,6 +94,7 @@ siteLinksToDocumentTitle x = DocumentTitle $ case x of
   AboutLink -> "About - Local Cooking"
   MealsLink -> "Meals - Local Cooking"
   ChefsLink -> "Chefs - Local Cooking"
+  RegisterLink -> "Register - Local Cooking"
 
 
 -- Policy: don't fail on bad query params / fragment unless you have to
@@ -108,13 +112,17 @@ siteLinksParser (Location path mQuery mFrag) = do
             AboutLink <$ (string "about" *> eof)
           meals = do
             void divider
-            MealsLink <$ string "meals" -- FIXME search parameters
+            MealsLink <$ (string "meals" *> eof) -- FIXME search parameters
           chefs = do
             void divider
-            ChefsLink <$ string "chefs" -- FIXME search parameters or hierarchy
+            ChefsLink <$ (string "chefs" *> eof) -- FIXME search parameters or hierarchy
+          register = do
+            void divider
+            ChefsLink <$ (string "register" *> eof)
       try about
         <|> try meals
         <|> try chefs
+        <|> try register
         <|> root
       where
         divider = char '/'
