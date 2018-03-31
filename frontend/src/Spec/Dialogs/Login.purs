@@ -138,6 +138,8 @@ spec {toURI,login} = T.simpleSpec performAction render
                 dialog
                   { open: state.open
                   , fullScreen: true
+                  , container: R.createClassStateless' \(_ :: Unit) children ->
+                      [R.form [RP._id "login"] children]
                   }
               else
                 dialog
@@ -145,6 +147,8 @@ spec {toURI,login} = T.simpleSpec performAction render
                   , fullWidth: true
                   , onClose: mkEffFn1 \_ ->
                       when (not state.pending) (dispatch Close)
+                  , container: R.createClassStateless' \(_ :: Unit) children ->
+                      [R.form [RP._id "login"] children]
                   }
         in  dialog'
             [ dialogTitle {} [R.text "Login"]
@@ -229,6 +233,8 @@ spec {toURI,login} = T.simpleSpec performAction render
                   Nothing -> state.emailDirty == Just true
                   Just _ -> false
                 , onTouchTap: mkEffFn1 \_ -> dispatch SubmitLogin
+                , component: R.createClassStateless' \(_ :: Unit) children ->
+                  [R.input [RP._type "submit"] children]
                 } [R.text "Submit"]
               , button
                 { color: Button.default
