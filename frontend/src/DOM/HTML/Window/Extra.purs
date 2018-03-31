@@ -42,6 +42,7 @@ foreign import queryParams :: Location -> StrMap String
 -- removeQueryParam = runEffFn2 removeQueryParamImpl
 
 
+
 pushState' :: forall eff. SiteLinks -> Eff (history :: HISTORY, dom :: DOM | eff) Unit
 pushState' x = do
   h <- window >>= history
