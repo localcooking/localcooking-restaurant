@@ -109,16 +109,20 @@ siteLinksParser (Location path mQuery mFrag) = do
       let root = RootLink <$ (divider *> eof)
           about = do
             void divider
-            AboutLink <$ (string "about" *> eof)
+            void (string "about")
+            pure AboutLink
           meals = do
             void divider
-            MealsLink <$ (string "meals" *> eof) -- FIXME search parameters
+            void (string "meals")
+            pure MealsLink
           chefs = do
             void divider
-            ChefsLink <$ (string "chefs" *> eof) -- FIXME search parameters or hierarchy
+            void (string "chefs")
+            pure ChefsLink -- FIXME search parameters or hierarchy
           register = do
             void divider
-            ChefsLink <$ (string "register" *> eof)
+            void (string "register")
+            pure RegisterLink
       try about
         <|> try meals
         <|> try chefs
