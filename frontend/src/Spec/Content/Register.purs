@@ -15,6 +15,7 @@ import React.DOM as R
 import React.DOM.Props as RP
 import React.ReCaptcha (reCaptcha, ReCaptchaResponse)
 
+import MaterialUI.Types (createStyles)
 import MaterialUI.Typography (typography)
 import MaterialUI.Typography as Typography
 import MaterialUI.Button (button)
@@ -169,13 +170,17 @@ spec = T.simpleSpec performAction render
             , name: "register-password-confirm"
             , id: "register-password-confirm"
             }
+          , R.div [RP.style {marginBotton: "1em"}] []
           , reCaptcha
             { sitekey: env.googleReCaptchaSiteKey
             , verifyCallback: mkEffFn1 (dispatch <<< GotReCaptchaVerify)
             , onloadCallback: pure unit
             }
           , button
-            { color: Button.primary
+            { color: Button.secondary
+            , variant: Button.raised
+            , size: Button.large
+            , style: createStyles {marginTop: "1em"}
             , disabled: case emailAddress state.email of
               Nothing -> true
               Just _ -> state.email /= state.emailConfirm
