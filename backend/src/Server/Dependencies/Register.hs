@@ -85,6 +85,8 @@ registerServer :: Server AppM RegisterInitIn
                               RegisterDeltaIn
                               RegisterDeltaOut
 registerServer RegisterInitIn{..} = do
+  liftIO $ log' "running..."
+
   Env
     { envManagers = Managers{managersReCaptcha}
     , envKeys = Keys{keysGoogle = GoogleCredentials{googleReCaptchaSecret}}
@@ -109,7 +111,9 @@ registerServer RegisterInitIn{..} = do
         liftIO $ log' $ "Couldn't parse response body: " <> T.pack (show $ responseBody resp)
         pure Nothing
       Just (ReCaptchaVerifyResponse success)
-        | not success -> pure $ Just ServerContinue
+        | not success -> do
+          liftIO $ log' "recaptcha failure"
+          pure $ Just ServerContinue
             { serverOnUnsubscribe = pure ()
             , serverContinue = \_ -> pure ServerReturn
               { serverInitOut = RegisterInitOutBadCaptcha
@@ -120,7 +124,8 @@ registerServer RegisterInitIn{..} = do
         | otherwise -> do
             eUid <- liftIO $ registerUser envDatabase registerInitInEmail registerInitInPassword
             case eUid of
-              Left e ->
+              Left e -> do
+                liftIO $ log' "db error"
                 pure $ Just ServerContinue
                   { serverOnUnsubscribe = pure ()
                   , serverContinue = \_ -> pure ServerReturn
@@ -130,6 +135,7 @@ registerServer RegisterInitIn{..} = do
                     }
                   }
               Right uid -> do
+                liftIO $ log' "sending email..."
                 -- Send registration email
                 emailContent <- renderTextT $ do
                   L.div_ [] $ do
@@ -144,6 +150,7 @@ registerServer RegisterInitIn{..} = do
                         "Complete your Registration with Local Cooking"
                         [htmlPart emailContent]
                   sendMail (T.unpack (printURIAuthHost envSMTPHost)) message
+                liftIO $ log' "email sent."
                 pure $ Just ServerContinue
                   { serverOnUnsubscribe = pure ()
                   , serverContinue = \_ -> pure ServerReturn
