@@ -135,11 +135,10 @@ spec {registerQueues: {init: registerQueuesInit},toRoot} = T.simpleSpec performA
             Nothing -> pure unit
             Just reCaptcha -> do
               mErr <- liftBase $ do
-                liftEff $ log "hashing password"
                 password <- hashPassword {password: state.password, salt: env.salt}
-                liftEff $ log "password hashed"
                 OneIO.callAsync registerQueuesInit $ RegisterInitIn {email,password,reCaptcha}
-              liftEff $ log "received"
+              void $ T.cotransform _ { pending = false }
+              liftEff $ log $ "received: " <> show mErr
               case mErr of
                 Nothing -> pure unit
                 Just initOut -> case initOut of

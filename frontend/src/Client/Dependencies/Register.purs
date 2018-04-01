@@ -3,10 +3,11 @@ module Client.Dependencies.Register where
 import LocalCooking.Common.Password (HashedPassword)
 import Google.ReCaptcha (ReCaptchaResponse)
 
-import Prelude (bind, (<$>), unit, (==), pure, otherwise)
+import Prelude (bind, (<$>), unit, (==), pure, otherwise, class Eq, class Show)
 
 import Sparrow.Client.Queue (SparrowClientQueues)
 import Text.Email.Validate (EmailAddress)
+import Data.Generic (class Generic, gEq, gShow)
 import Data.Argonaut (class EncodeJson, class DecodeJson, encodeJson, decodeJson, fail, (:=), (~>), jsonEmptyObject, (.?))
 import Control.Alternative ((<|>))
 import Text.Email.Validate as Email
@@ -28,6 +29,11 @@ instance encodeJsonRegisterInitIn :: EncodeJson RegisterInitIn where
 data RegisterFailure
   = EmailExists
 
+derive instance genericRegisterFailure :: Generic RegisterFailure
+
+instance showRegisterFailure :: Show RegisterFailure where
+  show = gShow
+
 instance decodeJsonRegisterFailure :: DecodeJson RegisterFailure where
   decodeJson json = do
     s <- decodeJson json
@@ -40,6 +46,11 @@ data RegisterInitOut
   = RegisterInitOutEmailSent
   | RegisterInitOutBadCaptcha
   | RegisterInitOutDBError RegisterFailure
+
+derive instance genericRegisterInitOut :: Generic RegisterInitOut
+
+instance showRegisterInitOut :: Show RegisterInitOut where
+  show = gShow
 
 instance decodeJsonRegisterInitOut :: DecodeJson RegisterInitOut where
   decodeJson json = do
