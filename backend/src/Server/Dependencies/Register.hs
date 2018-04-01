@@ -11,7 +11,7 @@ import Types.Env (Env (..), Managers (..))
 import Types.Keys (Keys (..))
 import LocalCooking.Common.Password (HashedPassword)
 import LocalCooking.Database.Query.User (registerUser, RegisterFailure)
-import Google.ReCaptcha (ReCaptchaResponse, ReCaptchaVerify (..), ReCaptchaVerifyResponse (..), googleReCaptchaVerifyURI)
+import Google.ReCaptcha (ReCaptchaResponse, ReCaptchaVerifyResponse (..), googleReCaptchaVerifyURI)
 import Google.Keys (GoogleCredentials (..))
 
 import Text.EmailAddress (EmailAddress)

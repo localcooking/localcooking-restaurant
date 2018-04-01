@@ -45,16 +45,16 @@ newtype ReCaptchaResponse = ReCaptchaResponse
 
 
 
-data ReCaptchaVerify = ReCaptchaVerify
-  { reCaptchaVerifySecret   :: ReCaptchaSecret
-  , reCaptchaVerifyResponse :: ReCaptchaResponse
-  } deriving (Eq, Show)
+-- data ReCaptchaVerify = ReCaptchaVerify
+--   { reCaptchaVerifySecret   :: ReCaptchaSecret
+--   , reCaptchaVerifyResponse :: ReCaptchaResponse
+--   } deriving (Eq, Show)
 
-instance ToJSON ReCaptchaVerify where
-  toJSON ReCaptchaVerify{..} = object
-    [ "secret" .= reCaptchaVerifySecret
-    , "response" .= reCaptchaVerifyResponse
-    ]
+-- instance ToJSON ReCaptchaVerify where
+--   toJSON ReCaptchaVerify{..} = object
+--     [ "secret" .= reCaptchaVerifySecret
+--     , "response" .= reCaptchaVerifyResponse
+--     ]
 
 
 googleReCaptchaVerifyURI :: URI
