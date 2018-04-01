@@ -21,9 +21,11 @@ import qualified Data.Aeson as Aeson
 import Data.Aeson.Types (typeMismatch)
 import Data.URI (printURI)
 import Data.URI.Auth.Host (printURIAuthHost)
+import Data.Monoid ((<>))
 import qualified Data.Text as T
 import Control.Monad.IO.Class (MonadIO (liftIO))
 import Control.Monad.Reader (ask)
+import Control.Logging (log')
 import Network.HTTP.Client (httpLbs, responseBody, parseRequest, method, requestBody, RequestBody (RequestBodyLBS))
 import Network.Mail.SMTP (sendMail, simpleMail, htmlPart, Address (..))
 
@@ -103,7 +105,9 @@ registerServer RegisterInitIn{..} = do
     resp <- httpLbs req' managersReCaptcha
 
     case Aeson.decode (responseBody resp) of
-      Nothing -> pure Nothing
+      Nothing -> do
+        liftIO $ log' $ "Couldn't parse response body: " <> T.pack (show $ responseBody resp)
+        pure Nothing
       Just (ReCaptchaVerifyResponse success)
         | not success -> pure $ Just ServerContinue
             { serverOnUnsubscribe = pure ()

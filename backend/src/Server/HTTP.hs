@@ -188,7 +188,6 @@ router
 httpServer :: RouterT (MiddlewareT AppM) sec AppM ()
            -> MiddlewareT AppM
 httpServer dependencies = \app req resp -> do
-  loginRefs <- liftIO $ atomically newTMapChan
   route ( do dependencies
              router
         ) app req resp
