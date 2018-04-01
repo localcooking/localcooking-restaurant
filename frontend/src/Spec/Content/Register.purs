@@ -57,6 +57,7 @@ type State =
   , pending              :: Boolean
   , failure              :: Maybe RegisterFailure
   , badCaptcha           :: Boolean
+  , emailSent            :: Boolean
   }
 
 initialState :: State
@@ -73,6 +74,7 @@ initialState =
   , pending: false
   , failure: Nothing
   , badCaptcha: false
+  , emailSent: false
   }
 
 data Action
@@ -91,6 +93,7 @@ data Action
   | GotBadCaptcha
   | ClearBadCaptcha
   | GotEmailSent
+  | ClearEmailSent
 
 
 type Effects eff =
@@ -118,7 +121,10 @@ spec {registerQueues: {init: registerQueuesInit},toRoot} = T.simpleSpec performA
       EmailConfirmUnfocused -> void $ T.cotransform _ { emailConfirmDirty = Just true }
       PasswordUnfocused -> void $ T.cotransform _ { passwordDirty = Just true }
       PasswordConfirmUnfocused -> void $ T.cotransform _ { passwordConfirmDirty = Just true }
-      GotEmailSent -> liftEff toRoot
+      GotEmailSent -> do
+        void $ T.cotransform _ { emailSent = true }
+        -- FIXME auto login
+        liftEff toRoot
       GotBadCaptcha -> void $ T.cotransform _ { badCaptcha = true }
       GotFailure e -> void $ T.cotransform _ { failure = Just e }
       ClearBadCaptcha -> do
@@ -127,6 +133,9 @@ spec {registerQueues: {init: registerQueuesInit},toRoot} = T.simpleSpec performA
       ClearFailure -> do
         liftBase $ delay $ Milliseconds 12000.0
         void $ T.cotransform _ { failure = Nothing }
+      ClearEmailSent -> do
+        liftBase $ delay $ Milliseconds 12000.0
+        void $ T.cotransform _ { emailSent = false }
       SubmitRegister -> do
         void $ T.cotransform _ { pending = true }
         case emailAddress state.email of
@@ -273,17 +282,20 @@ spec {registerQueues: {init: registerQueuesInit},toRoot} = T.simpleSpec performA
           else R.text ""
       , snackbar
         { open: case state.failure of
-            Nothing -> state.badCaptcha
+            Nothing -> state.badCaptcha || state.emailSent
             Just _ -> true
         , autoHideDuration: toNullable $ Just $ Milliseconds 10000.0
         , onClose: mkEffFn2 \_ _ -> do
             dispatch ClearFailure
+            dispatch ClearEmailSent
             dispatch ClearBadCaptcha
         , message: case state.failure of
           Nothing ->
             if state.badCaptcha
                then R.text "Bad ReCaptcha response"
-               else R.text ""
+               else if state.emailSent
+                       then R.text "User registered! Please check your email for confirmation."
+                       else R.text ""
           Just e -> case e of
             EmailExists -> R.text "Email address is already registered."
         }
