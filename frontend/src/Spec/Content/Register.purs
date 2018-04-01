@@ -37,6 +37,7 @@ import MaterialUI.Input as Input
 import MaterialUI.Grid (grid)
 import MaterialUI.Grid as Grid
 import MaterialUI.Snackbar (snackbar)
+import MaterialUI.CircularProgress (circularProgress)
 import Crypto.Scrypt (SCRYPT)
 
 import Unsafe.Coerce (unsafeCoerce)
@@ -134,8 +135,11 @@ spec {registerQueues: {init: registerQueuesInit},toRoot} = T.simpleSpec performA
             Nothing -> pure unit
             Just reCaptcha -> do
               mErr <- liftBase $ do
+                liftEff $ log "hashing password"
                 password <- hashPassword {password: state.password, salt: env.salt}
+                liftEff $ log "password hashed"
                 OneIO.callAsync registerQueuesInit $ RegisterInitIn {email,password,reCaptcha}
+              liftEff $ log "received"
               case mErr of
                 Nothing -> pure unit
                 Just initOut -> case initOut of
@@ -249,6 +253,25 @@ spec {registerQueues: {init: registerQueuesInit},toRoot} = T.simpleSpec performA
             } [R.text "Submit"]
           ]
         ]
+      , if state.pending
+          then R.div
+                [ RP.style
+                  { zIndex: 1000
+                  , position: "absolute"
+                  , top: "0"
+                  , left: "0"
+                  , right: "0"
+                  , bottom: "0"
+                  , display: "flex"
+                  , flexDirection: "column"
+                  , alignItems: "center"
+                  , justifyContent: "center"
+                  , background: "rgba(255,255,255, 0.6)"
+                  }
+                ]
+                [ circularProgress {size: 50}
+                ]
+          else R.text ""
       , snackbar
         { open: case state.failure of
             Nothing -> state.badCaptcha
