@@ -173,6 +173,7 @@ main = do
   -- Sparrow dependencies
   allocateDependencies (scheme == Just (Scheme "https")) authority $ do
     unpackClient (Topic ["authToken"]) (sparrowClientQueues authTokenQueues)
+    unpackClient (Topic ["register"]) (sparrowClientQueues registerQueues)
 
 
   ( preliminaryAuthToken :: PreliminaryAuthToken

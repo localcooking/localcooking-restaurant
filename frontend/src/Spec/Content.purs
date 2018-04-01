@@ -76,6 +76,7 @@ spec {registerQueues,windowSizeSignal,siteLinks} = T.simpleSpec performAction re
             , marginLeft: "auto"
             , marginRight: "auto"
             , padding: "1em"
+            , position: "relative"
             }
           }
           [ R.div [RP.style {minHeight: "30em", padding: "1em"}]
