@@ -104,6 +104,9 @@ registerServer RegisterInitIn{..} = do
                         $ ReCaptchaVerify googleReCaptchaSecret registerInitInReCaptcha
           }
 
+    putStrLn "ReCaptcha..."
+    print req'
+
     resp <- httpLbs req' managersReCaptcha
 
     case Aeson.decode (responseBody resp) of
