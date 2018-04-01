@@ -97,15 +97,14 @@ registerServer RegisterInitIn{..} = do
   liftIO $ do
     req <- parseRequest $ T.unpack $ printURI googleReCaptchaVerifyURI
 
-    let req' = req
+    let body = Aeson.encode $ ReCaptchaVerify googleReCaptchaSecret registerInitInReCaptcha
+        req' = req
           { method = "POST"
-          , requestBody = RequestBodyLBS
-                        $ Aeson.encode
-                        $ ReCaptchaVerify googleReCaptchaSecret registerInitInReCaptcha
+          , requestBody = RequestBodyLBS body
           }
 
     putStr "ReCaptcha...: "
-    print req'
+    print body
 
     resp <- httpLbs req' managersReCaptcha
 
