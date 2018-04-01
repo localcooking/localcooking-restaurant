@@ -17,6 +17,7 @@ import React.DOM as R
 import React.DOM.Props as RP
 import React.Signal.WhileMounted as Signal
 import Data.UUID (GENUUID)
+import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Console (CONSOLE)
 import Control.Monad.Eff.Unsafe (unsafeCoerceEff)
 import Control.Monad.Eff.Ref (REF)
@@ -57,9 +58,10 @@ type Effects eff =
 spec :: forall eff
       . { registerQueues   :: RegisterSparrowClientQueues (Effects eff)
         , windowSizeSignal :: IxSignal (Effects eff) WindowSize
+        , siteLinks         :: SiteLinks -> Eff (Effects eff) Unit
         }
      -> T.Spec (Effects eff) State Unit Action
-spec {registerQueues,windowSizeSignal} = T.simpleSpec performAction render
+spec {registerQueues,windowSizeSignal,siteLinks} = T.simpleSpec performAction render
   where
     performAction action props state = case action of
       ChangedCurrentPage p -> void $ T.cotransform _ { page = p }
@@ -82,7 +84,11 @@ spec {registerQueues,windowSizeSignal} = T.simpleSpec performAction render
                 RootLink -> root {windowSizeSignal}
                 ChefsLink -> chefs
                 MealsLink -> meals
-                RegisterLink -> register {registerQueues}
+                RegisterLink ->
+                  register
+                    { registerQueues
+                    , toRoot: siteLinks RootLink
+                    }
             ]
           , typography
             { variant: Typography.caption
@@ -99,10 +105,11 @@ content :: forall eff
          . { currentPageSignal :: IxSignal (Effects eff) SiteLinks
            , windowSizeSignal  :: IxSignal (Effects eff) WindowSize
            , registerQueues    :: RegisterSparrowClientQueues (Effects eff)
+           , siteLinks         :: SiteLinks -> Eff (Effects eff) Unit
            } -> R.ReactElement
-content {currentPageSignal,registerQueues,windowSizeSignal} =
+content {currentPageSignal,registerQueues,windowSizeSignal,siteLinks} =
   let {spec: reactSpec, dispatcher} =
-        T.createReactSpec (spec {registerQueues,windowSizeSignal}) initialState
+        T.createReactSpec (spec {registerQueues,windowSizeSignal,siteLinks}) initialState
       reactSpec' = Signal.whileMountedIxUUID
                      currentPageSignal
                      (\this x -> unsafeCoerceEff $ dispatcher this (ChangedCurrentPage x))

@@ -2,18 +2,22 @@ module Spec.Content.Register where
 
 import Types.Env (env)
 import Google.ReCaptcha (ReCaptchaResponse)
-import Client.Dependencies.Register (RegisterSparrowClientQueues, RegisterInitIn (..))
+import Client.Dependencies.Register (RegisterSparrowClientQueues, RegisterInitIn (..), RegisterFailure (..), RegisterInitOut (..))
 import LocalCooking.Common.Password (hashPassword)
 
 import Prelude
 import Data.Maybe (Maybe (..))
 import Data.UUID (GENUUID)
+import Data.Time.Duration (Milliseconds (..))
+import Data.Nullable (toNullable)
 import Text.Email.Validate (emailAddress)
 import Control.Monad.Base (liftBase)
+import Control.Monad.Aff (delay)
+import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (liftEff)
 import Control.Monad.Eff.Ref (REF)
 import Control.Monad.Eff.Console (CONSOLE, log)
-import Control.Monad.Eff.Uncurried (mkEffFn1)
+import Control.Monad.Eff.Uncurried (mkEffFn1, mkEffFn2)
 import Control.Monad.Eff.Exception (EXCEPTION)
 
 import Thermite as T
@@ -32,6 +36,7 @@ import MaterialUI.TextField (textField)
 import MaterialUI.Input as Input
 import MaterialUI.Grid (grid)
 import MaterialUI.Grid as Grid
+import MaterialUI.Snackbar (snackbar)
 import Crypto.Scrypt (SCRYPT)
 
 import Unsafe.Coerce (unsafeCoerce)
@@ -39,16 +44,18 @@ import Queue.One.Aff as OneIO
 
 
 type State =
-  { reCaptcha :: Maybe ReCaptchaResponse
-  , email :: String
-  , emailDirty :: Maybe Boolean
-  , emailConfirm :: String
-  , emailConfirmDirty :: Maybe Boolean
-  , password :: String
-  , passwordDirty :: Maybe Boolean
-  , passwordConfirm :: String
+  { reCaptcha            :: Maybe ReCaptchaResponse
+  , email                :: String
+  , emailDirty           :: Maybe Boolean
+  , emailConfirm         :: String
+  , emailConfirmDirty    :: Maybe Boolean
+  , password             :: String
+  , passwordDirty        :: Maybe Boolean
+  , passwordConfirm      :: String
   , passwordConfirmDirty :: Maybe Boolean
-  , pending :: Boolean
+  , pending              :: Boolean
+  , failure              :: Maybe RegisterFailure
+  , badCaptcha           :: Boolean
   }
 
 initialState :: State
@@ -63,6 +70,8 @@ initialState =
   , passwordConfirm: ""
   , passwordConfirmDirty: Nothing
   , pending: false
+  , failure: Nothing
+  , badCaptcha: false
   }
 
 data Action
@@ -76,6 +85,11 @@ data Action
   | PasswordUnfocused
   | PasswordConfirmUnfocused
   | SubmitRegister
+  | GotFailure RegisterFailure
+  | ClearFailure
+  | GotBadCaptcha
+  | ClearBadCaptcha
+  | GotEmailSent
 
 
 type Effects eff =
@@ -89,8 +103,9 @@ type Effects eff =
 
 spec :: forall eff
       . { registerQueues :: RegisterSparrowClientQueues (Effects eff)
+        , toRoot :: Eff (Effects eff) Unit
         } -> T.Spec (Effects eff) State Unit Action
-spec {registerQueues: {init: registerQueuesInit}} = T.simpleSpec performAction render
+spec {registerQueues: {init: registerQueuesInit},toRoot} = T.simpleSpec performAction render
   where
     performAction action props state = case action of
       GotReCaptchaVerify e -> void $ T.cotransform _ { reCaptcha = Just e }
@@ -102,6 +117,15 @@ spec {registerQueues: {init: registerQueuesInit}} = T.simpleSpec performAction r
       EmailConfirmUnfocused -> void $ T.cotransform _ { emailConfirmDirty = Just true }
       PasswordUnfocused -> void $ T.cotransform _ { passwordDirty = Just true }
       PasswordConfirmUnfocused -> void $ T.cotransform _ { passwordConfirmDirty = Just true }
+      GotEmailSent -> liftEff toRoot
+      GotBadCaptcha -> void $ T.cotransform _ { badCaptcha = true }
+      GotFailure e -> void $ T.cotransform _ { failure = Just e }
+      ClearBadCaptcha -> do
+        liftBase $ delay $ Milliseconds 12000.0
+        void $ T.cotransform _ { badCaptcha = false }
+      ClearFailure -> do
+        liftBase $ delay $ Milliseconds 12000.0
+        void $ T.cotransform _ { failure = Nothing }
       SubmitRegister -> do
         void $ T.cotransform _ { pending = true }
         case emailAddress state.email of
@@ -114,7 +138,10 @@ spec {registerQueues: {init: registerQueuesInit}} = T.simpleSpec performAction r
                 OneIO.callAsync registerQueuesInit $ RegisterInitIn {email,password,reCaptcha}
               case mErr of
                 Nothing -> pure unit
-                Just initOut -> pure unit
+                Just initOut -> case initOut of
+                  RegisterInitOutEmailSent -> performAction GotEmailSent props state
+                  RegisterInitOutBadCaptcha -> performAction GotBadCaptcha props state
+                  RegisterInitOutDBError e -> performAction (GotFailure e) props state
 
     render :: T.Render State Unit Action
     render dispatch props state children =
@@ -222,11 +249,28 @@ spec {registerQueues: {init: registerQueuesInit}} = T.simpleSpec performAction r
             } [R.text "Submit"]
           ]
         ]
+      , snackbar
+        { open: case state.failure of
+            Nothing -> state.badCaptcha
+            Just _ -> true
+        , autoHideDuration: toNullable $ Just $ Milliseconds 10000.0
+        , onClose: mkEffFn2 \_ _ -> do
+            dispatch ClearFailure
+            dispatch ClearBadCaptcha
+        , message: case state.failure of
+          Nothing ->
+            if state.badCaptcha
+               then R.text "Bad ReCaptcha response"
+               else R.text ""
+          Just e -> case e of
+            EmailExists -> R.text "Email address is already registered."
+        }
       ]
 
 
 register :: forall eff
           . { registerQueues :: RegisterSparrowClientQueues (Effects eff)
+            , toRoot         :: Eff (Effects eff) Unit
             }
          -> R.ReactElement
 register params =

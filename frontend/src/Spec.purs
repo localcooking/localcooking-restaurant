@@ -137,6 +137,7 @@ spec
         { currentPageSignal
         , registerQueues
         , windowSizeSignal
+        , siteLinks
         }
       , loginDialog
         { openLoginSignal: One.readOnly openLoginSignal
