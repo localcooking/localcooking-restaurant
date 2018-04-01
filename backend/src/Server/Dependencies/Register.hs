@@ -11,7 +11,7 @@ import Types.Env (Env (..), Managers (..))
 import Types.Keys (Keys (..))
 import LocalCooking.Common.Password (HashedPassword)
 import LocalCooking.Database.Query.User (registerUser, RegisterFailure)
-import Google.ReCaptcha (ReCaptchaResponse, ReCaptchaVerifyResponse (..), googleReCaptchaVerifyURI)
+import Google.ReCaptcha (ReCaptchaResponse (getReCaptchaResponse), ReCaptchaSecret (getReCaptchaSecret), ReCaptchaVerifyResponse (..), googleReCaptchaVerifyURI)
 import Google.Keys (GoogleCredentials (..))
 
 import Text.EmailAddress (EmailAddress)
@@ -23,7 +23,7 @@ import Data.URI (printURI)
 import Data.URI.Auth.Host (printURIAuthHost)
 import Data.Monoid ((<>))
 import qualified Data.Text as T
-import qualified Data.ByteString.Lazy as LBS
+import qualified Data.Text.Encoding as T
 import Control.Monad.IO.Class (MonadIO (liftIO))
 import Control.Monad.Reader (ask)
 import Control.Logging (log')
@@ -100,8 +100,8 @@ registerServer RegisterInitIn{..} = do
 
     let -- body = Aeson.encode $ ReCaptchaVerify googleReCaptchaSecret registerInitInReCaptcha
         req' = urlEncodedBody
-                 [ ("secret", LBS.toStrict $ Aeson.encode googleReCaptchaSecret)
-                 , ("response", LBS.toStrict $ Aeson.encode registerInitInReCaptcha)
+                 [ ("secret", T.encodeUtf8 $ getReCaptchaSecret googleReCaptchaSecret)
+                 , ("response", T.encodeUtf8 $ getReCaptchaResponse registerInitInReCaptcha)
                  ]
                  $ req
                     { method = "POST"
