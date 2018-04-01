@@ -104,7 +104,7 @@ registerServer RegisterInitIn{..} = do
                         $ ReCaptchaVerify googleReCaptchaSecret registerInitInReCaptcha
           }
 
-    putStrLn "ReCaptcha..."
+    putStr "ReCaptcha...: "
     print req'
 
     resp <- httpLbs req' managersReCaptcha
