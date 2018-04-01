@@ -1,6 +1,6 @@
 module Spec.Content.Root where
 
-import Window (WindowSize (Laptop), initialWindowSize)
+import Window (WindowSize (Laptop), initWindowSize)
 
 import Prelude
 import Data.UUID (GENUUID)
@@ -32,7 +32,7 @@ type State =
 
 initialState :: State
 initialState =
-  { windowSize: unsafePerformEff initialWindowSize
+  { windowSize: unsafePerformEff initWindowSize
   }
 
 data Action

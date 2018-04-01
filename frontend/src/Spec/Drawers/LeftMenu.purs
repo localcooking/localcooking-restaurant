@@ -1,6 +1,6 @@
 module Spec.Drawers.LeftMenu where
 
-import Window (WindowSize, initialWindowSize)
+import Window (WindowSize, initWindowSize)
 import Links (SiteLinks (..))
 
 import Prelude
@@ -41,7 +41,7 @@ type State =
 initialState :: State
 initialState =
   { open: false
-  , windowSize: unsafePerformEff initialWindowSize
+  , windowSize: unsafePerformEff initWindowSize
   }
 
 data Action

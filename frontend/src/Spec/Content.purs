@@ -7,7 +7,7 @@ import Spec.Content.Meals (meals)
 import Spec.Content.Register (register)
 import Links (SiteLinks (..), initSiteLinks)
 import Client.Dependencies.Register (RegisterSparrowClientQueues)
-import Window (WindowSize)
+import Window (WindowSize (Laptop), initWindowSize)
 
 import Prelude
 
@@ -19,7 +19,7 @@ import React.Signal.WhileMounted as Signal
 import Data.UUID (GENUUID)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Console (CONSOLE)
-import Control.Monad.Eff.Unsafe (unsafeCoerceEff)
+import Control.Monad.Eff.Unsafe (unsafeCoerceEff, unsafePerformEff)
 import Control.Monad.Eff.Ref (REF)
 import Control.Monad.Eff.Exception (EXCEPTION)
 
@@ -35,15 +35,18 @@ import IxSignal.Internal (IxSignal)
 
 type State =
   { page :: SiteLinks
+  , windowSize :: WindowSize
   }
 
 initialState :: State
 initialState =
   { page: initSiteLinks
+  , windowSize: unsafePerformEff initWindowSize
   }
 
 data Action
   = ChangedCurrentPage SiteLinks
+  | ChangedWindowSize WindowSize
 
 
 type Effects eff =
@@ -56,8 +59,8 @@ type Effects eff =
 
 
 spec :: forall eff
-      . { registerQueues   :: RegisterSparrowClientQueues (Effects eff)
-        , windowSizeSignal :: IxSignal (Effects eff) WindowSize
+      . { registerQueues    :: RegisterSparrowClientQueues (Effects eff)
+        , windowSizeSignal  :: IxSignal (Effects eff) WindowSize
         , siteLinks         :: SiteLinks -> Eff (Effects eff) Unit
         }
      -> T.Spec (Effects eff) State Unit Action
@@ -65,19 +68,25 @@ spec {registerQueues,windowSizeSignal,siteLinks} = T.simpleSpec performAction re
   where
     performAction action props state = case action of
       ChangedCurrentPage p -> void $ T.cotransform _ { page = p }
+      ChangedWindowSize w -> void $ T.cotransform _ { windowSize = w }
 
     render :: T.Render State Unit Action
     render dispatch props state children =
       [ R.main [RP.style {marginTop: "4.5em"}]
         [ paper
-          { style: createStyles
-            { maxWidth: "80em"
-            , width: "100%"
-            , marginLeft: "auto"
-            , marginRight: "auto"
-            , padding: "1em"
-            , position: "relative"
-            }
+          { style: if state.windowSize < Laptop
+                      then createStyles
+                              { width: "100%"
+                              , position: "relative"
+                              }
+                      else createStyles
+                              { maxWidth: "80em"
+                              , width: "100%"
+                              , marginLeft: "auto"
+                              , marginRight: "auto"
+                              , padding: "1em"
+                              , position: "relative"
+                              }
           }
           [ R.div [RP.style {minHeight: "30em", padding: "1em"}]
             [ case state.page of
@@ -114,5 +123,8 @@ content {currentPageSignal,registerQueues,windowSizeSignal,siteLinks} =
       reactSpec' = Signal.whileMountedIxUUID
                      currentPageSignal
                      (\this x -> unsafeCoerceEff $ dispatcher this (ChangedCurrentPage x))
+                 $ Signal.whileMountedIxUUID
+                     windowSizeSignal
+                     (\this x -> unsafeCoerceEff $ dispatcher this (ChangedWindowSize x))
                    reactSpec
   in  R.createElement (R.createClass reactSpec') unit []

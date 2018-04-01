@@ -38,6 +38,7 @@ import Control.Monad.Base (liftBase)
 import Thermite as T
 import React as R
 import React.DOM as R
+import React.Signal.WhileMounted as Signal
 import MaterialUI.MuiThemeProvider (muiThemeProvider, createMuiTheme)
 import MaterialUI.CssBaseline (cssBaseline)
 import DOM (DOM)
@@ -49,6 +50,7 @@ import Queue (READ, WRITE)
 import Queue.One.Aff as OneIO
 import Queue.One as One
 import IxSignal.Internal (IxSignal)
+import IxSignal.Internal as IxSignal
 
 
 
@@ -64,8 +66,7 @@ initialState =
 
 
 data Action
-  = GotAuthToken AuthToken
-  | ClearAuthToken
+  = GotAuthToken (Maybe AuthToken)
   | CallAuthToken AuthTokenInitIn
 
 
@@ -92,6 +93,7 @@ spec :: forall eff
         , registerQueues     :: RegisterSparrowClientQueues (Effects eff)
         , authErrorSignal    :: One.Queue (read :: READ, write :: WRITE) (Effects eff) (Either AuthError AuthTokenFailure)
         , loginPendingSignal :: One.Queue (read :: READ, write :: WRITE) (Effects eff) Unit
+        , authTokenSignal    :: IxSignal (Effects eff) (Maybe AuthToken)
         }
      -> T.Spec (Effects eff) State Unit Action
 spec
@@ -104,23 +106,25 @@ spec
   , registerQueues
   , authErrorSignal
   , loginPendingSignal
+  , authTokenSignal
   } = T.simpleSpec performAction render
   where
     performAction action props state = case action of
-      GotAuthToken x   -> void $ T.cotransform _ { authToken = Just x }
-      ClearAuthToken   -> void $ T.cotransform _ { authToken = Nothing }
+      GotAuthToken mToken -> void $ T.cotransform _ { authToken = mToken }
       CallAuthToken initIn -> do
         initOut <- liftBase $ OneIO.callAsync authTokenQueues.init initIn
         case initOut of
-          Nothing -> liftEff $ One.putQueue authErrorSignal (Left AuthExistsFailure)
+          Nothing ->
+            liftEff $ One.putQueue authErrorSignal (Left AuthExistsFailure)
           Just eInitOut -> do
             case eInitOut of
               AuthTokenInitOutSuccess authToken -> do
-                liftEff $ storeAuthToken authToken
-                performAction (GotAuthToken authToken) props state
+                liftEff $ do
+                  storeAuthToken authToken
+                  IxSignal.set (Just authToken) authTokenSignal
               AuthTokenInitOutFailure e -> do
                 liftEff $ One.putQueue authErrorSignal (Right e)
-            liftEff $ One.putQueue loginPendingSignal unit
+        liftEff $ One.putQueue loginPendingSignal unit
 
 
     render :: T.Render State Unit Action
@@ -167,7 +171,10 @@ spec
               (R.div [] content)
           ]
 
+        openLoginSignal :: One.Queue (read :: READ, write :: WRITE) (Effects eff) Unit
         openLoginSignal = unsafePerformEff One.newQueue
+
+        mobileMenuButtonSignal :: One.Queue (read :: READ, write :: WRITE) (Effects eff) Unit
         mobileMenuButtonSignal = unsafePerformEff One.newQueue
 
 
@@ -207,9 +214,13 @@ app
           , registerQueues
           , authErrorSignal
           , loginPendingSignal
+          , authTokenSignal
           }
         ) initialState
-      reactSpec' = reactSpec
+      reactSpec' = Signal.whileMountedIxUUID
+                     authTokenSignal
+                     (\this x -> unsafeCoerceEff $ dispatcher this (GotAuthToken x))
+                 $ reactSpec
         { componentWillMount = \this -> do
           case preliminaryAuthToken of
             PreliminaryAuthToken Nothing -> pure unit
@@ -226,5 +237,11 @@ app
 
   in  {spec: reactSpec', dispatcher}
   where
+    authErrorSignal :: One.Queue (read :: READ, write :: WRITE) (Effects eff) (Either AuthError AuthTokenFailure)
     authErrorSignal = unsafePerformEff One.newQueue
+
+    loginPendingSignal :: One.Queue (read :: READ, write :: WRITE) (Effects eff) Unit
     loginPendingSignal = unsafePerformEff One.newQueue
+
+    authTokenSignal :: IxSignal (Effects eff) (Maybe AuthToken)
+    authTokenSignal = unsafePerformEff (IxSignal.make Nothing)

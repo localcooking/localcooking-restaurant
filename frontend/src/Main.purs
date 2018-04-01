@@ -35,8 +35,10 @@ import Control.Monad.Eff.Ref (REF, newRef, readRef, writeRef)
 import Control.Monad.Eff.Console (CONSOLE, log)
 import Control.Execution.Immediate (SET_IMMEDIATE_SHIM, registerShim)
 
+import Queue (WRITE)
 import Queue.One as One
 import Signal.Internal as Signal
+import IxSignal.Internal (IxSignal)
 import IxSignal.Internal as IxSignal
 import Signal.Time (debounce)
 import Signal.DOM (windowDimensions)
@@ -96,17 +98,9 @@ main = do
       Just x -> pure (Just (Port x))
     pure $ Authority Nothing [Tuple (NameAddress host) p]
 
-  currentPageSignal <- do
+  ( currentPageSignal :: IxSignal Effects SiteLinks
+    ) <- do
     initSiteLink <- do
-      -- remove auth token
-      -- case StrMap.lookup "authToken" (queryParams l) of
-      --   Nothing -> pure unit
-      --   Just _ -> removeQueryParam l "authToken" -- FIXME causes a page refresh
-
-      -- -- remove residual facebook gunk from fragment
-      -- h' <- hash l
-      -- when (h' /= "") $ setHash "" l
-
       -- parse foo.com/pathname
       p <- href l
       case URI.parse p of
@@ -136,8 +130,8 @@ main = do
 
 
   -- history driver - write to this to change the page, with history.
-  -- FIXME hard, firm, soft history links
-  siteLinksSignal <- do
+  ( siteLinksSignal :: One.Queue (write :: WRITE) Effects SiteLinks
+    ) <- do
     q <- One.newQueue
     One.onQueue q \(x :: SiteLinks) -> do
       -- only respect changed pages
@@ -165,12 +159,11 @@ main = do
 
 
 
+  -- Sparrow dependencies
   ( authTokenQueues :: AuthTokenSparrowClientQueues Effects
     ) <- newSparrowClientQueues
   ( registerQueues :: RegisterSparrowClientQueues Effects
     ) <- newSparrowClientQueues
-
-  -- Sparrow dependencies
   allocateDependencies (scheme == Just (Scheme "https")) authority $ do
     unpackClient (Topic ["authToken"]) (sparrowClientQueues authTokenQueues)
     unpackClient (Topic ["register"]) (sparrowClientQueues registerQueues)
@@ -181,8 +174,7 @@ main = do
       PreliminaryAuthToken Nothing -> map Right <$> getStoredAuthToken
       PreliminaryAuthToken (Just eErrX) -> pure (Just eErrX)
 
-
-  -- React.js view
+  -- Run User Interface
   let props = unit
       {spec: reactSpec, dispatcher} =
         app

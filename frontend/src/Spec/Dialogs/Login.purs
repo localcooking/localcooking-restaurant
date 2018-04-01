@@ -2,7 +2,7 @@ module Spec.Dialogs.Login where
 
 import Types.Env (env)
 
-import Window (WindowSize (..), initialWindowSize)
+import Window (WindowSize (..), initWindowSize)
 import Links (SiteLinks (RegisterLink), ThirdPartyLoginReturnLinks (..), toLocation, initSiteLinks)
 import Facebook.Call (FacebookLoginLink (..), facebookLoginLinkToURI)
 import Facebook.State (FacebookLoginState (..))
@@ -70,7 +70,7 @@ type State =
 initialState :: State
 initialState =
   { open: false
-  , windowSize: unsafePerformEff initialWindowSize
+  , windowSize: unsafePerformEff initWindowSize
   , currentPage: initSiteLinks
   , email: ""
   , emailDirty: Nothing

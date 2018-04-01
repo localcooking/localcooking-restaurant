@@ -45,8 +45,8 @@ instance showWindowSize :: Show WindowSize where
   show = gShow
 
 
-initialWindowSize :: forall eff. Eff (dom :: DOM | eff) WindowSize
-initialWindowSize =
+initWindowSize :: forall eff. Eff (dom :: DOM | eff) WindowSize
+initWindowSize =
   widthToWindowSize <$> (innerWidth =<< window)
 
 

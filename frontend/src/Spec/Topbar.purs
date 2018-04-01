@@ -1,7 +1,7 @@
 module Spec.Topbar where
 
 import Links (toLocation, SiteLinks (..), initSiteLinks, LogoLinks (..))
-import Window (WindowSize (..), initialWindowSize)
+import Window (WindowSize (..), initWindowSize)
 
 import Prelude
 import Data.URI (URI)
@@ -46,7 +46,7 @@ type State =
 
 initialState :: State
 initialState =
-  { windowSize: unsafePerformEff initialWindowSize
+  { windowSize: unsafePerformEff initWindowSize
   , currentPage: initSiteLinks
   }
 
