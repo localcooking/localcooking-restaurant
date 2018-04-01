@@ -6,7 +6,7 @@ import Data.Argonaut (class EncodeJson, class DecodeJson, encodeJson, decodeJson
 
 
 
-newtype ReCaptchaResponse = ReCaptchaResponse Int
+newtype ReCaptchaResponse = ReCaptchaResponse String
 
 derive instance genericReCaptchaResponse :: Generic ReCaptchaResponse
 
