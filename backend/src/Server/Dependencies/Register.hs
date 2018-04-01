@@ -112,7 +112,7 @@ registerServer RegisterInitIn{..} = do
         pure Nothing
       Just (ReCaptchaVerifyResponse success)
         | not success -> do
-          liftIO $ log' "recaptcha failure"
+          liftIO $ log' $ "recaptcha failure: " <> T.pack (show $ responseBody resp)
           pure $ Just ServerContinue
             { serverOnUnsubscribe = pure ()
             , serverContinue = \_ -> pure ServerReturn
