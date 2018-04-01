@@ -66,6 +66,7 @@ library:
     - safe-exceptions
     - saltine
     - shakespeare
+    - smtp-mail
     - sparrow >= 0.0.1.2
     - stm
     - strict

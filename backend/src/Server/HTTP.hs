@@ -162,22 +162,19 @@ router
                       ServerReturn{serverInitOut = AuthTokenInitOutSuccess authToken} <- serverContinue undefined
                       pure (Right authToken, Just state)
 
-    let redirectUri = packLocation
-                        (Strict.Just $ if envTls then "https" else "http")
-                        True
-                        envHostname $
-                          let loc = toLocation $
-                                      case mFbState of
-                                        Nothing -> RootLink
-                                        Just FacebookLoginState{facebookLoginStateOrigin} -> facebookLoginStateOrigin
-                          in  loc <&> ("authToken", Just $ LBS8.toString $ Aeson.encode $ PreliminaryAuthToken $ Just eToken)
-    -- TODO redirect smart with FacebookLoginState
-    -- let redirectUri = URI (Strict.Just $ if envTls then "https" else "http")
-    --                       True
-    --                       envHostname
-    --                       []
-    --                       ["authToken" :!: Strict.Just (T.decodeUtf8 $ LBS.toStrict $ Aeson.encode $ PreliminaryAuthToken $ Just eToken)]
-    --                       Strict.Nothing
+    let redirectUri =
+          packLocation
+            (Strict.Just $ if envTls then "https" else "http")
+            True
+            envHostname $
+              let loc = toLocation $
+                          case mFbState of
+                            Nothing -> RootLink
+                            Just FacebookLoginState{facebookLoginStateOrigin} ->
+                              facebookLoginStateOrigin
+              in  loc <&> ( "authToken"
+                          , Just $ LBS8.toString $ Aeson.encode $ PreliminaryAuthToken $ Just eToken
+                          )
     resp $ textOnly "" status302 [("Location", T.encodeUtf8 $ printURI redirectUri)]
 
   match (l_ "facebookLoginDeauthorize" </> o_) $ \app req resp -> do

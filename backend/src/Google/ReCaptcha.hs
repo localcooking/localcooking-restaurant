@@ -2,12 +2,14 @@
     GeneralizedNewtypeDeriving
   , OverloadedStrings
   , OverloadedLists
+  , RecordWildCards
   #-}
 
 module Google.ReCaptcha where
 
 import Data.Text (Text)
-import Data.Aeson (FromJSON, ToJSON)
+import Data.Aeson (FromJSON (..), ToJSON (..), object, (.=), Value (Object), (.:))
+import Data.Aeson.Types (typeMismatch)
 import Data.URI (URI (..))
 import Data.URI.Auth (URIAuth (..))
 import Data.URI.Auth.Host (URIAuthHost (Host))
@@ -34,3 +36,40 @@ googleReCaptchaAssetURI =
     ["recaptcha", "api.js"]
     []
     Strict.Nothing
+
+
+
+newtype ReCaptchaResponse = ReCaptchaResponse
+  { getReCaptchaResponse :: Int
+  } deriving (Eq, Show, FromJSON, ToJSON)
+
+
+
+data ReCaptchaVerify = ReCaptchaVerify
+  { reCaptchaVerifySecret   :: ReCaptchaSecret
+  , reCaptchaVerifyResponse :: ReCaptchaResponse
+  } deriving (Eq, Show)
+
+instance ToJSON ReCaptchaVerify where
+  toJSON ReCaptchaVerify{..} = object
+    [ "secret" .= reCaptchaVerifySecret
+    , "response" .= reCaptchaVerifyResponse
+    ]
+
+
+googleReCaptchaVerifyURI :: URI
+googleReCaptchaVerifyURI =
+  URI
+    (Strict.Just "https")
+    True
+    (URIAuth Strict.Nothing (Host ["www","google"] "com") Strict.Nothing)
+    ["recaptcha", "api", "siteverify"]
+    []
+    Strict.Nothing
+
+
+data ReCaptchaVerifyResponse = ReCaptchaVerifyResponse Bool
+
+instance FromJSON ReCaptchaVerifyResponse where
+  parseJSON (Object o) = ReCaptchaVerifyResponse <$> o .: "success"
+  parseJSON json = typeMismatch "ReCaptchaVerifyResponse" json

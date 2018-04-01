@@ -32,7 +32,8 @@ import Database.Persist.Sql (ConnectionPool)
 
 
 data Managers = Managers
-  { managersFacebook :: Manager
+  { managersFacebook  :: Manager
+  , managersReCaptcha :: Manager
   }
 
 instance Default Managers where
@@ -41,8 +42,10 @@ instance Default Managers where
 defManagers :: IO Managers
 defManagers = do
   managersFacebook <- newTlsManager -- FIXME could bug out from facebook booting us
+  managersReCaptcha <- newTlsManager
   pure Managers
     { managersFacebook
+    , managersReCaptcha
     }
 
 
