@@ -40,7 +40,7 @@ googleReCaptchaAssetURI =
 
 
 newtype ReCaptchaResponse = ReCaptchaResponse
-  { getReCaptchaResponse :: Int
+  { getReCaptchaResponse :: Text
   } deriving (Eq, Show, FromJSON, ToJSON)
 
 
