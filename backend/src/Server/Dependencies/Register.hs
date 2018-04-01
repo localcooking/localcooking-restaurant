@@ -23,10 +23,11 @@ import Data.URI (printURI)
 import Data.URI.Auth.Host (printURIAuthHost)
 import Data.Monoid ((<>))
 import qualified Data.Text as T
+import qualified Data.ByteString.Lazy as LBS
 import Control.Monad.IO.Class (MonadIO (liftIO))
 import Control.Monad.Reader (ask)
 import Control.Logging (log')
-import Network.HTTP.Client (httpLbs, responseBody, parseRequest, method, requestBody, RequestBody (RequestBodyLBS))
+import Network.HTTP.Client (httpLbs, responseBody, parseRequest, method, urlEncodedBody, RequestBody (RequestBodyLBS))
 import Network.Mail.SMTP (sendMail, simpleMail, htmlPart, Address (..))
 
 import Web.Dependencies.Sparrow (Server, ServerContinue (..), ServerReturn (..))
@@ -97,14 +98,16 @@ registerServer RegisterInitIn{..} = do
   liftIO $ do
     req <- parseRequest $ T.unpack $ printURI googleReCaptchaVerifyURI
 
-    let body = Aeson.encode $ ReCaptchaVerify googleReCaptchaSecret registerInitInReCaptcha
-        req' = req
-          { method = "POST"
-          , requestBody = RequestBodyLBS body
-          }
+    let -- body = Aeson.encode $ ReCaptchaVerify googleReCaptchaSecret registerInitInReCaptcha
+        req' = urlEncodedBody
+                 [ ("secret", LBS.toStrict $ Aeson.encode googleReCaptchaSecret)
+                 , ("response", LBS.toStrict $ Aeson.encode registerInitInReCaptcha)
+                 ]
+                 $ req
+                    { method = "POST"
+                    }
 
-    putStr "ReCaptcha...: "
-    print body
+    log' "sending..."
 
     resp <- httpLbs req' managersReCaptcha
 
