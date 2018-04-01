@@ -1,19 +1,26 @@
 module Spec.Content.Register where
 
 import Types.Env (env)
+import Google.ReCaptcha (ReCaptchaResponse)
+import Client.Dependencies.Register (RegisterSparrowClientQueues, RegisterInitIn (..))
+import LocalCooking.Common.Password (hashPassword)
 
 import Prelude
 import Data.Maybe (Maybe (..))
+import Data.UUID (GENUUID)
 import Text.Email.Validate (emailAddress)
+import Control.Monad.Base (liftBase)
 import Control.Monad.Eff.Class (liftEff)
+import Control.Monad.Eff.Ref (REF)
 import Control.Monad.Eff.Console (CONSOLE, log)
 import Control.Monad.Eff.Uncurried (mkEffFn1)
+import Control.Monad.Eff.Exception (EXCEPTION)
 
 import Thermite as T
 import React as R
 import React.DOM as R
 import React.DOM.Props as RP
-import React.ReCaptcha (reCaptcha, ReCaptchaResponse)
+import React.ReCaptcha (reCaptcha)
 
 import MaterialUI.Types (createStyles)
 import MaterialUI.Typography (typography)
@@ -25,8 +32,10 @@ import MaterialUI.TextField (textField)
 import MaterialUI.Input as Input
 import MaterialUI.Grid (grid)
 import MaterialUI.Grid as Grid
+import Crypto.Scrypt (SCRYPT)
 
 import Unsafe.Coerce (unsafeCoerce)
+import Queue.One.Aff as OneIO
 
 
 type State =
@@ -39,6 +48,7 @@ type State =
   , passwordDirty :: Maybe Boolean
   , passwordConfirm :: String
   , passwordConfirmDirty :: Maybe Boolean
+  , pending :: Boolean
   }
 
 initialState :: State
@@ -52,6 +62,7 @@ initialState =
   , passwordDirty: Nothing
   , passwordConfirm: ""
   , passwordConfirmDirty: Nothing
+  , pending: false
   }
 
 data Action
@@ -68,12 +79,18 @@ data Action
 
 
 type Effects eff =
-  ( console :: CONSOLE
+  ( console   :: CONSOLE
+  , ref       :: REF
+  , scrypt    :: SCRYPT
+  , exception :: EXCEPTION
+  , uuid      :: GENUUID
   | eff)
 
 
-spec :: forall eff. T.Spec (Effects eff) State Unit Action
-spec = T.simpleSpec performAction render
+spec :: forall eff
+      . { registerQueues :: RegisterSparrowClientQueues (Effects eff)
+        } -> T.Spec (Effects eff) State Unit Action
+spec {registerQueues: {init: registerQueuesInit}} = T.simpleSpec performAction render
   where
     performAction action props state = case action of
       GotReCaptchaVerify e -> void $ T.cotransform _ { reCaptcha = Just e }
@@ -85,8 +102,19 @@ spec = T.simpleSpec performAction render
       EmailConfirmUnfocused -> void $ T.cotransform _ { emailConfirmDirty = Just true }
       PasswordUnfocused -> void $ T.cotransform _ { passwordDirty = Just true }
       PasswordConfirmUnfocused -> void $ T.cotransform _ { passwordConfirmDirty = Just true }
-      SubmitRegister -> pure unit
-
+      SubmitRegister -> do
+        void $ T.cotransform _ { pending = true }
+        case emailAddress state.email of
+          Nothing -> pure unit
+          Just email -> case state.reCaptcha of
+            Nothing -> pure unit
+            Just reCaptcha -> do
+              mErr <- liftBase $ do
+                password <- hashPassword {password: state.password, salt: env.salt}
+                OneIO.callAsync registerQueuesInit $ RegisterInitIn {email,password,reCaptcha}
+              case mErr of
+                Nothing -> pure unit
+                Just initOut -> pure unit
 
     render :: T.Render State Unit Action
     render dispatch props state children =
@@ -169,8 +197,8 @@ spec = T.simpleSpec performAction render
                       | otherwise -> state.password /= state.passwordConfirm
             , name: "register-password-confirm"
             , id: "register-password-confirm"
+            , style: createStyles {marginBottom: "1em"}
             }
-          , R.div [RP.style {marginBotton: "1em"}] []
           , reCaptcha
             { sitekey: env.googleReCaptchaSiteKey
             , verifyCallback: mkEffFn1 (dispatch <<< GotReCaptchaVerify)
@@ -197,7 +225,10 @@ spec = T.simpleSpec performAction render
       ]
 
 
-register :: R.ReactElement
-register =
-  let {spec: reactSpec, dispatcher} = T.createReactSpec spec initialState
+register :: forall eff
+          . { registerQueues :: RegisterSparrowClientQueues (Effects eff)
+            }
+         -> R.ReactElement
+register params =
+  let {spec: reactSpec, dispatcher} = T.createReactSpec (spec params) initialState
   in  R.createElement (R.createClass reactSpec) unit []

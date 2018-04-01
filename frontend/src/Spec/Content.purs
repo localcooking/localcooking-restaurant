@@ -6,6 +6,8 @@ import Spec.Content.Chefs (chefs)
 import Spec.Content.Meals (meals)
 import Spec.Content.Register (register)
 import Links (SiteLinks (..), initSiteLinks)
+import Client.Dependencies.Register (RegisterSparrowClientQueues)
+import Window (WindowSize)
 
 import Prelude
 
@@ -15,6 +17,7 @@ import React.DOM as R
 import React.DOM.Props as RP
 import React.Signal.WhileMounted as Signal
 import Data.UUID (GENUUID)
+import Control.Monad.Eff.Console (CONSOLE)
 import Control.Monad.Eff.Unsafe (unsafeCoerceEff)
 import Control.Monad.Eff.Ref (REF)
 import Control.Monad.Eff.Exception (EXCEPTION)
@@ -23,6 +26,7 @@ import MaterialUI.Types (createStyles)
 import MaterialUI.Paper (paper)
 import MaterialUI.Typography (typography)
 import MaterialUI.Typography as Typography
+import Crypto.Scrypt (SCRYPT)
 
 import IxSignal.Internal (IxSignal)
 
@@ -42,14 +46,20 @@ data Action
 
 
 type Effects eff =
-  ( ref :: REF
+  ( ref       :: REF
   , exception :: EXCEPTION
-  , uuid :: GENUUID
+  , uuid      :: GENUUID
+  , console   :: CONSOLE
+  , scrypt    :: SCRYPT
   | eff)
 
 
-spec :: forall eff. T.Spec eff State Unit Action
-spec = T.simpleSpec performAction render
+spec :: forall eff
+      . { registerQueues   :: RegisterSparrowClientQueues (Effects eff)
+        , windowSizeSignal :: IxSignal (Effects eff) WindowSize
+        }
+     -> T.Spec (Effects eff) State Unit Action
+spec {registerQueues,windowSizeSignal} = T.simpleSpec performAction render
   where
     performAction action props state = case action of
       ChangedCurrentPage p -> void $ T.cotransform _ { page = p }
@@ -69,10 +79,10 @@ spec = T.simpleSpec performAction render
           [ R.div [RP.style {minHeight: "30em", padding: "1em"}]
             [ case state.page of
                 AboutLink -> about
-                RootLink -> root
+                RootLink -> root {windowSizeSignal}
                 ChefsLink -> chefs
                 MealsLink -> meals
-                RegisterLink -> register
+                RegisterLink -> register {registerQueues}
             ]
           , typography
             { variant: Typography.caption
@@ -87,10 +97,14 @@ spec = T.simpleSpec performAction render
 
 content :: forall eff
          . { currentPageSignal :: IxSignal (Effects eff) SiteLinks
+           , windowSizeSignal  :: IxSignal (Effects eff) WindowSize
+           , registerQueues    :: RegisterSparrowClientQueues (Effects eff)
            } -> R.ReactElement
-content {currentPageSignal} =
-  let {spec: reactSpec, dispatcher} = T.createReactSpec spec initialState
+content {currentPageSignal,registerQueues,windowSizeSignal} =
+  let {spec: reactSpec, dispatcher} =
+        T.createReactSpec (spec {registerQueues,windowSizeSignal}) initialState
       reactSpec' = Signal.whileMountedIxUUID
                      currentPageSignal
-                     (\this x -> unsafeCoerceEff $ dispatcher this (ChangedCurrentPage x)) reactSpec
+                     (\this x -> unsafeCoerceEff $ dispatcher this (ChangedCurrentPage x))
+                   reactSpec
   in  R.createElement (R.createClass reactSpec') unit []

@@ -14,6 +14,9 @@ import LocalCooking.Common.AuthToken (AuthToken)
 import Client.Dependencies.AuthToken
   ( AuthTokenSparrowClientQueues, AuthTokenFailure
   , AuthTokenInitIn (..), AuthTokenInitOut (..))
+import Client.Dependencies.Register
+  ( RegisterSparrowClientQueues, RegisterFailure
+  , RegisterInitIn (..), RegisterInitOut (..))
 
 import Prelude
 import Data.URI (URI)
@@ -86,6 +89,7 @@ spec :: forall eff
         , siteLinks          :: SiteLinks -> Eff (Effects eff) Unit
         , development        :: Boolean
         , authTokenQueues    :: AuthTokenSparrowClientQueues (Effects eff)
+        , registerQueues     :: RegisterSparrowClientQueues (Effects eff)
         , authErrorSignal    :: One.Queue (read :: READ, write :: WRITE) (Effects eff) (Either AuthError AuthTokenFailure)
         , loginPendingSignal :: One.Queue (read :: READ, write :: WRITE) (Effects eff) Unit
         }
@@ -97,6 +101,7 @@ spec
   , currentPageSignal
   , development
   , authTokenQueues
+  , registerQueues
   , authErrorSignal
   , loginPendingSignal
   } = T.simpleSpec performAction render
@@ -130,6 +135,8 @@ spec
         }
       , content
         { currentPageSignal
+        , registerQueues
+        , windowSizeSignal
         }
       , loginDialog
         { openLoginSignal: One.readOnly openLoginSignal
@@ -172,6 +179,7 @@ app :: forall eff
        , development          :: Boolean
        , preliminaryAuthToken :: PreliminaryAuthToken
        , authTokenQueues      :: AuthTokenSparrowClientQueues (Effects eff)
+       , registerQueues       :: RegisterSparrowClientQueues (Effects eff)
        }
     -> { spec :: R.ReactSpec Unit State (Array R.ReactElement) (Effects eff)
        , dispatcher :: R.ReactThis Unit State -> Action -> T.EventHandler
@@ -184,6 +192,7 @@ app
   , development
   , preliminaryAuthToken
   , authTokenQueues
+  , registerQueues
   } =
   let {spec: reactSpec, dispatcher} =
         T.createReactSpec
@@ -194,6 +203,7 @@ app
           , siteLinks
           , development
           , authTokenQueues
+          , registerQueues
           , authErrorSignal
           , loginPendingSignal
           }

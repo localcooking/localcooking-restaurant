@@ -5,7 +5,7 @@ import LocalCooking.Common.AuthToken (AuthToken)
 
 import Sparrow.Client.Queue (SparrowClientQueues)
 
-import Prelude
+import Prelude (bind, (<$>), unit, (==), pure, otherwise)
 import Data.Argonaut (class EncodeJson, encodeJson, class DecodeJson, decodeJson, (:=), (~>), jsonEmptyObject, (.?), fail)
 import Control.Alternative ((<|>))
 import Text.Email.Validate (EmailAddress)
