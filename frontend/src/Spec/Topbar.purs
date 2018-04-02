@@ -1,7 +1,7 @@
 module Spec.Topbar where
 
-import Links (toLocation, SiteLinks (..), initSiteLinks, LogoLinks (..))
-import Window (WindowSize (..), initWindowSize)
+import Links (toLocation, SiteLinks (..), LogoLinks (..))
+import Window (WindowSize (..))
 
 import Prelude
 import Data.URI (URI)
@@ -34,7 +34,7 @@ import MaterialUI.Icons.Menu (menuIcon)
 
 import Queue.One (WRITE, Queue, putQueue)
 import IxSignal.Internal (IxSignal)
-import Unsafe.Coerce (unsafeCoerce)
+import IxSignal.Internal as IxSignal
 import Partial.Unsafe (unsafePartial)
 
 
@@ -44,9 +44,9 @@ type State =
   , currentPage :: SiteLinks
   }
 
-initialState :: State
-initialState =
-  { windowSize: unsafePerformEff initWindowSize
+initialState :: {initWindowSize :: WindowSize, initSiteLinks :: SiteLinks} -> State
+initialState {initWindowSize,initSiteLinks} =
+  { windowSize: initWindowSize
   , currentPage: initSiteLinks
   }
 
@@ -158,14 +158,19 @@ topbar
   , mobileMenuButtonSignal
   , currentPageSignal
   } =
-  let {spec:reactSpec,dispatcher} = T.createReactSpec
+  let init =
+        { initSiteLinks: unsafePerformEff $ IxSignal.get currentPageSignal
+        , initWindowSize: unsafePerformEff $ IxSignal.get windowSizeSignal
+        }
+      {spec:reactSpec,dispatcher} = T.createReactSpec
         ( spec
           { toURI
           , openLoginSignal
           , siteLinks
           , mobileMenuButtonSignal
           }
-        ) initialState
+        )
+        (initialState init)
       reactSpec' =
           Signal.whileMountedIxUUID
             windowSizeSignal

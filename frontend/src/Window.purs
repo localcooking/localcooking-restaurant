@@ -3,10 +3,6 @@ module Window where
 import Prelude
 import Data.Tuple (Tuple (..))
 import Data.Generic (class Generic, gEq, gShow)
-import Control.Monad.Eff (Eff)
-import DOM (DOM)
-import DOM.HTML (window)
-import DOM.HTML.Window (innerWidth)
 
 
 data WindowSize
@@ -44,10 +40,6 @@ instance ordWindowSize :: Ord WindowSize where
 instance showWindowSize :: Show WindowSize where
   show = gShow
 
-
-initWindowSize :: forall eff. Eff (dom :: DOM | eff) WindowSize
-initWindowSize =
-  widthToWindowSize <$> (innerWidth =<< window)
 
 
 widthToWindowSize :: Int -> WindowSize

@@ -157,6 +157,7 @@ spec
       , leftMenu
         { mobileDrawerOpenSignal: One.readOnly mobileMenuButtonSignal
         , siteLinks
+        , windowSizeSignal
         }
       , messages
         { authErrorSignal: One.readOnly authErrorSignal

@@ -1,6 +1,6 @@
 module Spec.Content.Root where
 
-import Window (WindowSize (Laptop), initWindowSize)
+import Window (WindowSize (Laptop))
 
 import Prelude
 import Data.UUID (GENUUID)
@@ -31,6 +31,7 @@ import MaterialUI.Icons.Timelapse (timelapseIcon)
 import MaterialUI.Icons.LocalShipping (localShippingIcon)
 
 import IxSignal.Internal (IxSignal)
+import IxSignal.Internal as IxSignal
 
 
 
@@ -38,9 +39,9 @@ type State =
   { windowSize :: WindowSize
   }
 
-initialState :: State
-initialState =
-  { windowSize: unsafePerformEff initWindowSize
+initialState :: {initWindowSize :: WindowSize} -> State
+initialState {initWindowSize} =
+  { windowSize: initWindowSize
   }
 
 data Action
@@ -142,7 +143,10 @@ root :: forall eff
         }
      -> R.ReactElement
 root {windowSizeSignal} =
-  let {spec: reactSpec, dispatcher} = T.createReactSpec spec initialState
+  let init =
+        { initWindowSize: unsafePerformEff $ IxSignal.get windowSizeSignal
+        }
+      {spec: reactSpec, dispatcher} = T.createReactSpec spec (initialState init)
       reactSpec' =
           Signal.whileMountedIxUUID
             windowSizeSignal

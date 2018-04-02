@@ -2,7 +2,7 @@ module Main where
 
 import Spec (app)
 import Window (widthToWindowSize)
-import Links (SiteLinks, siteLinksParser)
+import Links (SiteLinks, initSiteLinks, onPopState, pushState')
 import Types.Env (env)
 import Login.Error (PreliminaryAuthToken (..))
 import Login.Storage (getStoredAuthToken)
@@ -19,18 +19,15 @@ import Data.Tuple (Tuple (..))
 import Data.Either (Either (..))
 import Data.Time.Duration (Milliseconds (..))
 import Data.URI (Scheme (..), Host (..), Port (..), Authority (..))
-import Data.URI.URI as URI
-import Data.URI.Location (toURI, fromURI, Location (..))
-import Data.URI.Query (Query (..))
+import Data.URI.Location (toURI)
 import Data.Int.Parse (parseInt, toRadix)
 import Data.String (takeWhile) as String
 import Data.UUID (GENUUID)
 import Data.Traversable (traverse_)
-import Data.StrMap as StrMap
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Now (NOW)
 import Control.Monad.Eff.Timer (TIMER)
-import Control.Monad.Eff.Exception (EXCEPTION, throw)
+import Control.Monad.Eff.Exception (EXCEPTION)
 import Control.Monad.Eff.Ref (REF, newRef, readRef, writeRef)
 import Control.Monad.Eff.Console (CONSOLE, log)
 import Control.Execution.Immediate (SET_IMMEDIATE_SHIM, registerShim)
@@ -49,9 +46,8 @@ import MaterialUI.InjectTapEvent (INJECT_TAP_EVENT, injectTapEvent)
 import DOM (DOM)
 import DOM.HTML (window)
 import DOM.HTML.Window (location, document, history)
-import DOM.HTML.Window.Extra (onPopState, pushState', replaceState')
 import DOM.HTML.Document (body)
-import DOM.HTML.Location (hostname, protocol, port, href)
+import DOM.HTML.Location (hostname, protocol, port)
 import DOM.HTML.Types (HISTORY, htmlElementToElement)
 import WebSocket (WEBSOCKET)
 import Network.HTTP.Affjax (AJAX)
@@ -100,26 +96,7 @@ main = do
 
   ( currentPageSignal :: IxSignal Effects SiteLinks
     ) <- do
-    initSiteLink <- do
-      -- parse foo.com/pathname
-      p <- href l
-      case URI.parse p of
-        Left e -> throw $ "Href parsing error: " <> show e
-        Right uri -> case fromURI uri of
-          Nothing -> throw $ "URI can't be a location: " <> show uri
-          Just {location: location@(Location _ mQuery _)} -> case siteLinksParser location of
-            Nothing -> do
-              -- FIXME should be able to handle bogus URIs
-              throw $ "Location can't be a SiteLinks: " <> show location
-            Just x -> do
-              -- adjust for possibly present authToken
-              case mQuery of
-                Nothing -> pure unit
-                Just (Query qs) -> case StrMap.lookup "authToken" (StrMap.fromFoldable qs) of
-                  Nothing -> pure unit
-                  Just _ -> replaceState' x h
-
-              pure x
+    initSiteLink <- initSiteLinks
 
     -- fetch resources - FIXME use sparrow to drive it - via currentPageSignal?
     sig <- IxSignal.make initSiteLink

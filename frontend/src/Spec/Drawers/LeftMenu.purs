@@ -1,6 +1,6 @@
 module Spec.Drawers.LeftMenu where
 
-import Window (WindowSize, initWindowSize)
+import Window (WindowSize)
 import Links (SiteLinks (..))
 
 import Prelude
@@ -31,6 +31,8 @@ import MaterialUI.Icons.PersonPin (personPinIcon)
 import MaterialUI.Icons.RestaurantMenu (restaurantMenuIcon)
 
 import Queue.One (READ, Queue)
+import IxSignal.Internal (IxSignal)
+import IxSignal.Internal as IxSignal
 
 
 type State =
@@ -38,10 +40,10 @@ type State =
   , windowSize :: WindowSize
   }
 
-initialState :: State
-initialState =
+initialState :: {initWindowSize :: WindowSize} -> State
+initialState {initWindowSize} =
   { open: false
-  , windowSize: unsafePerformEff initWindowSize
+  , windowSize: initWindowSize
   }
 
 data Action
@@ -127,17 +129,23 @@ spec {siteLinks} = T.simpleSpec performAction render
 leftMenu :: forall eff
           . { mobileDrawerOpenSignal :: Queue (read :: READ) (Effects eff) Unit
             , siteLinks :: SiteLinks -> Eff (Effects eff) Unit
+            , windowSizeSignal :: IxSignal (Effects eff) WindowSize
             }
          -> R.ReactElement
 leftMenu
   { mobileDrawerOpenSignal
   , siteLinks
+  , windowSizeSignal
   } =
-  let {spec: reactSpec, dispatcher} =
+  let init =
+        { initWindowSize: unsafePerformEff $ IxSignal.get windowSizeSignal
+        }
+      {spec: reactSpec, dispatcher} =
         T.createReactSpec
           ( spec
             {siteLinks}
-          ) initialState
+          )
+          (initialState init)
       reactSpecLogin =
           Queue.whileMountedOne
             mobileDrawerOpenSignal

@@ -2,8 +2,8 @@ module Spec.Dialogs.Login where
 
 import Types.Env (env)
 
-import Window (WindowSize (..), initWindowSize)
-import Links (SiteLinks (RegisterLink), ThirdPartyLoginReturnLinks (..), toLocation, initSiteLinks)
+import Window (WindowSize (..))
+import Links (SiteLinks (RegisterLink), ThirdPartyLoginReturnLinks (..), toLocation)
 import Facebook.Call (FacebookLoginLink (..), facebookLoginLinkToURI)
 import Facebook.State (FacebookLoginState (..))
 import LocalCooking.Common.Password (HashedPassword, hashPassword)
@@ -36,7 +36,6 @@ import React.Signal.WhileMounted as Signal
 import React.Icons (facebookIcon, twitterIcon, googleIcon)
 import DOM (DOM)
 import DOM.HTML.Types (HISTORY)
-import DOM.HTML.Window.Extra (replaceState')
 
 import MaterialUI.Types (createStyles)
 import MaterialUI.Dialog (dialog)
@@ -52,6 +51,7 @@ import Crypto.Scrypt (SCRYPT)
 
 import Queue.One (READ, Queue)
 import IxSignal.Internal (IxSignal)
+import IxSignal.Internal as IxSignal
 import Unsafe.Coerce (unsafeCoerce)
 
 
@@ -67,10 +67,10 @@ type State =
   }
 
 
-initialState :: State
-initialState =
+initialState :: {initSiteLinks :: SiteLinks, initWindowSize :: WindowSize} -> State
+initialState {initWindowSize, initSiteLinks} =
   { open: false
-  , windowSize: unsafePerformEff initWindowSize
+  , windowSize: initWindowSize
   , currentPage: initSiteLinks
   , email: ""
   , emailDirty: Nothing
@@ -261,7 +261,14 @@ loginDialog :: forall eff
                }
             -> R.ReactElement
 loginDialog {openLoginSignal,windowSizeSignal,toURI,currentPageSignal,login,toRegister} =
-  let {spec: reactSpec, dispatcher} = T.createReactSpec (spec {toURI,login,toRegister}) initialState
+  let init =
+        { initSiteLinks: unsafePerformEff $ IxSignal.get currentPageSignal
+        , initWindowSize: unsafePerformEff $ IxSignal.get windowSizeSignal
+        }
+      {spec: reactSpec, dispatcher} =
+        T.createReactSpec
+          (spec {toURI,login,toRegister})
+          (initialState init)
       reactSpecLogin =
           Signal.whileMountedIxUUID
             windowSizeSignal

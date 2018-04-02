@@ -3,16 +3,31 @@ module Links where
 import Prelude
 import Data.Maybe (Maybe (..))
 import Data.Either (Either (..))
-import Data.URI.Location (Location (..), printLocation, parseLocation)
+import Data.URI (Query (..))
+import Data.URI.URI as URI
 import Data.URI.Path as URIPath
+import Data.URI.Location (Location (..), fromURI, printLocation, parseLocation)
+import Data.URI.Location as Location
+import Data.StrMap as StrMap
 import Data.Path.Pathy ((</>), dir, file, rootDir)
 import Data.Generic (class Generic, gEq)
 import Data.Argonaut (class EncodeJson, class DecodeJson, encodeJson, decodeJson, fail)
 import Data.NonEmpty ((:|))
+import Data.Foreign (toForeign, unsafeFromForeign)
 import Text.Parsing.StringParser (Parser, try, runParser)
 import Text.Parsing.StringParser.String (char, string, eof)
 import Control.Alternative ((<|>))
-import DOM.HTML.History (DocumentTitle (..))
+import Control.Monad.Eff (Eff)
+import Control.Monad.Eff.Console (CONSOLE, warn)
+import Control.Monad.Eff.Uncurried (mkEffFn1, runEffFn2)
+import Control.Monad.Eff.Exception (EXCEPTION, throw)
+import DOM (DOM)
+import DOM.HTML (window)
+import DOM.HTML.Window (location, history)
+import DOM.HTML.Window.Extra (onPopStateImpl)
+import DOM.HTML.Location (href)
+import DOM.HTML.History (DocumentTitle (..), pushState, replaceState, URL (..))
+import DOM.HTML.Types (History, HISTORY, Window)
 import Test.QuickCheck (class Arbitrary)
 import Test.QuickCheck.Gen (oneOf)
 
@@ -57,8 +72,39 @@ instance arbitrarySiteLinks :: Arbitrary SiteLinks where
         , pure RegisterLink
         ]
 
-initSiteLinks :: SiteLinks
-initSiteLinks = RootLink
+initSiteLinks :: forall eff
+               . Eff ( console :: CONSOLE
+                     , dom     :: DOM
+                     , history :: HISTORY
+                     | eff) SiteLinks
+initSiteLinks = do
+  w <- window
+  l <- location w
+  h <- history w
+  p <- href l
+  case URI.parse p of
+    Left e -> do
+      warn $ "Href parsing error: " <> show e
+      replaceState' RootLink h
+      pure RootLink
+    Right uri -> case fromURI uri of
+      Nothing -> do
+        warn $ "URI can't be a location: " <> show uri
+        replaceState' RootLink h
+        pure RootLink
+      Just {location: location@(Location _ mQuery _)} -> case siteLinksParser location of
+        Nothing -> do
+          warn $ "Location can't be a SiteLinks: " <> show location
+          replaceState' RootLink h
+          pure RootLink
+        Just x -> do
+          -- FIXME only adjust for authToken when it's parsable?
+          case mQuery of
+            Nothing -> pure unit
+            Just (Query qs) -> case StrMap.lookup "authToken" (StrMap.fromFoldable qs) of
+              Nothing -> pure unit
+              Just _ -> replaceState' x h
+          pure x
 
 derive instance genericSiteLinks :: Generic SiteLinks
 
@@ -130,6 +176,37 @@ siteLinksParser (Location path mQuery mFrag) = do
         <|> root
       where
         divider = char '/'
+
+
+
+pushState' :: forall eff. SiteLinks -> History -> Eff (history :: HISTORY | eff) Unit
+pushState' x h = do
+  pushState
+    (toForeign $ encodeJson x)
+    (siteLinksToDocumentTitle x)
+    (URL $ Location.printLocation $ toLocation x)
+    h
+
+
+replaceState' :: forall eff. SiteLinks -> History -> Eff (history :: HISTORY | eff) Unit
+replaceState' x h = do
+  replaceState
+    (toForeign $ encodeJson x)
+    (siteLinksToDocumentTitle x)
+    (URL $ Location.printLocation $ toLocation x)
+    h
+
+
+onPopState :: forall eff
+            . (SiteLinks -> Eff (dom :: DOM, exception :: EXCEPTION | eff) Unit)
+           -> Window
+           -> Eff (dom :: DOM, exception :: EXCEPTION | eff) Unit
+onPopState go w =
+  onPopState' \fgn -> case decodeJson (unsafeFromForeign fgn) of
+    Left e -> throw e
+    Right (x :: SiteLinks) -> go x
+  where
+    onPopState' f = runEffFn2 onPopStateImpl (mkEffFn1 f) w
 
 
 data ThirdPartyLoginReturnLinks

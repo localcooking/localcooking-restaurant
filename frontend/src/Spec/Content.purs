@@ -5,9 +5,9 @@ import Spec.Content.Root (root)
 import Spec.Content.Chefs (chefs)
 import Spec.Content.Meals (meals)
 import Spec.Content.Register (register)
-import Links (SiteLinks (..), initSiteLinks)
+import Links (SiteLinks (..))
 import Client.Dependencies.Register (RegisterSparrowClientQueues)
-import Window (WindowSize (Laptop), initWindowSize)
+import Window (WindowSize (Laptop))
 
 import Prelude
 
@@ -18,8 +18,7 @@ import React.DOM.Props as RP
 import React.Signal.WhileMounted as Signal
 import Data.UUID (GENUUID)
 import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.Class (liftEff)
-import Control.Monad.Eff.Console (CONSOLE, log)
+import Control.Monad.Eff.Console (CONSOLE)
 import Control.Monad.Eff.Unsafe (unsafeCoerceEff, unsafePerformEff)
 import Control.Monad.Eff.Ref (REF)
 import Control.Monad.Eff.Exception (EXCEPTION)
@@ -31,6 +30,7 @@ import MaterialUI.Typography as Typography
 import Crypto.Scrypt (SCRYPT)
 
 import IxSignal.Internal (IxSignal)
+import IxSignal.Internal as IxSignal
 
 
 
@@ -39,10 +39,10 @@ type State =
   , windowSize :: WindowSize
   }
 
-initialState :: State
-initialState =
+initialState :: {initSiteLinks :: SiteLinks, initWindowSize :: WindowSize} -> State
+initialState {initSiteLinks,initWindowSize} =
   { page: initSiteLinks
-  , windowSize: unsafePerformEff initWindowSize
+  , windowSize: initWindowSize
   }
 
 data Action
@@ -68,10 +68,10 @@ spec :: forall eff
 spec {registerQueues,windowSizeSignal,siteLinks} = T.simpleSpec performAction render
   where
     performAction action props state = case action of
-      ChangedCurrentPage p -> do
-        liftEff $ log $ "current page: " <> show p
+      ChangedCurrentPage p ->
         void $ T.cotransform _ { page = p }
-      ChangedWindowSize w -> void $ T.cotransform _ { windowSize = w }
+      ChangedWindowSize w ->
+        void $ T.cotransform _ { windowSize = w }
 
     render :: T.Render State Unit Action
     render dispatch props state children =
@@ -121,8 +121,12 @@ content :: forall eff
            , siteLinks         :: SiteLinks -> Eff (Effects eff) Unit
            } -> R.ReactElement
 content {currentPageSignal,registerQueues,windowSizeSignal,siteLinks} =
-  let {spec: reactSpec, dispatcher} =
-        T.createReactSpec (spec {registerQueues,windowSizeSignal,siteLinks}) initialState
+  let init =
+        { initSiteLinks: unsafePerformEff $ IxSignal.get currentPageSignal
+        , initWindowSize: unsafePerformEff $ IxSignal.get windowSizeSignal
+        }
+      {spec: reactSpec, dispatcher} =
+        T.createReactSpec (spec {registerQueues,windowSizeSignal,siteLinks}) (initialState init)
       reactSpec' = Signal.whileMountedIxUUID
                      currentPageSignal
                      (\this x -> unsafeCoerceEff $ dispatcher this (ChangedCurrentPage x))
