@@ -18,7 +18,8 @@ import React.DOM.Props as RP
 import React.Signal.WhileMounted as Signal
 import Data.UUID (GENUUID)
 import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.Console (CONSOLE)
+import Control.Monad.Eff.Class (liftEff)
+import Control.Monad.Eff.Console (CONSOLE, log)
 import Control.Monad.Eff.Unsafe (unsafeCoerceEff, unsafePerformEff)
 import Control.Monad.Eff.Ref (REF)
 import Control.Monad.Eff.Exception (EXCEPTION)
@@ -67,7 +68,9 @@ spec :: forall eff
 spec {registerQueues,windowSizeSignal,siteLinks} = T.simpleSpec performAction render
   where
     performAction action props state = case action of
-      ChangedCurrentPage p -> void $ T.cotransform _ { page = p }
+      ChangedCurrentPage p -> do
+        liftEff $ log $ "current page: " <> show p
+        void $ T.cotransform _ { page = p }
       ChangedWindowSize w -> void $ T.cotransform _ { windowSize = w }
 
     render :: T.Render State Unit Action

@@ -17,7 +17,6 @@ import React.Signal.WhileMounted as Signal
 import MaterialUI.Types (createStyles)
 import MaterialUI.Typography (typography)
 import MaterialUI.Typography as Typography
--- import MaterialUI.Markdown (markdown)
 import MaterialUI.Divider (divider)
 import MaterialUI.Grid (grid)
 import MaterialUI.Grid as Grid
@@ -210,9 +209,14 @@ paragraph2 = list {dense: true}
 
 paragraph3 :: Array R.ReactElement
 paragraph3 =
-  [ R.text "Every chef has a "
-  , R.em [] [R.text "bi-weekly"]
-  , R.text " schedule, and every order must be filed at least two weeks in advance - each menu has its own shipping date, and each chef has their own planned schedule to fill their orders. This allows chefs to "
-  , R.em [] [R.text "care"]
-  , R.text " about each meal and give their full attention to their craft, without having to worry about wasteful time constraints."
+  [ typography
+    { variant: Typography.body1
+    , align: Typography.left
+    }
+    [ R.text "Every chef has a "
+    , R.em [] [R.text "bi-weekly"]
+    , R.text " schedule, and every order must be filed at least two weeks in advance - each menu has its own shipping date, and each chef has their own planned schedule to fill their orders. This allows chefs to "
+    , R.em [] [R.text "care"]
+    , R.text " about each meal and give their full attention to their craft, without having to worry about wasteful time constraints."
+    ]
   ]
