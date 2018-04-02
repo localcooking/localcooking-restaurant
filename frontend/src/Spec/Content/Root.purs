@@ -17,7 +17,7 @@ import React.Signal.WhileMounted as Signal
 import MaterialUI.Types (createStyles)
 import MaterialUI.Typography (typography)
 import MaterialUI.Typography as Typography
-import MaterialUI.Markdown (markdown)
+-- import MaterialUI.Markdown (markdown)
 import MaterialUI.Divider (divider)
 import MaterialUI.Grid (grid)
 import MaterialUI.Grid as Grid
@@ -69,23 +69,25 @@ spec = T.simpleSpec performAction render
         , color: Typography.primary
         , style: createStyles {marginBottom: "1em"}
         } [R.text "Locally Sourced, Affordable Cuisine for the Average Family"]
-      , if state.windowSize < Laptop
-          then markdown paragraph1
-          else
-            grid
-              { spacing: Grid.spacing8
-              , container: true
-              }
-              [ grid
-                { xs: 9
-                , item: true
-                }
-                [ R.div [RP.style {marginTop: "1em"}] []
-                , markdown paragraph1
-                , R.div [RP.style {marginBottom: "1em"}] []
-                ]
-              ]
-      , divider {}
+      ] <> ( if state.windowSize < Laptop
+                then paragraph1
+                else
+                  [ grid
+                    { spacing: Grid.spacing8
+                    , container: true
+                    }
+                    [ grid
+                      { xs: 9
+                      , item: true
+                      } $
+                      [ R.div [RP.style {marginTop: "1em"}] []
+                      ] <> paragraph1 <>
+                      [ R.div [RP.style {marginBottom: "1em"}] []
+                      ]
+                    ]
+                  ]
+           ) <>
+      [ divider {}
       , typography
         { variant: if state.windowSize < Laptop then Typography.headline else Typography.display1
         , align: Typography.left
@@ -116,23 +118,24 @@ spec = T.simpleSpec performAction render
         , color: Typography.primary
         , style: createStyles {marginBottom: "1em", marginTop: "1em"}
         } [R.text "How Long Does it Take, and Why?"]
-      , if state.windowSize < Laptop
-          then markdown paragraph3
-          else
-            grid
-              { spacing: Grid.spacing8
-              , container: true
-              }
-              [ grid
-                { xs: 9
-                , item: true
-                }
-                [ R.div [RP.style {marginTop: "1em"}] []
-                , markdown paragraph3
-                , R.div [RP.style {marginBottom: "1em"}] []
-                ]
-              ]
-      ]
+      ] <> ( if state.windowSize < Laptop
+                then paragraph3
+                else
+                  [ grid
+                    { spacing: Grid.spacing8
+                    , container: true
+                    }
+                    [ grid
+                      { xs: 9
+                      , item: true
+                      } $
+                      [ R.div [RP.style {marginTop: "1em"}] []
+                      ] <> paragraph3 <>
+                      [ R.div [RP.style {marginBottom: "1em"}] []
+                      ]
+                    ]
+                  ]
+           )
 
 
 root :: forall eff
@@ -149,17 +152,29 @@ root {windowSizeSignal} =
   in  R.createElement (R.createClass reactSpec') unit []
 
 
-paragraph1 :: String
-paragraph1 = """
-We are a team of chefs dedicated to providing hand-made, healthy, creative meals to
-the public at competitive prices. Our platform allows chefs to debut **their own** menus
-and feature **their own** culinary artistry - search for a specific dish, or for a style of talent.
-
-Our chefs are paid by commission; they receive the majority of profit on every order, while our
-app gives them an opportunity to reach more customers, looking for their type of cuisine.
-We want to make the experience of ordering a hand-cooked meal _personal_ again, yet
-_streamlined_ enough to meet the needs of our modern world.
-"""
+paragraph1 :: Array R.ReactElement
+paragraph1 =
+  [ typography
+    { variant: Typography.body1
+    , align: Typography.left
+    }
+    [ R.text "We are a team of chefs dedicated to providing hand-made, healthy, creative meals to the public at competitive prices. Our platform allows chefs to debut "
+    , R.em [] [R.text "their own"]
+    , R.text " menus and feature "
+    , R.em [] [R.text "their own"]
+    , R.text " culinary artistry - search for a specific dish, or for a style of talent."
+    ]
+  , typography
+    { variant: Typography.body1
+    , align: Typography.left
+    }
+    [ R.text "Our chefs are paid by commission; they receive the majority of profit on every order, while our app gives them an opportunity to reach more customers, looking for their type of cuisine. We want to make the experience of ordering a hand-cooked meal"
+    , R.em [] [R.text "personal"]
+    , R.text ", yet "
+    , R.em [] [R.text "streamlined"]
+    , R.text " enough to meet the needs of our modern world."
+    ]
+  ]
 
 
 -- FIXME links!!
@@ -193,10 +208,11 @@ paragraph2 = list {dense: true}
   ]
 
 
-paragraph3 :: String
-paragraph3 = """
-Every chef has a _bi-weekly_ schedule, and every order must be filed at least two weeks in advance -
-each menu has its own shipping date, and each chef has their own planned schedule to fill their
-orders. This allows chefs to _care_ about each meal and give their full attention to their craft,
-without having to worry about wasteful time constraints.
-"""
+paragraph3 :: Array R.ReactElement
+paragraph3 =
+  [ R.text "Every chef has a "
+  , R.em [] [R.text "bi-weekly"]
+  , R.text " schedule, and every order must be filed at least two weeks in advance - each menu has its own shipping date, and each chef has their own planned schedule to fill their orders. This allows chefs to "
+  , R.em [] [R.text "care"]
+  , R.text " about each meal and give their full attention to their craft, without having to worry about wasteful time constraints."
+  ]
