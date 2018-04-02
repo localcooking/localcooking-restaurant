@@ -1,6 +1,5 @@
 module Spec.Content where
 
-import Spec.Content.About (about)
 import Spec.Content.Root (root)
 import Spec.Content.Chefs (chefs)
 import Spec.Content.Meals (meals)
@@ -93,7 +92,6 @@ spec {registerQueues,windowSizeSignal,siteLinks} = T.simpleSpec performAction re
           }
           [ R.div [RP.style {minHeight: "30em", padding: "1em"}]
             [ case state.page of
-                AboutLink -> about
                 RootLink -> root {windowSizeSignal}
                 ChefsLink -> chefs
                 MealsLink -> meals

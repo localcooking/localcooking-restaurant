@@ -99,7 +99,7 @@ spec
             else
               let mkButton x = button
                     { color: unsafePartial $ case x of
-                         AboutLink -> Button.inherit
+                         RootLink -> Button.inherit
                          MealsLink -> Button.primary
                          ChefsLink -> Button.secondary
                     , disabled: state.currentPage == x
@@ -109,23 +109,17 @@ spec
                         dispatch (Clicked x)
                     , href: URI.print $ toURI $ toLocation x
                     , variant: case x of
-                      AboutLink -> Button.flat
+                      RootLink -> Button.flat
                       _ -> Button.raised
                     } [ R.text $ unsafePartial $ case x of
-                          AboutLink -> "About"
+                          RootLink -> "About"
                           MealsLink -> "Meals"
                           ChefsLink -> "Chefs"
                       ]
-              in  [ R.a [ RP.href $ URI.print $ toURI $ toLocation RootLink
-                        , RP.onClick \e -> do
-                            preventDefault e
-                            dispatch (Clicked RootLink)
-                        ]
-                      [ R.img  [ RP.src $ URI.print $ toURI $ toLocation Logo40Png
-                              , RP.style {height: "2.5em", border: 0}
-                              ] [] -- FIXME make into a link to RootLink
-                      ]
-                  , mkButton AboutLink
+              in  [ R.img  [ RP.src $ URI.print $ toURI $ toLocation Logo40Png
+                          , RP.style {height: "2.5em", border: 0}
+                          ] []
+                  , mkButton RootLink
                   , mkButton MealsLink
                   , mkButton ChefsLink
                   ]

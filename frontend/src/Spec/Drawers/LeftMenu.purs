@@ -33,6 +33,7 @@ import MaterialUI.Icons.RestaurantMenu (restaurantMenuIcon)
 import Queue.One (READ, Queue)
 import IxSignal.Internal (IxSignal)
 import IxSignal.Internal as IxSignal
+import Partial.Unsafe (unsafePartial)
 
 
 type State =
@@ -48,8 +49,7 @@ initialState {initWindowSize} =
 
 data Action
   = ChangedWindowSize WindowSize
-  | ClickedAboutLink
-  | ClickedMenuLink
+  | Clicked SiteLinks
   | Open
   | Close
 
@@ -72,12 +72,9 @@ spec {siteLinks} = T.simpleSpec performAction render
 
     performAction action props state = case action of
       ChangedWindowSize w -> void $ T.cotransform _ { windowSize = w }
-      ClickedAboutLink -> do
+      Clicked x -> do
         performAction Close props state
-        liftEff (siteLinks AboutLink)
-      ClickedMenuLink -> do
-        performAction Close props state
-        liftEff (siteLinks RootLink)
+        liftEff (siteLinks x)
       Open -> do
         liftEff $ do
           n <- unInstant <$> now
@@ -105,23 +102,26 @@ spec {siteLinks} = T.simpleSpec performAction render
         { open: state.open
         , onClose: mkEffFn1 \_ -> dispatch Close
         }
-        [ list {}
-          [ listItem
-            { button: true
-            , onClick: mkEffFn1 \_ -> dispatch ClickedMenuLink
-            }
-            [ listItemIcon {} restaurantMenuIcon
-            , listItemText {primary: "Menu"}
-            ]
-          , divider {}
-          , listItem
-            { button: true
-            , onClick: mkEffFn1 \_ -> dispatch ClickedAboutLink
-            }
-            [ listItemIcon {} personPinIcon
-            , listItemText {primary: "About"}
-            ]
-          ]
+        [ list {} $
+          let item x =
+                listItem
+                  { button: true
+                  , onClick: mkEffFn1 \_ -> dispatch (Clicked x)
+                  }
+                  [ listItemIcon {} restaurantMenuIcon
+                  , listItemText
+                    { primary: unsafePartial $ case x of
+                        RootLink -> "About"
+                        MealsLink -> "Meals"
+                        ChefsLink -> "Chefs"
+                    }
+                  ]
+          in  [ item RootLink
+              , divider {}
+              , item MealsLink
+              , divider {}
+              , item ChefsLink
+              ]
         ]
       ]
 

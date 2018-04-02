@@ -58,7 +58,6 @@ instance toLocationLogoLinks :: ToLocation LogoLinks where
 
 data SiteLinks
   = RootLink
-  | AboutLink
   | RegisterLink
   | MealsLink -- FIXME search terms
   | ChefsLink -- FIXME search terms or hierarchy
@@ -66,8 +65,7 @@ data SiteLinks
 instance arbitrarySiteLinks :: Arbitrary SiteLinks where
   arbitrary = oneOf $
         (pure RootLink)
-    :|  [ pure AboutLink
-        , pure MealsLink
+    :|  [ pure MealsLink
         , pure ChefsLink
         , pure RegisterLink
         ]
@@ -129,7 +127,6 @@ instance decodeJsonSiteLinks :: DecodeJson SiteLinks where
 instance toLocationSiteLinks :: ToLocation SiteLinks where
   toLocation x = case x of
     RootLink  -> Location (Left rootDir) Nothing Nothing
-    AboutLink -> Location (Right $ rootDir </> file "about") Nothing Nothing
     MealsLink -> Location (Right $ rootDir </> file "meals") Nothing Nothing
     ChefsLink -> Location (Right $ rootDir </> file "chefs") Nothing Nothing
     RegisterLink -> Location (Right $ rootDir </> file "register") Nothing Nothing
@@ -137,7 +134,6 @@ instance toLocationSiteLinks :: ToLocation SiteLinks where
 siteLinksToDocumentTitle :: SiteLinks -> DocumentTitle
 siteLinksToDocumentTitle x = DocumentTitle $ case x of
   RootLink -> "Local Cooking"
-  AboutLink -> "About - Local Cooking"
   MealsLink -> "Meals - Local Cooking"
   ChefsLink -> "Chefs - Local Cooking"
   RegisterLink -> "Register - Local Cooking"
@@ -153,10 +149,6 @@ siteLinksParser (Location path mQuery mFrag) = do
     siteLinksPathParser :: Parser SiteLinks
     siteLinksPathParser = do
       let root = RootLink <$ (divider *> eof)
-          about = do
-            void divider
-            void (string "about")
-            pure AboutLink
           meals = do
             void divider
             void (string "meals")
@@ -169,8 +161,7 @@ siteLinksParser (Location path mQuery mFrag) = do
             void divider
             void (string "register")
             pure RegisterLink
-      try about
-        <|> try meals
+      try meals
         <|> try chefs
         <|> try register
         <|> root
