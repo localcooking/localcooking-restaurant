@@ -225,8 +225,7 @@ app
           case preliminaryAuthToken of
             PreliminaryAuthToken Nothing -> pure unit
             PreliminaryAuthToken (Just eErr) -> case eErr of
-              -- Call the authToken resource when the spec starts, using the preliminary
-              -- auth token
+              -- Call the authToken resource when the spec starts, using the preliminary auth token
               Right prescribedAuthToken ->
                 unsafeCoerceEff $ dispatcher this $ CallAuthToken $
                   AuthTokenInitInExists {exists: prescribedAuthToken}

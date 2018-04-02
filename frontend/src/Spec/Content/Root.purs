@@ -78,11 +78,51 @@ spec = T.simpleSpec performAction render
               ]
       , divider {}
       , typography
-        { variant: Typography.display1
+        { variant: if state.windowSize < Laptop then Typography.headline else Typography.display1
         , align: Typography.left
         , color: Typography.primary
         , style: createStyles {marginBottom: "1em", marginTop: "1em"}
         } [R.text "Simplified Ordering"]
+      , if state.windowSize < Laptop
+          then markdown paragraph2
+          else
+            grid
+              { spacing: Grid.spacing8
+              , container: true
+              }
+              [ grid {xs: 3, item: true} []
+              , grid
+                { xs: 9
+                , item: true
+                }
+                [ R.div [RP.style {marginTop: "1em"}] []
+                , markdown paragraph2
+                , R.div [RP.style {marginBottom: "1em"}] []
+                ]
+              ]
+      , divider {}
+      , typography
+        { variant: if state.windowSize < Laptop then Typography.headline else Typography.display1
+        , align: Typography.right
+        , color: Typography.primary
+        , style: createStyles {marginBottom: "1em", marginTop: "1em"}
+        } [R.text "How Long Does it Take, and Why?"]
+      , if state.windowSize < Laptop
+          then markdown paragraph3
+          else
+            grid
+              { spacing: Grid.spacing8
+              , container: true
+              }
+              [ grid
+                { xs: 9
+                , item: true
+                }
+                [ R.div [RP.style {marginTop: "1em"}] []
+                , markdown paragraph3
+                , R.div [RP.style {marginBottom: "1em"}] []
+                ]
+              ]
       ]
 
 
@@ -110,4 +150,24 @@ Our chefs are paid by commission; they receive the majority of profit on every o
 app gives them an opportunity to reach more customers, looking for their type of cuisine.
 We want to make the experience of ordering a hand-cooked meal _personal_ again, yet
 _streamlined_ enough to meet the needs of our modern world.
+"""
+
+
+-- FIXME links!!
+paragraph2 :: String
+paragraph2 = """
+1. Browse our Chefs and Menus
+2. View the details on specific meals - its ingredients, the meal's culture and history, and how to prepare it
+3. Create an order of at least $100, at least two weeks in advance
+4. Checkout your cart, wait for updates on your order
+5. Receive your delivery of frozen meals, store them, or prepare and enjoy!
+"""
+
+
+paragraph3 :: String
+paragraph3 = """
+Every chef has a _bi-weekly_ schedule, and every order must be filed at least two weeks in advance -
+each menu has its own shipping date, and each chef has their own planned schedule to fill their
+orders. This allows chefs to _care_ about each meal and give their full attention to their craft,
+without having to worry about wasteful time constraints.
 """
