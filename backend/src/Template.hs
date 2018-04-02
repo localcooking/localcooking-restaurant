@@ -131,13 +131,13 @@ masterPage mToken =
         }
   where
     inlineStyles = [lucius|
-a:link:not(.MuiButton-root-38), a:active:not(.MuiButton-root-38) {
+a:link:not([role="button"]), a:active:not([role="button"]) {
   color: #{aLinkActive};
 }
-a:hover:not(.MuiButton-root-38) {
+a:hover:not([role="button"]) {
   color: #{aHover};
 }
-a:visited:not(.MuiButton-root-38) {
+a:visited:not([role="button"]) {
   color: #{aVisited};
 }
 body {
