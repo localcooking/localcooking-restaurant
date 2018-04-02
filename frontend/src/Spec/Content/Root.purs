@@ -21,6 +21,15 @@ import MaterialUI.Markdown (markdown)
 import MaterialUI.Divider (divider)
 import MaterialUI.Grid (grid)
 import MaterialUI.Grid as Grid
+import MaterialUI.List (list)
+import MaterialUI.ListItem (listItem)
+import MaterialUI.ListItemText (listItemText)
+import MaterialUI.ListItemIcon (listItemIcon)
+import MaterialUI.Icons.Search (searchIcon)
+import MaterialUI.Icons.PictureInPicture (pictureInPictureIcon)
+import MaterialUI.Icons.ShoppingCart (shoppingCartIcon)
+import MaterialUI.Icons.Timelapse (timelapseIcon)
+import MaterialUI.Icons.LocalShipping (localShippingIcon)
 
 import IxSignal.Internal (IxSignal)
 
@@ -84,7 +93,7 @@ spec = T.simpleSpec performAction render
         , style: createStyles {marginBottom: "1em", marginTop: "1em"}
         } [R.text "Simplified Ordering"]
       , if state.windowSize < Laptop
-          then markdown paragraph2
+          then paragraph2
           else
             grid
               { spacing: Grid.spacing8
@@ -96,7 +105,7 @@ spec = T.simpleSpec performAction render
                 , item: true
                 }
                 [ R.div [RP.style {marginTop: "1em"}] []
-                , markdown paragraph2
+                , paragraph2
                 , R.div [RP.style {marginBottom: "1em"}] []
                 ]
               ]
@@ -154,14 +163,34 @@ _streamlined_ enough to meet the needs of our modern world.
 
 
 -- FIXME links!!
-paragraph2 :: String
-paragraph2 = """
-1. Browse our Chefs and Menus
-2. View the details on specific meals - its ingredients, the meal's culture and history, and how to prepare it
-3. Create an order of at least $100, at least two weeks in advance
-4. Checkout your cart, wait for updates on your order
-5. Receive your delivery of frozen meals, store them, or prepare and enjoy!
-"""
+paragraph2 :: R.ReactElement
+paragraph2 = list {dense: true}
+  [ listItem {}
+    [ listItemIcon {} searchIcon
+    , listItemText
+      {primary: "Browse our Chefs and Menus"}
+    ]
+  , listItem {}
+    [ listItemIcon {} pictureInPictureIcon
+    , listItemText
+      {primary: "View the details on specific meals - the ingredients, the culture and history, and how to prepare it"}
+    ]
+  , listItem {}
+    [ listItemIcon {} shoppingCartIcon
+    , listItemText
+      {primary: "Create an order of at least $100, at least two weeks in advance"}
+    ]
+  , listItem {}
+    [ listItemIcon {} timelapseIcon
+    , listItemText
+      {primary: "Checkout your cart, wait for updates on your order"}
+    ]
+  , listItem {}
+    [ listItemIcon {} localShippingIcon
+    , listItemText
+      {primary: "Receive your delivery of frozen meals, store them, or prepare and enjoy!"}
+    ]
+  ]
 
 
 paragraph3 :: String

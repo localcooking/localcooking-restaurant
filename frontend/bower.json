@@ -12,7 +12,7 @@
     "purescript-localcooking-shared": "git@git.localcooking.com:localcooking/purescript-localcooking-shared.git",
     "purescript-prelude": "^3.1.1",
     "purescript-console": "^3.0.0",
-    "purescript-material-ui": "git://github.com/athanclark/purescript-material-ui.git#7df19d3fbd68a42f151141ecd75369dc81c9b600",
+    "purescript-material-ui": "git://github.com/athanclark/purescript-material-ui.git#4a8fcf15ccc28f1e8c5e02f97ca4bfb87f229655",
     "purescript-thermite": "git://github.com/jvliwanag/purescript-thermite.git#94299d6832d92f14bef029f35d07bd5e8b062e05",
     "purescript-zeta": "^0.0.3",
     "purescript-uri": "git@git.localcooking.com:private-tooling/purescript-uri.git",

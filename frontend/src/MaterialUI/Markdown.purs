@@ -23,12 +23,8 @@ markdown source =
         children
       ]
     , list: createClassStateless' \{ordered} children ->
-      [ list {}
-        children
-      ]
+      [list {dense: true} children]
     , listItem: createClassStateless' \{checked} children ->
-      [ listItem {}
-        children
-      ]
+      [listItem {} children]
     }
   }
