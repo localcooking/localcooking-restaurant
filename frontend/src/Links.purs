@@ -91,11 +91,11 @@ initSiteLinks = do
         replaceState' RootLink h
         pure RootLink
       Just {location: location@(Location _ mQuery _)} -> case siteLinksParser location of
-        Nothing -> do
-          warn $ "Location can't be a SiteLinks: " <> show location
+        Left e -> do
+          warn $ "Location can't be a SiteLinks: " <> e <> ", " <> show location
           replaceState' RootLink h
           pure RootLink
-        Just x -> do
+        Right x -> do
           -- FIXME only adjust for authToken when it's parsable?
           case mQuery of
             Nothing -> pure unit
@@ -121,8 +121,8 @@ instance decodeJsonSiteLinks :: DecodeJson SiteLinks where
     case runParser parseLocation s of
       Left e -> fail (show e)
       Right loc -> case siteLinksParser loc of
-        Nothing -> fail "siteLinksParser failed"
-        Just x -> pure x
+        Left e -> fail e
+        Right x -> pure x
 
 instance toLocationSiteLinks :: ToLocation SiteLinks where
   toLocation x = case x of
@@ -140,10 +140,10 @@ siteLinksToDocumentTitle x = DocumentTitle $ case x of
 
 
 -- Policy: don't fail on bad query params / fragment unless you have to
-siteLinksParser :: Location -> Maybe SiteLinks
+siteLinksParser :: Location -> Either String SiteLinks
 siteLinksParser (Location path mQuery mFrag) = do
   case runParser siteLinksPathParser (URIPath.printPath path) of
-    Left _ -> Nothing
+    Left e -> Left (show e)
     Right link -> pure link
   where
     siteLinksPathParser :: Parser SiteLinks
