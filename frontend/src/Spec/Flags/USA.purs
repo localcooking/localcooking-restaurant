@@ -1,6 +1,6 @@
 module Spec.Flags.USA where
 
-import Prelude (show)
+import Prelude
 import React as R
 import React.DOM as RD
 import React.DOM.SVG as R
@@ -23,22 +23,23 @@ usaFlag =
       ]
     ]
   where
-    s18 {x} = R.svg [RP.x x]
+    s18 {x} = R.g [translate {x,y: 0}]
       [ s9 {x: 0}
       , s9 {x: 494}
       ]
-    s9 {x} = R.svg [RP.x x]
+    s9 {x} = R.g [translate {x,y: 0}]
       [ s5 {x: 0}
       , s4 {x: 247, y: 210}
       ]
-    s5 {x} = R.svg [RP.x x]
+    s5 {x} = R.g [translate {x,y: 0}]
       [ s4 {x: 0, y: 0}
       , s {x: 0, y: 1680}
       ]
-    s4 {x,y} = R.svg [RP.x x, RP.y y]
+    s4 {x,y} = R.g [translate {x,y}]
       [ s {x: 0, y: 0}
       , s {x: 0, y: 420}
       , s {x: 0, y: 840}
       , s {x: 0, y: 1260}
       ]
     s {x,y} = R.path [RP.x x, RP.y y, RP.d "M247,90 317.534230,307.082039 132.873218,172.917961H361.126782L176.465770,307.082039z"] []
+    translate {x,y} = RP.unsafeMkProps "transform" $ "translate(" <> show x <> "," <> show y <> ")"
