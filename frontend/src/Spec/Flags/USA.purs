@@ -15,29 +15,30 @@ usaFlag :: Array R.ReactElement
 usaFlag =
     [ R.rect [RP.width "7410", RP.height "3900", RP.fill "#b22234"] []
     , R.path [RP.d "M0,450H7410m0,600H0m0,600H7410m0,600H0m0,600H7410m0,600H0", RP.stroke "#fff", RP.strokeWidth 300] []
-    , R.rect [RP.width "2964", RP.height "2100", RP.y 400, RP.fill "#3c3b6e"] []
+    , R.rect [RP.width "2964", RP.height "2100", RP.fill "#3c3b6e"] []
     , R.g [RP.fill "#fff"]
-      [ R.g [RP._id "s18"]
-        [ R.g [RP._id "s9"]
-          [ R.g [RP._id "s5"]
-            [ R.g [RP._id "s4"]
-              [ R.path [RP._id "s", RP.d "M247,90 317.534230,307.082039 132.873218,172.917961H361.126782L176.465770,307.082039z"] []
-              , use [linking "#s", RP.y 420] []
-              , use [linking "#s", RP.y 840] []
-              , use [linking "#s", RP.y 1260] []
-              ]
-            , use [linking "#s", RP.y 1680] []
-            ]
-          , use [linking "#s4", RP.x 247, RP.y 210] []
-          ]
-        , use [linking "#s9", RP.x 494] []
-        ]
-      , use [linking "#s18", RP.x 988] []
-      , use [linking "#s9", RP.x 1976] []
-      , use [linking "#s5", RP.x 2470] []
+      [ s18 {x: 988}
+      , s9 {x: 1976}
+      , s5 {x: 2470}
       ]
     ]
   where
-    linking s = RP.unsafeMkProps "xlink:href" s
-
-    use = RD.mkDOM (RD.IsDynamic false) "use"
+    s18 {x} = R.g [RP.x x]
+      [ s9 {x: 0}
+      , s9 {x: 494}
+      ]
+    s9 {x} = R.g [RP.x x]
+      [ s5 {x: 0}
+      , s4 {x: 247, y: 210}
+      ]
+    s5 {x} = R.g [RP.x x]
+      [ s4 {x: 0, y: 0}
+      , s {x: 0, y: 1680}
+      ]
+    s4 {x,y} = R.g [RP.x x, RP.y y]
+      [ s {x: 0, y: 0}
+      , s {x: 0, y: 420}
+      , s {x: 0, y: 840}
+      , s {x: 0, y: 1260}
+      ]
+    s {x,y} = R.path [RP.x x, RP.y y, RP.d "M247,90 317.534230,307.082039 132.873218,172.917961H361.126782L176.465770,307.082039z"] []
