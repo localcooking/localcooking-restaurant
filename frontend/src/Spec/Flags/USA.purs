@@ -17,7 +17,8 @@ usaFlag =
     , R.path [RP.d "M0,450H7410m0,600H0m0,600H7410m0,600H0m0,600H7410m0,600H0", RP.stroke "#fff", RP.strokeWidth 300] []
     , R.rect [RP.width "2964", RP.height "2100", RP.fill "#3c3b6e"] []
     , R.g [RP.fill "#fff"]
-      [ s18 {x: 988}
+      [ s18 {x: 0}
+      , s18 {x: 988}
       , s9 {x: 1976}
       , s5 {x: 2470}
       ]
@@ -42,4 +43,4 @@ usaFlag =
       , s {x: 0, y: 1260}
       ]
     s {x,y} = R.path [RP.x x, RP.y y, RP.d "M247,90 317.534230,307.082039 132.873218,172.917961H361.126782L176.465770,307.082039z"] []
-    translate {x,y} = RP.unsafeMkProps "transform" $ "translate(" <> show x <> "," <> show y <> ")"
+    translate {x,y} = RP.unsafeMkProps "transform" $ "translate(" <> show y <> "," <> show x <> ")"
