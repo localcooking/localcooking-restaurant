@@ -17,5 +17,11 @@ frontend = $(embedFile "../frontend/index.js")
 frontendMin :: ByteString
 frontendMin = $(embedFile "../frontend/index.js.min")
 
+chefHatIcon :: ByteString
+chefHatIcon = $(embedFile "../logo/chef-hat.svg")
+
+chefHatInvertedIcon :: ByteString
+chefHatInvertedIcon = $(embedFile "../logo/chef-hat-inverted.svg")
+
 favicons :: [(FilePath, ByteString)]
 favicons = $(embedDir "../logo/favicon")
