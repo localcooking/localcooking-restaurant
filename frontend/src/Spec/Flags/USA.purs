@@ -42,5 +42,5 @@ usaFlag =
       , s {x: 0, y: 840}
       , s {x: 0, y: 1260}
       ]
-    s {x,y} = R.path [RP.x x, RP.y y, RP.d "M247,90 317.534230,307.082039 132.873218,172.917961H361.126782L176.465770,307.082039z"] []
-    translate {x,y} = RP.unsafeMkProps "transform" $ "translate(" <> show y <> "," <> show x <> ")"
+    s {x,y} = R.path [translate {x,y}, RP.d "M247,90 317.534230,307.082039 132.873218,172.917961H361.126782L176.465770,307.082039z"] []
+    translate {x,y} = RP.unsafeMkProps "transform" $ "translate(" <> show x <> "," <> show y <> ")"
