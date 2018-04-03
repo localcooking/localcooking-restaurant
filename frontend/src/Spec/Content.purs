@@ -114,13 +114,12 @@ spec {registerQueues,windowSizeSignal,siteLinks} = T.simpleSpec performAction re
         [ R.text "Copyright © Local Cooking Inc. 2018, All rights reserved." ]
       , typography
         { variant: Typography.caption
-        , style: createStyles {marginTop: "5em"}
         , align: Typography.center
         }
         [ R.text "Proudly made in Golden, Colorado, The United States of America."
-        , svgIcon {viewBox: coloradoFlagViewBox} coloradoFlag
-        , svgIcon {viewBox: usaFlagViewBox} usaFlag
         ]
+      , svgIcon {viewBox: coloradoFlagViewBox} coloradoFlag
+      , svgIcon {viewBox: usaFlagViewBox} usaFlag
       ]
 
 
