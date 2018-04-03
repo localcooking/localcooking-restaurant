@@ -11,7 +11,7 @@ module Server.HTTP where
 
 import LocalCooking.Common.AuthToken (AuthToken)
 import Server.Dependencies.AuthToken (authTokenServer, AuthTokenInitIn (AuthTokenInitInFacebookCode), AuthTokenInitOut (AuthTokenInitOutSuccess))
-import Server.Assets (favicons, frontend, frontendMin, chefHatIcon, chefHatInvertedIcon)
+import Server.Assets (favicons, frontend, frontendMin)
 import Types (AppM, runAppM, HTTPException (..))
 import Types.Env (Env (..), Managers (..), isDevelopment, Development (..))
 import Types.FrontendEnv (FrontendEnv (..))
@@ -110,13 +110,6 @@ router
     let (file', ext) = T.breakOn "." (T.pack file)
     match (l_ file' </> o_) $ action $ get $
       bytestring (Other (T.dropWhile (== '.') ext)) (LBS.fromStrict content)
-
-  -- chef hat icons
-  matchGroup (l_ "images" </> l_ "icons" </> o_) $ do
-    match (l_ "chef-hat.svg") $ action $ get $
-      bytestring (Other (T.dropWhile (== '.') ext)) (LBS.fromStrict chefHatIcon)
-    match (l_ "chef-hat-inverted.svg") $ action $ get $
-      bytestring (Other (T.dropWhile (== '.') ext)) (LBS.fromStrict chefHatInvertedIcon)
 
   -- application
   match (l_ "index.js" </> o_) $ \app req resp -> do
