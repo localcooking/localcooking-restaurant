@@ -11,7 +11,7 @@ module Server.HTTP where
 
 import LocalCooking.Common.AuthToken (AuthToken)
 import Server.Dependencies.AuthToken (authTokenServer, AuthTokenInitIn (AuthTokenInitInFacebookCode), AuthTokenInitOut (AuthTokenInitOutSuccess))
-import Server.Assets (favicons, frontend)
+import Server.Assets (favicons, frontend, frontendMin)
 import Types (AppM, runAppM, HTTPException (..))
 import Types.Env (Env (..), Managers (..), isDevelopment, Development (..))
 import Types.FrontendEnv (FrontendEnv (..))
@@ -121,7 +121,10 @@ router
         Just cacheBuster
           | cacheBuster == BS16.encode (NaCl.encode devCacheBuster) -> pure ()
           | otherwise -> fail "Wrong cache buster!" -- FIXME make cache buster generic
-    (action $ get $ bytestring JavaScript $ LBS.fromStrict frontend) app req resp
+    ( action $ get $ bytestring JavaScript $ LBS.fromStrict $ case envDevelopment of
+        Nothing -> frontend
+        Just _ -> frontendMin
+      ) app req resp
 
   -- TODO handle authenticated linking
   match (l_ "facebookLoginReturn" </> o_) $ \app req resp -> do

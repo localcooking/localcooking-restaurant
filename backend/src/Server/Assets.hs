@@ -14,6 +14,8 @@ import Data.ByteString (ByteString)
 frontend :: ByteString
 frontend = $(embedFile "../frontend/index.js")
 
+frontendMin :: ByteString
+frontendMin = $(embedFile "../frontend/index.js.min")
 
 favicons :: [(FilePath, ByteString)]
 favicons = $(embedDir "../logo/favicon")
