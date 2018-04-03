@@ -23,19 +23,19 @@ usaFlag =
       ]
     ]
   where
-    s18 {x} = R.g [RP.x x]
+    s18 {x} = R.svg [RP.x x]
       [ s9 {x: 0}
       , s9 {x: 494}
       ]
-    s9 {x} = R.g [RP.x x]
+    s9 {x} = R.svg [RP.x x]
       [ s5 {x: 0}
       , s4 {x: 247, y: 210}
       ]
-    s5 {x} = R.g [RP.x x]
+    s5 {x} = R.svg [RP.x x]
       [ s4 {x: 0, y: 0}
       , s {x: 0, y: 1680}
       ]
-    s4 {x,y} = R.g [RP.x x, RP.y y]
+    s4 {x,y} = R.svg [RP.x x, RP.y y]
       [ s {x: 0, y: 0}
       , s {x: 0, y: 420}
       , s {x: 0, y: 840}
