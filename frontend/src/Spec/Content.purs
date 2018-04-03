@@ -120,8 +120,19 @@ spec {registerQueues,windowSizeSignal,siteLinks} = T.simpleSpec performAction re
         [ R.text "Proudly made in Golden, Colorado, The United States of America."
         ]
       , R.div [RP.style {textAlign: "center"}]
-        [ RS.svg [RP.viewBox coloradoFlagViewBox, RP.width (show flagWidth), RP.height (show flagHeight)] coloradoFlag
-        , RS.svg [RP.viewBox usaFlagViewBox, RP.width (show flagWidth), RP.height (show flagHeight)] usaFlag
+        [ RS.svg
+            [ RP.viewBox coloradoFlagViewBox
+            , RP.width (show flagWidth)
+            , RP.height (show flagHeight)
+            , RP.unsafeMkProps "xmlns" "http://www.w3.org/2000/svg"
+            ] coloradoFlag
+        , RS.svg
+            [ RP.viewBox usaFlagViewBox
+            , RP.width (show flagWidth)
+            , RP.height (show flagHeight)
+            , RP.unsafeMkProps "xmlns" "http://www.w3.org/2000/svg"
+            , RP.unsafeMkProps "xmlns:xlink" "http://www.w3.org/1999/xlink"
+            ] usaFlag
         ]
       ]
       where
