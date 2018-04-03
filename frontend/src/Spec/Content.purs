@@ -4,6 +4,8 @@ import Spec.Content.Root (root)
 import Spec.Content.Chefs (chefs)
 import Spec.Content.Meals (meals)
 import Spec.Content.Register (register)
+import Spec.Flags.USA (usaFlag, usaFlagViewBox)
+import Spec.Flags.Colorado (coloradoFlag, coloradoFlagViewBox)
 import Links (SiteLinks (..))
 import Client.Dependencies.Register (RegisterSparrowClientQueues)
 import Window (WindowSize (Laptop))
@@ -26,6 +28,7 @@ import MaterialUI.Types (createStyles)
 import MaterialUI.Paper (paper)
 import MaterialUI.Typography (typography)
 import MaterialUI.Typography as Typography
+import MaterialUI.SvgIcon (svgIcon)
 import Crypto.Scrypt (SCRYPT)
 
 import IxSignal.Internal (IxSignal)
@@ -101,12 +104,22 @@ spec {registerQueues,windowSizeSignal,siteLinks} = T.simpleSpec performAction re
                     , toRoot: siteLinks RootLink
                     }
             ]
-          , typography
-            { variant: Typography.caption
-            , style: createStyles {marginTop: "5em", textAlign: "center"}
-            }
-            [ R.text "Copyright © Local Cooking Inc. 2018, All rights reserved" ]
           ]
+        ]
+      , typography
+        { variant: Typography.caption
+        , style: createStyles {marginTop: "5em"}
+        , align: Typography.center
+        }
+        [ R.text "Copyright © Local Cooking Inc. 2018, All rights reserved." ]
+      , typography
+        { variant: Typography.caption
+        , style: createStyles {marginTop: "5em"}
+        , align: Typography.center
+        }
+        [ R.text "Proudly made in Golden, Colorado, The United States of America."
+        , svgIcon {viewBox: coloradoFlagViewBox} coloradoFlag
+        , svgIcon {viewBox: usaFlagViewBox} usaFlag
         ]
       ]
 
