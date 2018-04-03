@@ -36,7 +36,7 @@ class ToLocation sym where
   toLocation :: sym -> Location
 
 
-data LogoLinks
+data ImageLinks
   = LogoPng
   | Logo40Png
   | LogoWhitePng
@@ -45,7 +45,7 @@ data LogoLinks
   | IconSvg
 
 
-instance toLocationLogoLinks :: ToLocation LogoLinks where
+instance toLocationImageLinks :: ToLocation ImageLinks where
   toLocation x = case x of
     LogoPng -> Location (Right $ rootDir </> dir "static" </> dir "images" </> file "logo.png") Nothing Nothing
     Logo40Png -> Location (Right $ rootDir </> dir "static" </> dir "images" </> file "logo-40.png") Nothing Nothing

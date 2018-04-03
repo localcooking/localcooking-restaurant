@@ -1,6 +1,6 @@
 module Spec.Topbar where
 
-import Links (toLocation, SiteLinks (..), LogoLinks (..))
+import Links (toLocation, SiteLinks (..), ImageLinks (..))
 import Window (WindowSize (..))
 
 import Prelude

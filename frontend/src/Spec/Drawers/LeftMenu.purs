@@ -2,6 +2,7 @@ module Spec.Drawers.LeftMenu where
 
 import Window (WindowSize)
 import Links (SiteLinks (..))
+import Spec.Icons.ChefHat (chefHat, chefHatViewBox)
 
 import Prelude
 import Data.Tuple (Tuple (..))
@@ -29,6 +30,8 @@ import MaterialUI.ListItemIcon (listItemIcon)
 import MaterialUI.Divider (divider)
 import MaterialUI.Icons.PersonPin (personPinIcon)
 import MaterialUI.Icons.RestaurantMenu (restaurantMenuIcon)
+import MaterialUI.SvgIcon (svgIcon)
+import MaterialUI.SvgIcon as SvgIcon
 
 import Queue.One (READ, Queue)
 import IxSignal.Internal (IxSignal)
@@ -108,7 +111,11 @@ spec {siteLinks} = T.simpleSpec performAction render
                   { button: true
                   , onClick: mkEffFn1 \_ -> dispatch (Clicked x)
                   }
-                  [ listItemIcon {} restaurantMenuIcon
+                  [ listItemIcon {} $ unsafePartial $ case x of
+                       RootLink -> personPinIcon
+                       MealsLink -> restaurantMenuIcon
+                       ChefsLink -> svgIcon {viewBox: chefHatViewBox, color: SvgIcon.action}
+                                      [chefHat]
                   , listItemText
                     { primary: unsafePartial $ case x of
                         RootLink -> "About"
