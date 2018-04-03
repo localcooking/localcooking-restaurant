@@ -8,6 +8,9 @@ import Data.URI (URI)
 import Data.URI.URI (print) as URI
 import Data.URI.Location (Location)
 import Data.UUID (GENUUID)
+import Data.Maybe (Maybe (..))
+import Text.Email.Validate (EmailAddress)
+import Text.Email.Validate as Email
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Uncurried (mkEffFn1)
 import Control.Monad.Eff.Unsafe (unsafeCoerceEff, unsafePerformEff)
@@ -42,12 +45,14 @@ import Partial.Unsafe (unsafePartial)
 type State =
   { windowSize :: WindowSize
   , currentPage :: SiteLinks
+  , userDetails :: Maybe {email :: EmailAddress}
   }
 
 initialState :: {initWindowSize :: WindowSize, initSiteLinks :: SiteLinks} -> State
 initialState {initWindowSize,initSiteLinks} =
   { windowSize: initWindowSize
   , currentPage: initSiteLinks
+  , userDetails: Nothing
   }
 
 data Action
@@ -55,6 +60,7 @@ data Action
   | ClickedMobileMenuButton
   | ChangedWindowSize WindowSize
   | ChangedCurrentPage SiteLinks
+  | ChangedUserDetails (Maybe {email :: EmailAddress})
   | Clicked SiteLinks
 
 type Effects eff =
@@ -83,6 +89,7 @@ spec
       ClickedMobileMenuButton -> liftEff (putQueue mobileMenuButtonSignal unit)
       ChangedWindowSize w -> void $ T.cotransform _ { windowSize = w }
       ChangedCurrentPage x -> void $ T.cotransform _ { currentPage = x }
+      ChangedUserDetails x -> void $ T.cotransform _ { userDetails = x }
       Clicked x -> liftEff (siteLinks x)
 
     render :: T.Render State Unit Action
@@ -124,12 +131,18 @@ spec
                   , mkButton ChefsLink
                   ]
           ) <>
-          [ R.div [RP.style {flex: 1, display: "flex", flexDirection: "row-reverse"}]
-            [ button
-              { color: Button.inherit
-              , onTouchTap: mkEffFn1 \_ -> dispatch OpenLogin
-              } [R.text "Login"]
-            ]
+          [ R.div [RP.style {flex: 1, display: "flex", flexDirection: "row-reverse"}] $ case state.userDetails of
+               Nothing ->
+                [ button
+                  { color: Button.inherit
+                  , onTouchTap: mkEffFn1 \_ -> dispatch OpenLogin
+                  } [R.text "Login"]
+                ]
+               Just {email} ->
+                [ button
+                  { color: Button.inherit
+                  } [R.text $ Email.toString email]
+                ]
           ]
         ]
       ]
@@ -143,6 +156,7 @@ topbar :: forall eff
           , windowSizeSignal :: IxSignal (Effects eff) WindowSize
           , currentPageSignal :: IxSignal (Effects eff) SiteLinks
           , siteLinks :: SiteLinks -> Eff (Effects eff) Unit
+          , userDetailsSignal :: IxSignal (Effects eff) (Maybe {email :: EmailAddress})
           } -> R.ReactElement
 topbar
   { toURI
@@ -151,6 +165,7 @@ topbar
   , siteLinks
   , mobileMenuButtonSignal
   , currentPageSignal
+  , userDetailsSignal
   } =
   let init =
         { initSiteLinks: unsafePerformEff $ IxSignal.get currentPageSignal
@@ -172,5 +187,8 @@ topbar
         $ Signal.whileMountedIxUUID
             currentPageSignal
             (\this x -> unsafeCoerceEff $ dispatcher this (ChangedCurrentPage x))
+        $ Signal.whileMountedIxUUID
+            userDetailsSignal
+            (\this x -> unsafeCoerceEff $ dispatcher this (ChangedUserDetails x))
             reactSpec
   in  R.createElement (R.createClass reactSpec') unit []

@@ -24,6 +24,7 @@ import Data.URI.Location (Location)
 import Data.UUID (GENUUID)
 import Data.Maybe (Maybe (..))
 import Data.Either (Either (..))
+import Text.Email.Validate (EmailAddress)
 import Control.Monad.Aff (makeAff, nonCanceler)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Console (CONSOLE)
@@ -94,6 +95,7 @@ spec :: forall eff
         , authErrorSignal    :: One.Queue (read :: READ, write :: WRITE) (Effects eff) (Either AuthError AuthTokenFailure)
         , loginPendingSignal :: One.Queue (read :: READ, write :: WRITE) (Effects eff) Unit
         , authTokenSignal    :: IxSignal (Effects eff) (Maybe AuthToken)
+        , userDetailsSignal  :: IxSignal (Effects eff) (Maybe {email :: EmailAddress})
         }
      -> T.Spec (Effects eff) State Unit Action
 spec
@@ -107,6 +109,7 @@ spec
   , authErrorSignal
   , loginPendingSignal
   , authTokenSignal
+  , userDetailsSignal
   } = T.simpleSpec performAction render
   where
     performAction action props state = case action of
@@ -122,6 +125,10 @@ spec
                 liftEff $ do
                   storeAuthToken authToken
                   IxSignal.set (Just authToken) authTokenSignal
+                  -- FIXME properly get user details
+                  case initIn of
+                    AuthTokenInitInLogin {email} -> IxSignal.set (Just {email}) userDetailsSignal
+                    _ -> pure unit
               AuthTokenInitOutFailure e -> do
                 liftEff $ One.putQueue authErrorSignal (Right e)
         liftEff $ One.putQueue loginPendingSignal unit
@@ -136,6 +143,7 @@ spec
         , siteLinks
         , mobileMenuButtonSignal: One.writeOnly mobileMenuButtonSignal
         , currentPageSignal
+        , userDetailsSignal
         }
       , content
         { currentPageSignal
@@ -153,6 +161,7 @@ spec
             One.onQueue loginPendingSignal \_ -> resolve (Right unit)
             pure nonCanceler
         , toRegister: siteLinks RegisterLink
+        , userDetailsSignal
         }
       , leftMenu
         { mobileDrawerOpenSignal: One.readOnly mobileMenuButtonSignal
@@ -216,6 +225,7 @@ app
           , authErrorSignal
           , loginPendingSignal
           , authTokenSignal
+          , userDetailsSignal
           }
         ) initialState
       reactSpec' = Signal.whileMountedIxUUID
@@ -245,3 +255,6 @@ app
 
     authTokenSignal :: IxSignal (Effects eff) (Maybe AuthToken)
     authTokenSignal = unsafePerformEff (IxSignal.make Nothing)
+
+    userDetailsSignal :: IxSignal (Effects eff) (Maybe {email :: EmailAddress})
+    userDetailsSignal = unsafePerformEff (IxSignal.make Nothing)

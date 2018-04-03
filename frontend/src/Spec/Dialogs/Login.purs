@@ -256,11 +256,20 @@ loginDialog :: forall eff
                , windowSizeSignal  :: IxSignal (Effects eff) WindowSize
                , toURI             :: Location -> URI
                , currentPageSignal :: IxSignal (Effects eff) SiteLinks
+               , userDetailsSignal :: IxSignal (Effects eff) (Maybe {email :: EmailAddress})
                , login             :: EmailAddress -> HashedPassword -> Aff (Effects eff) Unit
                , toRegister        :: Eff (Effects eff) Unit
                }
             -> R.ReactElement
-loginDialog {openLoginSignal,windowSizeSignal,toURI,currentPageSignal,login,toRegister} =
+loginDialog
+  { openLoginSignal
+  , windowSizeSignal
+  , toURI
+  , currentPageSignal
+  , userDetailsSignal
+  , login
+  , toRegister
+  } =
   let init =
         { initSiteLinks: unsafePerformEff $ IxSignal.get currentPageSignal
         , initWindowSize: unsafePerformEff $ IxSignal.get windowSizeSignal
@@ -276,6 +285,11 @@ loginDialog {openLoginSignal,windowSizeSignal,toURI,currentPageSignal,login,toRe
         $ Signal.whileMountedIxUUID
             currentPageSignal
             (\this x -> unsafeCoerceEff $ dispatcher this (ChangedPage x))
+        $ Signal.whileMountedIxUUID
+            userDetailsSignal
+            (\this x -> unsafeCoerceEff $ case x of
+                Nothing -> pure unit
+                Just _ -> dispatcher this Close)
         $ Queue.whileMountedOne
             openLoginSignal
             (\this _ -> unsafeCoerceEff $ dispatcher this Open)
