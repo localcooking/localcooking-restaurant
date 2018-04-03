@@ -114,17 +114,15 @@ router
   -- application
   match (l_ "index.js" </> o_) $ \app req resp -> do
     Env{envDevelopment} <- ask
-    case envDevelopment of
-      Nothing -> pure ()
-      Just Development{devCacheBuster} -> case join $ lookup "cache_buster" $ queryString req of
-        Nothing -> fail "No cache busting parameter!"
-        Just cacheBuster
-          | cacheBuster == BS16.encode (NaCl.encode devCacheBuster) -> pure ()
-          | otherwise -> fail "Wrong cache buster!" -- FIXME make cache buster generic
-    ( action $ get $ bytestring JavaScript $ LBS.fromStrict $ case envDevelopment of
-        Nothing -> frontend
-        Just _ -> frontendMin
-      ) app req resp
+    let mid = case envDevelopment of
+          Nothing -> action $ get $ bytestring JavaScript $ LBS.fromStrict frontendMin
+          Just Development{devCacheBuster} -> case join $ lookup "cache_buster" $ queryString req of
+            Nothing -> fail "No cache busting parameter!"
+            Just cacheBuster
+              | cacheBuster == BS16.encode (NaCl.encode devCacheBuster) ->
+                  action $ get $ bytestring JavaScript $ LBS.fromStrict frontend
+              | otherwise -> fail "Wrong cache buster!" -- FIXME make cache buster generic
+    mid app req resp
 
   -- TODO handle authenticated linking
   match (l_ "facebookLoginReturn" </> o_) $ \app req resp -> do
