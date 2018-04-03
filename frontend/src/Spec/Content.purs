@@ -15,6 +15,7 @@ import Prelude
 import Thermite as T
 import React as R
 import React.DOM as R
+import React.DOM.SVG as RS
 import React.DOM.Props as RP
 import React.Signal.WhileMounted as Signal
 import Data.UUID (GENUUID)
@@ -118,9 +119,14 @@ spec {registerQueues,windowSizeSignal,siteLinks} = T.simpleSpec performAction re
         }
         [ R.text "Proudly made in Golden, Colorado, The United States of America."
         ]
-      , svgIcon {viewBox: coloradoFlagViewBox} coloradoFlag
-      , svgIcon {viewBox: usaFlagViewBox} usaFlag
+      , R.div [RP.style {textAlign: "center"}]
+        [ RS.svg [RP.viewBox coloradoFlagViewBox, RP.width (show flagWidth), RP.height (show flagHeight)] coloradoFlag
+        , RS.svg [RP.viewBox usaFlagViewBox, RP.width (show flagWidth), RP.height (show flagHeight)] usaFlag
+        ]
       ]
+      where
+        flagWidth = 48
+        flagHeight = 26
 
 
 
