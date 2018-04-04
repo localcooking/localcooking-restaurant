@@ -128,7 +128,7 @@ spec
                   -- FIXME properly get user details
                   case initIn of
                     AuthTokenInitInLogin {email} -> IxSignal.set (Just {email}) userDetailsSignal
-                    _ -> pure unit
+                    _ -> pure unit -- TODO get user details resource
               AuthTokenInitOutFailure e -> do
                 liftEff $ One.putQueue authErrorSignal (Right e)
         liftEff $ One.putQueue loginPendingSignal unit
