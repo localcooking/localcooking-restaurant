@@ -74,6 +74,7 @@ library:
     - quickcheck-instances
     - timemap
     - text
+    - time
     - tmapchan
     - unordered-containers
     - urlpath >= 8.0.1
