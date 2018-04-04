@@ -30,7 +30,7 @@ import Data.Either (Either (..))
 import Text.Email.Validate (EmailAddress)
 import Control.Monad.Aff (makeAff, nonCanceler)
 import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.Console (CONSOLE)
+import Control.Monad.Eff.Console (CONSOLE, log)
 import Control.Monad.Eff.Class (liftEff)
 import Control.Monad.Eff.Unsafe (unsafePerformEff, unsafeCoerceEff)
 import Control.Monad.Eff.Ref (REF)
@@ -135,14 +135,16 @@ spec
                   -- FIXME properly get user details
                   case initIn of
                     AuthTokenInitInLogin {email} -> IxSignal.set (Just {email}) userDetailsSignal
-                    _ -> OneIO.callAsyncEff userDetailsQueues.emailQueues.init
+                    AuthTokenInitInExists _ -> do
+                      log "Calling with exists"
+                      OneIO.callAsyncEff userDetailsQueues.emailQueues.init
                             (\mInitOut -> case mInitOut of
-                                Nothing -> pure unit -- FIXME throw a snackbar error
+                                Nothing -> log "no initout for user details email" -- FIXME throw a snackbar error
                                 Just initOut -> case initOut of
                                   UserDetailsEmailInitOutSuccess email ->
                                     IxSignal.set (Just {email}) userDetailsSignal
                                   UserDetailsEmailInitOutNoAuth ->
-                                    pure unit -- FIXME throw a snackbar error
+                                    log "no auth for user details email" -- FIXME throw a snackbar error
                             )
                             (UserDetailsEmailInitIn authToken)
               AuthTokenInitOutFailure e -> do
