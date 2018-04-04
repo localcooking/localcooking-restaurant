@@ -23,7 +23,7 @@ dependencies:
 - base >= 4.8 && < 5
 
 ghc-options:
-  - -Wall
+  - -Werror
 
 library:
   source-dirs: src
@@ -94,7 +94,7 @@ executables:
     ghc-options:
     - -threaded
     - -rtsopts
-    - -Wall
+    - -Werror
     - -with-rtsopts=-N
     dependencies:
     - localcooking
