@@ -58,9 +58,10 @@ instance toLocationImageLinks :: ToLocation ImageLinks where
 
 data SiteLinks
   = RootLink
-  | RegisterLink
   | MealsLink -- FIXME search terms
   | ChefsLink -- FIXME search terms or hierarchy
+  | RegisterLink -- FIXME authenticated vs unauthenticated?
+  | UserDetailsLink
 
 instance arbitrarySiteLinks :: Arbitrary SiteLinks where
   arbitrary = oneOf $
@@ -68,6 +69,7 @@ instance arbitrarySiteLinks :: Arbitrary SiteLinks where
     :|  [ pure MealsLink
         , pure ChefsLink
         , pure RegisterLink
+        , pure UserDetailsLink
         ]
 
 initSiteLinks :: forall eff
@@ -95,8 +97,8 @@ initSiteLinks = do
           warn $ "Location can't be a SiteLinks: " <> e <> ", " <> show location
           replaceState' RootLink h
           pure RootLink
-        Right x -> do
-          -- FIXME only adjust for authToken when it's parsable?
+        Right (x :: SiteLinks) -> do
+          -- FIXME only adjust for authToken when it's parsable? Why?
           case mQuery of
             Nothing -> pure unit
             Just (Query qs) -> case StrMap.lookup "authToken" (StrMap.fromFoldable qs) of
@@ -130,6 +132,7 @@ instance toLocationSiteLinks :: ToLocation SiteLinks where
     MealsLink -> Location (Right $ rootDir </> file "meals") Nothing Nothing
     ChefsLink -> Location (Right $ rootDir </> file "chefs") Nothing Nothing
     RegisterLink -> Location (Right $ rootDir </> file "register") Nothing Nothing
+    UserDetailsLink -> Location (Right $ rootDir </> file "userDetails") Nothing Nothing
 
 siteLinksToDocumentTitle :: SiteLinks -> DocumentTitle
 siteLinksToDocumentTitle x = DocumentTitle $ case x of
@@ -137,6 +140,7 @@ siteLinksToDocumentTitle x = DocumentTitle $ case x of
   MealsLink -> "Meals - Local Cooking"
   ChefsLink -> "Chefs - Local Cooking"
   RegisterLink -> "Register - Local Cooking"
+  UserDetailsLink -> "User Details - Local Cooking"
 
 
 -- Policy: don't fail on bad query params / fragment unless you have to
@@ -161,9 +165,14 @@ siteLinksParser (Location path mQuery mFrag) = do
             void divider
             void (string "register")
             pure RegisterLink
+          userDetails = do
+            void divider
+            void (string "userDetails")
+            pure UserDetailsLink
       try meals
         <|> try chefs
         <|> try register
+        <|> try userDetails
         <|> root
       where
         divider = char '/'

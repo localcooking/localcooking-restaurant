@@ -123,33 +123,31 @@ spec
       GotAuthToken mToken -> void $ T.cotransform _ { authToken = mToken }
       CallAuthToken initIn -> do
         initOut <- liftBase $ OneIO.callAsync authTokenQueues.init initIn
-        case initOut of
-          Nothing ->
-            liftEff $ One.putQueue authErrorSignal (Left AuthExistsFailure)
-          Just eInitOut -> do
-            case eInitOut of
+        liftEff $ do
+          case initOut of
+            Nothing ->
+              One.putQueue authErrorSignal (Left AuthExistsFailure)
+            Just eInitOut -> case eInitOut of
               AuthTokenInitOutSuccess authToken -> do
-                liftEff $ do
-                  storeAuthToken authToken
-                  IxSignal.set (Just authToken) authTokenSignal
-                  -- FIXME properly get user details
-                  case initIn of
-                    AuthTokenInitInLogin {email} -> IxSignal.set (Just {email}) userDetailsSignal
-                    AuthTokenInitInExists _ -> do
-                      log "Calling with exists"
-                      OneIO.callAsyncEff userDetailsQueues.emailQueues.init
-                            (\mInitOut -> case mInitOut of
-                                Nothing -> log "no initout for user details email" -- FIXME throw a snackbar error
-                                Just initOut -> case initOut of
-                                  UserDetailsEmailInitOutSuccess email ->
-                                    IxSignal.set (Just {email}) userDetailsSignal
-                                  UserDetailsEmailInitOutNoAuth ->
-                                    log "no auth for user details email" -- FIXME throw a snackbar error
-                            )
-                            (UserDetailsEmailInitIn authToken)
-              AuthTokenInitOutFailure e -> do
-                liftEff $ One.putQueue authErrorSignal (Right e)
-        liftEff $ One.putQueue loginPendingSignal unit
+                storeAuthToken authToken
+                IxSignal.set (Just authToken) authTokenSignal
+                case initIn of
+                  AuthTokenInitInLogin {email} ->
+                    IxSignal.set (Just {email}) userDetailsSignal
+                  AuthTokenInitInExists _ ->
+                    OneIO.callAsyncEff userDetailsQueues.emailQueues.init
+                      (\mInitOut -> case mInitOut of
+                          Nothing -> log "no initout for user details email" -- FIXME throw a snackbar error
+                          Just initOut -> case initOut of
+                            UserDetailsEmailInitOutSuccess email ->
+                              IxSignal.set (Just {email}) userDetailsSignal
+                            UserDetailsEmailInitOutNoAuth ->
+                              log "no auth for user details email" -- FIXME throw a snackbar error
+                      )
+                      (UserDetailsEmailInitIn authToken)
+              AuthTokenInitOutFailure e ->
+                One.putQueue authErrorSignal (Right e)
+          One.putQueue loginPendingSignal unit
 
 
     render :: T.Render State Unit Action

@@ -3,6 +3,7 @@ module Spec.Content where
 import Spec.Content.Root (root)
 import Spec.Content.Chefs (chefs)
 import Spec.Content.Meals (meals)
+import Spec.Content.UserDetails (userDetails)
 import Spec.Content.Register (register)
 import Spec.Flags.USA (usaFlag, usaFlagViewBox)
 import Spec.Flags.Colorado (coloradoFlag, coloradoFlagViewBox)
@@ -104,6 +105,7 @@ spec {registerQueues,windowSizeSignal,siteLinks} = T.simpleSpec performAction re
                     { registerQueues
                     , toRoot: siteLinks RootLink
                     }
+                UserDetailsLink -> userDetails
             ]
           ]
         ]

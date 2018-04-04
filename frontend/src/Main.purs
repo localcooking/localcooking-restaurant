@@ -95,15 +95,17 @@ main = do
       Just x -> pure (Just (Port x))
     pure $ Authority Nothing [Tuple (NameAddress host) p]
 
+  -- TODO authTokenSignal and errorMessageQueue
+
   ( currentPageSignal :: IxSignal Effects SiteLinks
     ) <- do
     initSiteLink <- initSiteLinks
 
     -- fetch resources - FIXME use sparrow to drive it - via currentPageSignal?
     sig <- IxSignal.make initSiteLink
-    onPopState
-      (\siteLink -> IxSignal.set siteLink sig
-      ) w
+    flip onPopState w \siteLink ->
+      -- TODO passive redirect for circumstances like unauthentication
+      IxSignal.set siteLink sig
     pure sig
 
 
