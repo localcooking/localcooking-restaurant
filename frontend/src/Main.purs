@@ -8,6 +8,7 @@ import Login.Error (PreliminaryAuthToken (..))
 import Login.Storage (getStoredAuthToken)
 import Client.Dependencies.AuthToken (AuthTokenSparrowClientQueues)
 import Client.Dependencies.Register (RegisterSparrowClientQueues)
+import Client.Dependencies.UserDetails.Email (UserDetailsEmailSparrowClientQueues)
 
 import Sparrow.Client.Queue (newSparrowClientQueues, sparrowClientQueues)
 import Sparrow.Client (unpackClient, allocateDependencies)
@@ -141,9 +142,12 @@ main = do
     ) <- newSparrowClientQueues
   ( registerQueues :: RegisterSparrowClientQueues Effects
     ) <- newSparrowClientQueues
+  ( userDetailsEmailQueues :: UserDetailsEmailSparrowClientQueues Effects
+    ) <- newSparrowClientQueues
   allocateDependencies (scheme == Just (Scheme "https")) authority $ do
     unpackClient (Topic ["authToken"]) (sparrowClientQueues authTokenQueues)
     unpackClient (Topic ["register"]) (sparrowClientQueues registerQueues)
+    unpackClient (Topic ["userDetails","email"]) (sparrowClientQueues userDetailsEmailQueues)
 
 
   ( preliminaryAuthToken :: PreliminaryAuthToken
@@ -163,6 +167,9 @@ main = do
           , preliminaryAuthToken
           , authTokenQueues
           , registerQueues
+          , userDetailsQueues:
+            { emailQueues: userDetailsEmailQueues
+            }
           }
       component = R.createClass reactSpec
   traverse_ (render (R.createFactory component props) <<< htmlElementToElement) =<< body =<< document w

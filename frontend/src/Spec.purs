@@ -17,6 +17,9 @@ import Client.Dependencies.AuthToken
 import Client.Dependencies.Register
   ( RegisterSparrowClientQueues, RegisterFailure
   , RegisterInitIn (..), RegisterInitOut (..))
+import Client.Dependencies.UserDetails.Email
+  ( UserDetailsEmailSparrowClientQueues
+  , UserDetailsEmailInitIn (..), UserDetailsEmailInitOut (..))
 
 import Prelude
 import Data.URI (URI)
@@ -96,6 +99,9 @@ spec :: forall eff
         , loginPendingSignal :: One.Queue (read :: READ, write :: WRITE) (Effects eff) Unit
         , authTokenSignal    :: IxSignal (Effects eff) (Maybe AuthToken)
         , userDetailsSignal  :: IxSignal (Effects eff) (Maybe {email :: EmailAddress})
+        , userDetailsQueues ::
+          { emailQueues :: UserDetailsEmailSparrowClientQueues (Effects eff)
+          }
         }
      -> T.Spec (Effects eff) State Unit Action
 spec
@@ -110,6 +116,7 @@ spec
   , loginPendingSignal
   , authTokenSignal
   , userDetailsSignal
+  , userDetailsQueues
   } = T.simpleSpec performAction render
   where
     performAction action props state = case action of
@@ -128,7 +135,16 @@ spec
                   -- FIXME properly get user details
                   case initIn of
                     AuthTokenInitInLogin {email} -> IxSignal.set (Just {email}) userDetailsSignal
-                    _ -> pure unit -- TODO get user details resource
+                    _ -> OneIO.callAsyncEff userDetailsQueues.emailQueues.init
+                            (\mInitOut -> case mInitOut of
+                                Nothing -> pure unit -- FIXME throw a snackbar error
+                                Just initOut -> case initOut of
+                                  UserDetailsEmailInitOutSuccess email ->
+                                    IxSignal.set (Just {email}) userDetailsSignal
+                                  UserDetailsEmailInitOutNoAuth ->
+                                    pure unit -- FIXME throw a snackbar error
+                            )
+                            (UserDetailsEmailInitIn authToken)
               AuthTokenInitOutFailure e -> do
                 liftEff $ One.putQueue authErrorSignal (Right e)
         liftEff $ One.putQueue loginPendingSignal unit
@@ -198,6 +214,9 @@ app :: forall eff
        , preliminaryAuthToken :: PreliminaryAuthToken
        , authTokenQueues      :: AuthTokenSparrowClientQueues (Effects eff)
        , registerQueues       :: RegisterSparrowClientQueues (Effects eff)
+       , userDetailsQueues ::
+         { emailQueues :: UserDetailsEmailSparrowClientQueues (Effects eff)
+         }
        }
     -> { spec :: R.ReactSpec Unit State (Array R.ReactElement) (Effects eff)
        , dispatcher :: R.ReactThis Unit State -> Action -> T.EventHandler
@@ -211,6 +230,7 @@ app
   , preliminaryAuthToken
   , authTokenQueues
   , registerQueues
+  , userDetailsQueues
   } =
   let {spec: reactSpec, dispatcher} =
         T.createReactSpec
@@ -226,6 +246,7 @@ app
           , loginPendingSignal
           , authTokenSignal
           , userDetailsSignal
+          , userDetailsQueues
           }
         ) initialState
       reactSpec' = Signal.whileMountedIxUUID
