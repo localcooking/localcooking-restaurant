@@ -132,6 +132,7 @@ main = do
 
     sig <- IxSignal.make initSiteLink
     flip onPopState w \siteLink -> do
+      log $ "onPopState: " <> show siteLink
       let continue x = IxSignal.set x sig
       -- Top level redirect for browser back-button - no history change:
       case siteLink of
