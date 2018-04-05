@@ -6,5 +6,5 @@
     echo "Bundled" && \
     ./node_modules/.bin/browserify index.tmp.js > index.js && \
     echo "Minifying" && \
-    ./node_modules/.bin/browserify index.tmp.js -g [ envify --NODE_ENV production ] -g uglifyify | ./node_modules/.bin/uglifyjs --compress --mangle > index.js.min && \
+    ./node_modules/.bin/browserify index.tmp.js -g [ envify --NODE_ENV production ] -g uglifyify | ./node_modules/.bin/uglifyjs --compress --mangle > index.min.js && \
     rm index.tmp.js

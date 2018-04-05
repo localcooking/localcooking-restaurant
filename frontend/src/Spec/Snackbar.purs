@@ -102,14 +102,16 @@ spec = T.simpleSpec performAction render
       GotMessage x -> do
         liftEff $ unsafeCoerceEff $ log $ "got message: " <> show x
         void $ T.cotransform _ { errors = List.snoc state.errors x, open = true }
-      PopMessage -> case List.uncons state.errors of
-        Nothing -> pure unit -- bug out
-        Just {head,tail} -> do
-          liftBase $ delay $ Milliseconds $ 2000.0
-          mState <- T.cotransform _ { errors = tail, open = false }
-          unless (List.null tail) $ do
-            liftBase $ delay $ Milliseconds $ 2000.0
-            void $ T.cotransform _ { open = true }
+      PopMessage -> do
+        liftEff $ unsafeCoerceEff $ log "popping message"
+        case List.uncons state.errors of
+          Nothing -> liftEff $ unsafeCoerceEff $ log "wtf no errors" -- bug out
+          Just {head,tail} -> do
+            liftBase $ delay $ Milliseconds 2000.0
+            mState <- T.cotransform _ { errors = tail, open = false }
+            unless (List.null tail) $ do
+              liftBase $ delay $ Milliseconds 2000.0
+              void $ T.cotransform _ { open = true }
 
     render :: T.Render State Unit Action
     render dispatch props state children =
@@ -117,8 +119,7 @@ spec = T.simpleSpec performAction render
         { open: state.open
         , autoHideDuration: toNullable $ Just $ Milliseconds 10000.0
         -- , resumeHideDuration: toNullable $ Just $ Milliseconds 0.0
-        , onClose: mkEffFn2 \_ _ -> do
-            dispatch PopMessage
+        , onClose: mkEffFn2 \_ _ -> dispatch PopMessage
         , message: R.div []
           [ case List.head state.errors of
               Nothing -> R.text ""
