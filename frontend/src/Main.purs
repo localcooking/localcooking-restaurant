@@ -98,6 +98,11 @@ main = do
     pure $ Authority Nothing [Tuple (NameAddress host) p]
 
 
+  ( preliminaryAuthToken :: PreliminaryAuthToken
+    ) <- map PreliminaryAuthToken $ case env.authToken of
+      PreliminaryAuthToken Nothing -> map Right <$> getStoredAuthToken
+      PreliminaryAuthToken (Just eErrX) -> pure (Just eErrX)
+
   ( errorMessageQueue :: One.Queue (read :: READ, write :: WRITE) Effects SnackbarMessage
     ) <- One.newQueue
 
@@ -107,7 +112,22 @@ main = do
   -- for `back` compatibility while being driven by `siteLinksSignal`
   ( currentPageSignal :: IxSignal Effects SiteLinks
     ) <- do
-    initSiteLink <- initSiteLinks
+    initSiteLink <- do
+      -- initial redirects
+      x <- initSiteLinks
+      case preliminaryAuthToken of
+        PreliminaryAuthToken (Just (Right _)) -> case x of
+          RegisterLink -> do
+            One.putQueue errorMessageQueue (SnackbarMessageRedirect RedirectRegisterAuth)
+            replaceState' RootLink h
+            pure RootLink
+          _ -> pure x
+        _ -> case x of
+          UserDetailsLink -> do
+            One.putQueue errorMessageQueue (SnackbarMessageRedirect RedirectUserDetailsNoAuth)
+            replaceState' RootLink h
+            pure RootLink
+          _ -> pure x
 
     -- fetch resources - FIXME use sparrow to drive it - via currentPageSignal?
     sig <- IxSignal.make initSiteLink
@@ -215,10 +235,6 @@ main = do
     unpackClient (Topic ["userDetails","email"]) (sparrowClientQueues userDetailsEmailQueues)
 
 
-  ( preliminaryAuthToken :: PreliminaryAuthToken
-    ) <- map PreliminaryAuthToken $ case env.authToken of
-      PreliminaryAuthToken Nothing -> map Right <$> getStoredAuthToken
-      PreliminaryAuthToken (Just eErrX) -> pure (Just eErrX)
 
   -- Run User Interface
   let props = unit
