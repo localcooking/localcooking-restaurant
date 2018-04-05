@@ -99,21 +99,16 @@ spec = T.simpleSpec performAction render
   where
     performAction action props state = case action of
       GotMessage x -> do
-        liftEff $ unsafeCoerceEff $ log $ "got message: " <> show x <> ", changing state..."
-        -- liftBase $ delay $ Milliseconds 500.0
-        mState <- T.cotransform _ { errors = Array.snoc state.errors x, open = true }
-        liftEff $ unsafeCoerceEff $ log $ "got message: " <> show x <> ", " <> case mState of
-          Nothing -> "Nothing"
-          Just {errors,open} -> "Just {errors: " <> show errors <> ", open: " <> show open <> "}"
+        void $ T.cotransform _ { errors = Array.snoc state.errors x, open = true }
       PopMessage -> do
-        liftEff $ unsafeCoerceEff $ log "popping message"
         case Array.uncons state.errors of
-          Nothing -> liftEff $ unsafeCoerceEff $ log "wtf no errors" -- bug out
+          Nothing -> pure unit
           Just {head,tail} -> do
+            void $ T.cotransform _ { open = false }
             liftBase $ delay $ Milliseconds 2000.0
-            mState <- T.cotransform _ { errors = tail, open = false }
+            void $ T.cotransform _ { errors = tail }
             unless (Array.null tail) $ do
-              liftBase $ delay $ Milliseconds 2000.0
+              liftBase $ delay $ Milliseconds 1000.0
               void $ T.cotransform _ { open = true }
 
     render :: T.Render State Unit Action

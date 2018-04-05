@@ -118,16 +118,15 @@ main = do
       case preliminaryAuthToken of
         PreliminaryAuthToken (Just (Right _)) -> case x of
           RegisterLink -> do
-            log "from register"
-            void $ setTimeout 1000 $ do
-              log "sending"
+            void $ setTimeout 1000 $
               One.putQueue errorMessageQueue (SnackbarMessageRedirect RedirectRegisterAuth)
             replaceState' RootLink h
             pure RootLink
           _ -> pure x
         _ -> case x of
           UserDetailsLink -> do
-            One.putQueue errorMessageQueue (SnackbarMessageRedirect RedirectUserDetailsNoAuth)
+            void $ setTimeout 1000 $
+              One.putQueue errorMessageQueue (SnackbarMessageRedirect RedirectUserDetailsNoAuth)
             replaceState' RootLink h
             pure RootLink
           _ -> pure x
@@ -142,7 +141,8 @@ main = do
           case mAuth of
             Nothing -> continue siteLink
             Just _ -> do
-              One.putQueue errorMessageQueue (SnackbarMessageRedirect RedirectRegisterAuth)
+              void $ setTimeout 1000 $
+                One.putQueue errorMessageQueue (SnackbarMessageRedirect RedirectRegisterAuth)
               replaceState' RootLink h
               continue RootLink
         UserDetailsLink -> do
@@ -150,7 +150,8 @@ main = do
           case mAuth of
             Just _ -> continue siteLink
             Nothing -> do
-              One.putQueue errorMessageQueue (SnackbarMessageRedirect RedirectUserDetailsNoAuth)
+              void $ setTimeout 1000 $
+                One.putQueue errorMessageQueue (SnackbarMessageRedirect RedirectUserDetailsNoAuth)
               replaceState' RootLink h
               continue RootLink
         _ -> continue siteLink
@@ -176,14 +177,16 @@ main = do
             case mAuth of
               Nothing -> continue siteLink
               Just _ -> do
-                One.putQueue errorMessageQueue (SnackbarMessageRedirect RedirectRegisterAuth)
+                void $ setTimeout 1000 $
+                  One.putQueue errorMessageQueue (SnackbarMessageRedirect RedirectRegisterAuth)
                 continue RootLink
           UserDetailsLink -> do
             mAuth <- IxSignal.get authTokenSignal
             case mAuth of
               Just _ -> continue siteLink
               Nothing -> do
-                One.putQueue errorMessageQueue (SnackbarMessageRedirect RedirectUserDetailsNoAuth)
+                void $ setTimeout 1000 $
+                  One.putQueue errorMessageQueue (SnackbarMessageRedirect RedirectUserDetailsNoAuth)
                 continue RootLink
           _ -> continue siteLink
     pure (One.writeOnly q)
@@ -203,12 +206,14 @@ main = do
               pure x
             when once $ case siteLink of
               UserDetailsLink -> do
-                One.putQueue errorMessageQueue (SnackbarMessageRedirect RedirectUserDetailsNoAuth)
+                void $ setTimeout 1000 $
+                  One.putQueue errorMessageQueue (SnackbarMessageRedirect RedirectUserDetailsNoAuth)
                 continue
               _ -> pure unit
           Just _ -> case siteLink of
             RegisterLink -> do
-              One.putQueue errorMessageQueue (SnackbarMessageRedirect RedirectRegisterAuth)
+              void $ setTimeout 1000 $
+                One.putQueue errorMessageQueue (SnackbarMessageRedirect RedirectRegisterAuth)
               continue
             _ -> pure unit
   IxSignal.subscribe gotAuth authTokenSignal
