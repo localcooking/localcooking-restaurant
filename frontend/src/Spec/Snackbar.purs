@@ -13,8 +13,7 @@ import Data.Nullable (toNullable)
 import Data.Time.Duration (Milliseconds (..))
 import Data.Maybe (Maybe (..))
 import Data.Either (Either (..))
-import Data.List (List (..))
-import Data.List as List
+import Data.Array as Array
 import Data.Generic (class Generic, gShow)
 import Control.Monad.Base (liftBase)
 import Control.Monad.Aff (delay)
@@ -76,13 +75,13 @@ instance showSnackbarMessage :: Show SnackbarMessage where
 
 
 type State =
-  { errors :: List SnackbarMessage
+  { errors :: Array SnackbarMessage
   , open :: Boolean
   }
 
 initialState :: State
 initialState =
-  { errors: Nil
+  { errors: []
   , open: false
   }
 
@@ -101,19 +100,19 @@ spec = T.simpleSpec performAction render
     performAction action props state = case action of
       GotMessage x -> do
         liftEff $ unsafeCoerceEff $ log $ "got message: " <> show x <> ", changing state..."
-        liftBase $ delay $ Milliseconds 500.0
-        mState <- T.cotransform _ { errors = List.snoc state.errors x, open = true }
+        -- liftBase $ delay $ Milliseconds 500.0
+        mState <- T.cotransform _ { errors = Array.snoc state.errors x, open = true }
         liftEff $ unsafeCoerceEff $ log $ "got message: " <> show x <> ", " <> case mState of
           Nothing -> "Nothing"
           Just {errors,open} -> "Just {errors: " <> show errors <> ", open: " <> show open <> "}"
       PopMessage -> do
         liftEff $ unsafeCoerceEff $ log "popping message"
-        case List.uncons state.errors of
+        case Array.uncons state.errors of
           Nothing -> liftEff $ unsafeCoerceEff $ log "wtf no errors" -- bug out
           Just {head,tail} -> do
             liftBase $ delay $ Milliseconds 2000.0
             mState <- T.cotransform _ { errors = tail, open = false }
-            unless (List.null tail) $ do
+            unless (Array.null tail) $ do
               liftBase $ delay $ Milliseconds 2000.0
               void $ T.cotransform _ { open = true }
 
@@ -125,7 +124,7 @@ spec = T.simpleSpec performAction render
         -- , resumeHideDuration: toNullable $ Just $ Milliseconds 0.0
         , onClose: mkEffFn2 \_ _ -> dispatch PopMessage
         , message: R.div []
-          [ case List.head state.errors of
+          [ case Array.head state.errors of
               Nothing -> R.text ""
               Just x -> case x of
                 SnackbarMessageAuthFailure authFailure -> case authFailure of
@@ -162,6 +161,6 @@ messages {errorMessageQueue} =
       reactSpec' =
         Queue.whileMountedOne
           errorMessageQueue
-          (\this x -> unsafeCoerceEff $ dispatcher this $ GotMessage x)
+          (\this x -> unsafeCoerceEff $ dispatcher this (GotMessage x))
           reactSpec
   in  R.createElement (R.createClass reactSpec') unit []
