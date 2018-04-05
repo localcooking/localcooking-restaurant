@@ -112,27 +112,27 @@ main = do
     -- fetch resources - FIXME use sparrow to drive it - via currentPageSignal?
     sig <- IxSignal.make initSiteLink
     flip onPopState w \siteLink -> do
-      -- Top level redirections:
+      let continue x = IxSignal.set x sig
+      -- Top level soft redirections - no history change, adjust for browser back-button:
       case siteLink of
         RegisterLink -> do
           mAuth <- IxSignal.get authTokenSignal
           case mAuth of
-            Nothing ->
-              IxSignal.set siteLink sig
+            Nothing -> continue siteLink
             Just _ -> do
               One.putQueue errorMessageQueue (SnackbarMessageRedirect RedirectRegisterAuth)
               replaceState' RootLink h
-              IxSignal.set RootLink sig
+              continue RootLink
         UserDetailsLink -> do
           mAuth <- IxSignal.get authTokenSignal
           case mAuth of
-            Just _ ->
-              IxSignal.set siteLink sig
+            Just _ -> continue siteLink
             Nothing -> do
               One.putQueue errorMessageQueue (SnackbarMessageRedirect RedirectUserDetailsNoAuth)
               replaceState' RootLink h
-              IxSignal.set RootLink sig
-        _ -> IxSignal.set siteLink sig
+              continue RootLink
+        _ -> continue siteLink
+
     pure sig
 
 
@@ -165,6 +165,24 @@ main = do
                 continue RootLink
           _ -> continue siteLink
     pure (One.writeOnly q)
+
+
+  -- rediect for async logouts
+  let gotAuth mAuth = do
+        siteLink <- IxSignal.get currentPageSignal
+        let continue = One.putQueue siteLinksSignal
+        case mAuth of
+          Nothing -> case siteLink of
+            UserDetailsLink -> do
+              One.putQueue errorMessageQueue (SnackbarMessageRedirect RedirectUserDetailsNoAuth)
+              continue RootLink
+            _ -> pure unit
+          Just _ -> case siteLink of
+            RegisterLink -> do
+              One.putQueue errorMessageQueue (SnackbarMessageRedirect RedirectRegisterAuth)
+              continue RootLink
+            _ -> pure unit
+  IxSignal.subscribe gotAuth authTokenSignal
 
 
   windowSizeSignal <- do
