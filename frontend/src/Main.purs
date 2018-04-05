@@ -118,13 +118,14 @@ main = do
       case preliminaryAuthToken of
         PreliminaryAuthToken (Just (Right _)) -> case x of
           RegisterLink -> do
-            log "from init"
+            log "from init register"
             One.putQueue errorMessageQueue (SnackbarMessageRedirect RedirectRegisterAuth)
             replaceState' RootLink h
             pure RootLink
           _ -> pure x
         _ -> case x of
           UserDetailsLink -> do
+            log "from init user details"
             One.putQueue errorMessageQueue (SnackbarMessageRedirect RedirectUserDetailsNoAuth)
             replaceState' RootLink h
             pure RootLink
