@@ -89,6 +89,7 @@ spec {registerQueues,windowSizeSignal,siteLinks,errorMessageQueue} = T.simpleSpe
                       then createStyles
                               { width: "100%"
                               , position: "relative"
+                              , minHeight: "30em"
                               }
                       else createStyles
                               { maxWidth: "80em"
@@ -97,21 +98,20 @@ spec {registerQueues,windowSizeSignal,siteLinks,errorMessageQueue} = T.simpleSpe
                               , marginRight: "auto"
                               , padding: "1em"
                               , position: "relative"
+                              , minHeight: "30em"
                               }
           }
-          [ R.div [RP.style {minHeight: "30em", padding: "1em"}]
-            [ case state.page of
-                RootLink -> root {windowSizeSignal}
-                ChefsLink -> chefs
-                MealsLink -> meals
-                RegisterLink ->
-                  register
-                    { registerQueues
-                    , errorMessageQueue
-                    , toRoot: siteLinks RootLink
-                    }
-                UserDetailsLink -> userDetails
-            ]
+          [ case state.page of
+              RootLink -> root {windowSizeSignal}
+              ChefsLink -> chefs
+              MealsLink -> meals
+              RegisterLink ->
+                register
+                  { registerQueues
+                  , errorMessageQueue
+                  , toRoot: siteLinks RootLink
+                  }
+              UserDetailsLink -> userDetails
           ]
         ]
       , typography
