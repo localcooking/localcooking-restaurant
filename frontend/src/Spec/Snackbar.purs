@@ -101,6 +101,7 @@ spec = T.simpleSpec performAction render
     performAction action props state = case action of
       GotMessage x -> do
         liftEff $ unsafeCoerceEff $ log $ "got message: " <> show x <> ", changing state..."
+        liftBase $ delay $ Milliseconds 500.0
         mState <- T.cotransform _ { errors = List.snoc state.errors x, open = true }
         liftEff $ unsafeCoerceEff $ log $ "got message: " <> show x <> ", " <> case mState of
           Nothing -> "Nothing"

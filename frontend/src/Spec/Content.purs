@@ -131,14 +131,11 @@ spec {registerQueues,windowSizeSignal,siteLinks,errorMessageQueue} = T.simpleSpe
             [ RP.viewBox coloradoFlagViewBox
             , RP.width (show flagWidth)
             , RP.height (show flagHeight)
-            , RP.unsafeMkProps "xmlns" "http://www.w3.org/2000/svg"
             ] coloradoFlag
         , RS.svg
             [ RP.viewBox usaFlagViewBox
             , RP.width (show flagWidth)
             , RP.height (show flagHeight)
-            , RP.unsafeMkProps "xmlns" "http://www.w3.org/2000/svg"
-            , RP.unsafeMkProps "xmlns:xlink" "http://www.w3.org/1999/xlink"
             ] usaFlag
         ]
       ]
