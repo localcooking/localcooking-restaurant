@@ -29,7 +29,7 @@ import Data.UUID (GENUUID)
 import Data.Traversable (traverse_)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Now (NOW)
-import Control.Monad.Eff.Timer (TIMER)
+import Control.Monad.Eff.Timer (TIMER, setTimeout)
 import Control.Monad.Eff.Exception (EXCEPTION)
 import Control.Monad.Eff.Ref (REF, newRef, readRef, writeRef)
 import Control.Monad.Eff.Console (CONSOLE, log)
@@ -118,14 +118,15 @@ main = do
       case preliminaryAuthToken of
         PreliminaryAuthToken (Just (Right _)) -> case x of
           RegisterLink -> do
-            log "from init register"
-            One.putQueue errorMessageQueue (SnackbarMessageRedirect RedirectRegisterAuth)
+            log "from register"
+            void $ setTimeout 1000 $ do
+              log "sending"
+              One.putQueue errorMessageQueue (SnackbarMessageRedirect RedirectRegisterAuth)
             replaceState' RootLink h
             pure RootLink
           _ -> pure x
         _ -> case x of
           UserDetailsLink -> do
-            log "from init user details"
             One.putQueue errorMessageQueue (SnackbarMessageRedirect RedirectUserDetailsNoAuth)
             replaceState' RootLink h
             pure RootLink
@@ -133,7 +134,6 @@ main = do
 
     sig <- IxSignal.make initSiteLink
     flip onPopState w \siteLink -> do
-      log $ "onPopState: " <> show siteLink
       let continue x = IxSignal.set x sig
       -- Top level redirect for browser back-button - no history change:
       case siteLink of
@@ -176,7 +176,6 @@ main = do
             case mAuth of
               Nothing -> continue siteLink
               Just _ -> do
-                log "redirecting register"
                 One.putQueue errorMessageQueue (SnackbarMessageRedirect RedirectRegisterAuth)
                 continue RootLink
           UserDetailsLink -> do
@@ -184,7 +183,6 @@ main = do
             case mAuth of
               Just _ -> continue siteLink
               Nothing -> do
-                log "redirecting userDetails"
                 One.putQueue errorMessageQueue (SnackbarMessageRedirect RedirectUserDetailsNoAuth)
                 continue RootLink
           _ -> continue siteLink
@@ -205,13 +203,11 @@ main = do
               pure x
             when once $ case siteLink of
               UserDetailsLink -> do
-                log "due to auth"
                 One.putQueue errorMessageQueue (SnackbarMessageRedirect RedirectUserDetailsNoAuth)
                 continue
               _ -> pure unit
           Just _ -> case siteLink of
             RegisterLink -> do
-              log "due to register"
               One.putQueue errorMessageQueue (SnackbarMessageRedirect RedirectRegisterAuth)
               continue
             _ -> pure unit
