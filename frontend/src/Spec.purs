@@ -4,7 +4,7 @@ import Spec.Topbar (topbar)
 import Spec.Content (content)
 import Spec.Dialogs.Login (loginDialog)
 import Spec.Drawers.LeftMenu (leftMenu)
-import Spec.Snackbar (messages)
+import Spec.Snackbar (messages, SnackbarMessage (..), UserDetailsError (..))
 import Colors (palette)
 import Window (WindowSize)
 import Links (SiteLinks (RegisterLink))
@@ -95,7 +95,7 @@ spec :: forall eff
         , development        :: Boolean
         , authTokenQueues    :: AuthTokenSparrowClientQueues (Effects eff)
         , registerQueues     :: RegisterSparrowClientQueues (Effects eff)
-        , authErrorSignal    :: One.Queue (read :: READ, write :: WRITE) (Effects eff) (Either AuthError AuthTokenFailure)
+        , errorMessageQueue  :: One.Queue (read :: READ, write :: WRITE) (Effects eff) SnackbarMessage
         , loginPendingSignal :: One.Queue (read :: READ, write :: WRITE) (Effects eff) Unit
         , authTokenSignal    :: IxSignal (Effects eff) (Maybe AuthToken)
         , userDetailsSignal  :: IxSignal (Effects eff) (Maybe {email :: EmailAddress})
@@ -112,7 +112,7 @@ spec
   , development
   , authTokenQueues
   , registerQueues
-  , authErrorSignal
+  , errorMessageQueue
   , loginPendingSignal
   , authTokenSignal
   , userDetailsSignal
@@ -126,7 +126,7 @@ spec
         liftEff $ do
           case initOut of
             Nothing ->
-              One.putQueue authErrorSignal (Left AuthExistsFailure)
+              One.putQueue errorMessageQueue (SnackbarMessageAuthError AuthExistsFailure)
             Just eInitOut -> case eInitOut of
               AuthTokenInitOutSuccess authToken -> do
                 storeAuthToken authToken
@@ -137,16 +137,17 @@ spec
                   AuthTokenInitInExists _ ->
                     OneIO.callAsyncEff userDetailsQueues.emailQueues.init
                       (\mInitOut -> case mInitOut of
-                          Nothing -> log "no initout for user details email" -- FIXME throw a snackbar error
+                          Nothing ->
+                            One.putQueue errorMessageQueue (SnackbarMessageUserDetails UserDetailsEmailNoInitOut)
                           Just initOut -> case initOut of
                             UserDetailsEmailInitOutSuccess email ->
                               IxSignal.set (Just {email}) userDetailsSignal
                             UserDetailsEmailInitOutNoAuth ->
-                              log "no auth for user details email" -- FIXME throw a snackbar error
+                              One.putQueue errorMessageQueue (SnackbarMessageUserDetails UserDetailsEmailNoAuth)
                       )
                       (UserDetailsEmailInitIn authToken)
               AuthTokenInitOutFailure e ->
-                One.putQueue authErrorSignal (Right e)
+                One.putQueue errorMessageQueue (SnackbarMessageAuthFailure e)
           One.putQueue loginPendingSignal unit
 
 
@@ -185,7 +186,7 @@ spec
         , windowSizeSignal
         }
       , messages
-        { authErrorSignal: One.readOnly authErrorSignal
+        { errorMessageQueue: One.readOnly errorMessageQueue
         }
       ]
       where
@@ -212,6 +213,8 @@ app :: forall eff
        , siteLinks            :: SiteLinks -> Eff (Effects eff) Unit
        , development          :: Boolean
        , preliminaryAuthToken :: PreliminaryAuthToken
+       , errorMessageQueue    :: One.Queue (read :: READ, write :: WRITE) (Effects eff) SnackbarMessage
+       , authTokenSignal      :: IxSignal (Effects eff) (Maybe AuthToken)
        , authTokenQueues      :: AuthTokenSparrowClientQueues (Effects eff)
        , registerQueues       :: RegisterSparrowClientQueues (Effects eff)
        , userDetailsQueues ::
@@ -228,6 +231,8 @@ app
   , siteLinks
   , development
   , preliminaryAuthToken
+  , errorMessageQueue
+  , authTokenSignal
   , authTokenQueues
   , registerQueues
   , userDetailsQueues
@@ -240,9 +245,9 @@ app
           , currentPageSignal
           , siteLinks
           , development
+          , errorMessageQueue
           , authTokenQueues
           , registerQueues
-          , authErrorSignal
           , loginPendingSignal
           , authTokenSignal
           , userDetailsSignal
@@ -262,20 +267,14 @@ app
                 unsafeCoerceEff $ dispatcher this $ CallAuthToken $
                   AuthTokenInitInExists {exists: prescribedAuthToken}
               Left e ->
-                unsafeCoerceEff $ One.putQueue authErrorSignal (Left e)
+                unsafeCoerceEff $ One.putQueue errorMessageQueue $ SnackbarMessageAuthError e
           reactSpec.componentWillMount this
         }
 
   in  {spec: reactSpec', dispatcher}
   where
-    authErrorSignal :: One.Queue (read :: READ, write :: WRITE) (Effects eff) (Either AuthError AuthTokenFailure)
-    authErrorSignal = unsafePerformEff One.newQueue
-
     loginPendingSignal :: One.Queue (read :: READ, write :: WRITE) (Effects eff) Unit
     loginPendingSignal = unsafePerformEff One.newQueue
-
-    authTokenSignal :: IxSignal (Effects eff) (Maybe AuthToken)
-    authTokenSignal = unsafePerformEff (IxSignal.make Nothing)
 
     userDetailsSignal :: IxSignal (Effects eff) (Maybe {email :: EmailAddress})
     userDetailsSignal = unsafePerformEff (IxSignal.make Nothing)

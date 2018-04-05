@@ -13,6 +13,8 @@ import Data.Nullable (toNullable)
 import Data.Time.Duration (Milliseconds (..))
 import Data.Maybe (Maybe (..))
 import Data.Either (Either (..))
+import Data.List (List (..))
+import Data.List as List
 import Control.Monad.Base (liftBase)
 import Control.Monad.Aff (delay)
 import Control.Monad.Eff.Uncurried (mkEffFn2)
@@ -21,26 +23,38 @@ import Control.Monad.Eff.Ref (REF)
 
 import MaterialUI.Snackbar (snackbar)
 
+import Queue (READ)
 import Queue.One as One
 
 
 
+data UserDetailsError
+  = UserDetailsEmailNoInitOut
+  | UserDetailsEmailNoAuth
+
+
+data SnackbarMessage
+  = SnackbarMessageAuthFailure AuthTokenFailure
+  | SnackbarMessageAuthError AuthError
+  | SnackbarMessageUserDetails UserDetailsError
+
+
+
 type State =
-  { authFailure :: Maybe AuthTokenFailure
-  , authError :: Maybe AuthError
+  { errors :: List SnackbarMessage
+  , open :: Boolean
   }
 
 initialState :: State
 initialState =
-  { authFailure: Nothing
-  , authError: Nothing
+  { errors: Nil
+  , open: false
   }
 
 data Action
-  = GotAuthFailure AuthTokenFailure
-  | ClearAuthFailure
-  | GotAuthError AuthError
-  | ClearAuthError
+  = GotMessage SnackbarMessage
+  | PopMessage
+  | Open
 
 type Effects eff =
   ( ref :: REF
@@ -51,42 +65,45 @@ spec :: forall eff. T.Spec (Effects eff) State Unit Action
 spec = T.simpleSpec performAction render
   where
     performAction action props state = case action of
-      GotAuthFailure x -> void $ T.cotransform _ { authFailure = Just x }
-      ClearAuthFailure -> do
-        liftBase $ delay $ Milliseconds $ 2000.0
-        void $ T.cotransform _ { authFailure = Nothing }
-      GotAuthError x -> void $ T.cotransform _ { authError = Just x }
-      ClearAuthError -> do
-        liftBase $ delay $ Milliseconds $ 2000.0
-        void $ T.cotransform _ { authError = Nothing }
+      Open -> void $ T.cotransform _ { open = true }
+      GotMessage x -> do
+        performAction Open props state
+        void $ T.cotransform _ { errors = List.snoc state.errors x }
+      PopMessage -> case List.uncons state.errors of
+        Nothing -> pure unit -- bug out
+        Just {head,tail} -> do
+          liftBase $ delay $ Milliseconds $ 2000.0
+          mState <- T.cotransform _ { errors = tail, open = false }
+          unless (List.null tail) $ do
+            liftBase $ delay $ Milliseconds $ 2000.0
+            case mState of
+              Nothing -> pure unit
+              Just s -> performAction Open props s
 
     render :: T.Render State Unit Action
     render dispatch props state children =
       [ snackbar
-        { open: case state.authFailure of
-            Nothing -> case state.authError of
-              Nothing -> false
-              Just _ -> true
-            Just _ -> true
+        { open: state.open
         , autoHideDuration: toNullable $ Just $ Milliseconds 10000.0
         -- , resumeHideDuration: toNullable $ Just $ Milliseconds 0.0
         , onClose: mkEffFn2 \_ _ -> do
-            dispatch ClearAuthError
-            dispatch ClearAuthFailure
+            dispatch PopMessage
         , message: R.div []
-          [ case state.authFailure of
+          [ case List.head state.errors of
               Nothing -> R.text ""
               Just x -> case x of
-                BadPassword -> R.text "Password incorrect, please try again."
-                EmailDoesntExist -> R.text "Email address not found, please register."
-          , case state.authError of
-              Nothing -> R.text ""
-              Just x -> case x of
-                FBLoginReturnBad code msg -> R.text $ "Bad Facebook login response: " <> code <> ", " <> msg
-                FBLoginReturnDenied desc -> R.text $ "Facebook login denied: " <> desc
-                FBLoginReturnBadParse -> R.text "Internal error: Facebook login return unparsable."
-                FBLoginReturnNoUser -> R.text "Facebook user not recognized, please link your account."
-                AuthExistsFailure -> R.text "Warning: You've been logged out; your session expired."
+                SnackbarMessageAuthFailure authFailure -> case authFailure of
+                  BadPassword -> R.text "Password incorrect, please try again."
+                  EmailDoesntExist -> R.text "Email address not found, please register."
+                SnackbarMessageAuthError authError -> case authError of
+                  FBLoginReturnBad code msg -> R.text $ "Bad Facebook login response: " <> code <> ", " <> msg
+                  FBLoginReturnDenied desc -> R.text $ "Facebook login denied: " <> desc
+                  FBLoginReturnBadParse -> R.text "Internal error: Facebook login return unparsable."
+                  FBLoginReturnNoUser -> R.text "Facebook user not recognized, please link your account."
+                  AuthExistsFailure -> R.text "Warning: You've been logged out; your session expired."
+                SnackbarMessageUserDetails userDetails -> case userDetails of
+                  UserDetailsEmailNoInitOut -> R.text "Internal Error: userDetails/email resource failed"
+                  UserDetailsEmailNoAuth -> R.text "Error: No authorization for email"
           ]
         }
       ]
@@ -94,15 +111,13 @@ spec = T.simpleSpec performAction render
 
 
 messages :: forall eff
-          . { authErrorSignal :: One.Queue (read :: One.READ) (Effects eff) (Either AuthError AuthTokenFailure)
+          . { errorMessageQueue :: One.Queue (read :: READ) (Effects eff) SnackbarMessage
             } -> R.ReactElement
-messages {authErrorSignal} =
+messages {errorMessageQueue} =
   let {spec: reactSpec, dispatcher} = T.createReactSpec spec initialState
       reactSpec' =
         Queue.whileMountedOne
-          authErrorSignal
-          (\this eX -> unsafeCoerceEff $ dispatcher this $ case eX of
-              Left err -> GotAuthError err
-              Right fail -> GotAuthFailure fail)
+          errorMessageQueue
+          (\this x -> unsafeCoerceEff $ dispatcher this $ GotMessage x)
           reactSpec
   in  R.createElement (R.createClass reactSpec') unit []

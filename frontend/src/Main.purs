@@ -1,6 +1,7 @@
 module Main where
 
 import Spec (app)
+import Spec.Snackbar (SnackbarMessage (..))
 import Window (widthToWindowSize)
 import Links (SiteLinks, initSiteLinks, onPopState, pushState')
 import Types.Env (env)
@@ -9,6 +10,7 @@ import Login.Storage (getStoredAuthToken)
 import Client.Dependencies.AuthToken (AuthTokenSparrowClientQueues)
 import Client.Dependencies.Register (RegisterSparrowClientQueues)
 import Client.Dependencies.UserDetails.Email (UserDetailsEmailSparrowClientQueues)
+import LocalCooking.Common.AuthToken (AuthToken)
 
 import Sparrow.Client.Queue (newSparrowClientQueues, sparrowClientQueues)
 import Sparrow.Client (unpackClient, allocateDependencies)
@@ -33,7 +35,7 @@ import Control.Monad.Eff.Ref (REF, newRef, readRef, writeRef)
 import Control.Monad.Eff.Console (CONSOLE, log)
 import Control.Execution.Immediate (SET_IMMEDIATE_SHIM, registerShim)
 
-import Queue (WRITE)
+import Queue (WRITE, READ)
 import Queue.One as One
 import Signal.Internal as Signal
 import IxSignal.Internal (IxSignal)
@@ -95,7 +97,12 @@ main = do
       Just x -> pure (Just (Port x))
     pure $ Authority Nothing [Tuple (NameAddress host) p]
 
-  -- TODO authTokenSignal and errorMessageQueue
+
+  ( errorMessageQueue :: One.Queue (read :: READ, write :: WRITE) Effects SnackbarMessage
+    ) <- One.newQueue
+
+  ( authTokenSignal :: IxSignal Effects (Maybe AuthToken)
+    ) <- IxSignal.make Nothing
 
   ( currentPageSignal :: IxSignal Effects SiteLinks
     ) <- do
@@ -167,6 +174,8 @@ main = do
           , siteLinks: One.putQueue siteLinksSignal
           , development: env.development
           , preliminaryAuthToken
+          , errorMessageQueue
+          , authTokenSignal
           , authTokenQueues
           , registerQueues
           , userDetailsQueues:

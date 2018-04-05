@@ -6,6 +6,13 @@ import Thermite as T
 import React as R
 import React.DOM as R
 
+import MaterialUI.Drawer (drawer)
+import MaterialUI.Drawer as Drawer
+import MaterialUI.List (list)
+import MaterialUI.ListItem (listItem)
+import MaterialUI.ListItemText (listItemText)
+
+
 
 type State = Unit
 
@@ -22,7 +29,20 @@ spec = T.simpleSpec performAction render
 
     render :: T.Render State Unit Action
     render dispatch props state children =
-      [ R.text "UserDetails" ]
+      [ drawer
+        { variant: Drawer.permanent
+        , anchor: Drawer.left
+        }
+        [ list {dense: true}
+          [ listItem {}
+            [ listItemText
+              { primary: "General"
+              }
+            ]
+          ]
+        ]
+      , R.text "UserDetails"
+      ]
 
 
 userDetails :: R.ReactElement
