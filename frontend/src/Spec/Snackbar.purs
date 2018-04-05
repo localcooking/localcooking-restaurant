@@ -100,8 +100,10 @@ spec = T.simpleSpec performAction render
   where
     performAction action props state = case action of
       GotMessage x -> do
-        liftEff $ unsafeCoerceEff $ log $ "got message: " <> show x
-        void $ T.cotransform _ { errors = List.snoc state.errors x, open = true }
+        mState <- T.cotransform _ { errors = List.snoc state.errors x, open = true }
+        liftEff $ unsafeCoerceEff $ log $ "got message: " <> show x <> ", " <> case mState of
+          Nothing -> "Nothing"
+          Just {errors,open} -> "Just {errors: " <> show errors <> ", open: " <> show open <> "}"
       PopMessage -> do
         liftEff $ unsafeCoerceEff $ log "popping message"
         case List.uncons state.errors of

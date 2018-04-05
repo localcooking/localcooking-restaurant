@@ -118,6 +118,7 @@ main = do
       case preliminaryAuthToken of
         PreliminaryAuthToken (Just (Right _)) -> case x of
           RegisterLink -> do
+            log "from init"
             One.putQueue errorMessageQueue (SnackbarMessageRedirect RedirectRegisterAuth)
             replaceState' RootLink h
             pure RootLink
@@ -129,11 +130,10 @@ main = do
             pure RootLink
           _ -> pure x
 
-    -- fetch resources - FIXME use sparrow to drive it - via currentPageSignal?
     sig <- IxSignal.make initSiteLink
     flip onPopState w \siteLink -> do
       let continue x = IxSignal.set x sig
-      -- Top level soft redirections - no history change, adjust for browser back-button:
+      -- Top level redirect for browser back-button - no history change:
       case siteLink of
         RegisterLink -> do
           mAuth <- IxSignal.get authTokenSignal
@@ -190,17 +190,17 @@ main = do
   -- rediect for async logouts
   let gotAuth mAuth = do
         siteLink <- IxSignal.get currentPageSignal
-        let continue = One.putQueue siteLinksSignal
+        let continue = One.putQueue siteLinksSignal RootLink
         case mAuth of
           Nothing -> case siteLink of
             UserDetailsLink -> do
               One.putQueue errorMessageQueue (SnackbarMessageRedirect RedirectUserDetailsNoAuth)
-              continue RootLink
+              continue
             _ -> pure unit
           Just _ -> case siteLink of
             RegisterLink -> do
               One.putQueue errorMessageQueue (SnackbarMessageRedirect RedirectRegisterAuth)
-              continue RootLink
+              continue
             _ -> pure unit
   IxSignal.subscribe gotAuth authTokenSignal
 
