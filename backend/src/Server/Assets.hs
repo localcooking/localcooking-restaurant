@@ -15,7 +15,7 @@ frontend :: ByteString
 frontend = $(embedFile "../frontend/index.js")
 
 frontendMin :: ByteString
-frontendMin = $(embedFile "../frontend/index.js.min")
+frontendMin = $(embedFile "../frontend/index.min.js")
 
 favicons :: [(FilePath, ByteString)]
 favicons = $(embedDir "../logo/favicon")
