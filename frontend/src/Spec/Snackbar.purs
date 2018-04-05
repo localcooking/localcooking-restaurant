@@ -15,11 +15,14 @@ import Data.Maybe (Maybe (..))
 import Data.Either (Either (..))
 import Data.List (List (..))
 import Data.List as List
+import Data.Generic (class Generic, gShow)
 import Control.Monad.Base (liftBase)
 import Control.Monad.Aff (delay)
 import Control.Monad.Eff.Uncurried (mkEffFn2)
 import Control.Monad.Eff.Unsafe (unsafeCoerceEff)
 import Control.Monad.Eff.Ref (REF)
+import Control.Monad.Eff.Console (log)
+import Control.Monad.Eff.Class (liftEff)
 
 import MaterialUI.Snackbar (snackbar)
 
@@ -32,15 +35,30 @@ data UserDetailsError
   = UserDetailsEmailNoInitOut
   | UserDetailsEmailNoAuth
 
+derive instance genericUserDetailsError :: Generic UserDetailsError
+
+instance showUserDetailsError :: Show UserDetailsError where
+  show = gShow
+
 
 data RegisterError
   = RegisterErrorBadCaptchaResponse
   | RegisterErrorEmailInUse
 
+derive instance genericRegisterError :: Generic RegisterError
+
+instance showRegisterError :: Show RegisterError where
+  show = gShow
+
 
 data RedirectError
   = RedirectRegisterAuth
   | RedirectUserDetailsNoAuth
+
+derive instance genericRedirectError :: Generic RedirectError
+
+instance showRedirectError :: Show RedirectError where
+  show = gShow
 
 
 data SnackbarMessage
@@ -49,6 +67,11 @@ data SnackbarMessage
   | SnackbarMessageUserDetails UserDetailsError
   | SnackbarMessageRegister (Maybe RegisterError)
   | SnackbarMessageRedirect RedirectError
+
+derive instance genericSnackbarMessage :: Generic SnackbarMessage
+
+instance showSnackbarMessage :: Show SnackbarMessage where
+  show = gShow
 
 
 
@@ -66,7 +89,6 @@ initialState =
 data Action
   = GotMessage SnackbarMessage
   | PopMessage
-  | Open
 
 type Effects eff =
   ( ref :: REF
@@ -77,10 +99,9 @@ spec :: forall eff. T.Spec (Effects eff) State Unit Action
 spec = T.simpleSpec performAction render
   where
     performAction action props state = case action of
-      Open -> void $ T.cotransform _ { open = true }
       GotMessage x -> do
-        performAction Open props state
-        void $ T.cotransform _ { errors = List.snoc state.errors x }
+        liftEff $ unsafeCoerceEff $ log $ "got message: " <> show x
+        void $ T.cotransform _ { errors = List.snoc state.errors x, open = true }
       PopMessage -> case List.uncons state.errors of
         Nothing -> pure unit -- bug out
         Just {head,tail} -> do
@@ -88,9 +109,7 @@ spec = T.simpleSpec performAction render
           mState <- T.cotransform _ { errors = tail, open = false }
           unless (List.null tail) $ do
             liftBase $ delay $ Milliseconds $ 2000.0
-            case mState of
-              Nothing -> pure unit
-              Just s -> performAction Open props s
+            void $ T.cotransform _ { open = true }
 
     render :: T.Render State Unit Action
     render dispatch props state children =
