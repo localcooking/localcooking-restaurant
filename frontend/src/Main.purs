@@ -176,6 +176,7 @@ main = do
             case mAuth of
               Nothing -> continue siteLink
               Just _ -> do
+                log "redirecting register"
                 One.putQueue errorMessageQueue (SnackbarMessageRedirect RedirectRegisterAuth)
                 continue RootLink
           UserDetailsLink -> do
@@ -183,6 +184,7 @@ main = do
             case mAuth of
               Just _ -> continue siteLink
               Nothing -> do
+                log "redirecting userDetails"
                 One.putQueue errorMessageQueue (SnackbarMessageRedirect RedirectUserDetailsNoAuth)
                 continue RootLink
           _ -> continue siteLink
@@ -196,11 +198,13 @@ main = do
         case mAuth of
           Nothing -> case siteLink of
             UserDetailsLink -> do
+              log "due to auth"
               One.putQueue errorMessageQueue (SnackbarMessageRedirect RedirectUserDetailsNoAuth)
               continue
             _ -> pure unit
           Just _ -> case siteLink of
             RegisterLink -> do
+              log "due to register"
               One.putQueue errorMessageQueue (SnackbarMessageRedirect RedirectRegisterAuth)
               continue
             _ -> pure unit
