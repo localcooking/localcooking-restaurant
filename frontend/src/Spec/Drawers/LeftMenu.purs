@@ -93,7 +93,7 @@ spec {siteLinks} = T.simpleSpec performAction render
         case mTuple of
           Nothing -> pure unit
           Just (Tuple n m)
-            | n - m > Milliseconds 1000.0 -> do
+            | n - m > Milliseconds 500.0 -> do
                 liftEff (writeRef lastOpen Nothing)
                 void $ T.cotransform _ { open = false }
             | otherwise -> pure unit

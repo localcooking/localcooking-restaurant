@@ -33,10 +33,22 @@ data UserDetailsError
   | UserDetailsEmailNoAuth
 
 
+data RegisterError
+  = RegisterErrorBadCaptchaResponse
+  | RegisterErrorEmailInUse
+
+
+data RedirectError
+  = RedirectRegisterAuth
+  | RedirectUserDetailsNoAuth
+
+
 data SnackbarMessage
   = SnackbarMessageAuthFailure AuthTokenFailure
   | SnackbarMessageAuthError AuthError
   | SnackbarMessageUserDetails UserDetailsError
+  | SnackbarMessageRegister (Maybe RegisterError)
+  | SnackbarMessageRedirect RedirectError
 
 
 
@@ -104,6 +116,14 @@ spec = T.simpleSpec performAction render
                 SnackbarMessageUserDetails userDetails -> case userDetails of
                   UserDetailsEmailNoInitOut -> R.text "Internal Error: userDetails/email resource failed"
                   UserDetailsEmailNoAuth -> R.text "Error: No authorization for email"
+                SnackbarMessageRegister mRegister -> case mRegister of
+                  Nothing -> R.text "Registered! Please check your spam folder and confirm in 7 days."
+                  Just register -> case register of
+                    RegisterErrorBadCaptchaResponse -> R.text "Bad ReCaptcha response."
+                    RegisterErrorEmailInUse -> R.text "Email address is already registered."
+                SnackbarMessageRedirect redirect -> case redirect of
+                  RedirectRegisterAuth -> R.text "Redirected - can't register while logged in."
+                  RedirectUserDetailsNoAuth -> R.text "Redirected - can't view user details while logged out."
           ]
         }
       ]

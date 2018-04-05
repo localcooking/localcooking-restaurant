@@ -1,5 +1,6 @@
 module Spec.Content where
 
+import Spec.Snackbar (SnackbarMessage)
 import Spec.Content.Root (root)
 import Spec.Content.Chefs (chefs)
 import Spec.Content.Meals (meals)
@@ -35,6 +36,8 @@ import Crypto.Scrypt (SCRYPT)
 
 import IxSignal.Internal (IxSignal)
 import IxSignal.Internal as IxSignal
+import Queue (WRITE)
+import Queue.One as One
 
 
 
@@ -67,9 +70,10 @@ spec :: forall eff
       . { registerQueues    :: RegisterSparrowClientQueues (Effects eff)
         , windowSizeSignal  :: IxSignal (Effects eff) WindowSize
         , siteLinks         :: SiteLinks -> Eff (Effects eff) Unit
+        , errorMessageQueue :: One.Queue (write :: WRITE) (Effects eff) SnackbarMessage
         }
      -> T.Spec (Effects eff) State Unit Action
-spec {registerQueues,windowSizeSignal,siteLinks} = T.simpleSpec performAction render
+spec {registerQueues,windowSizeSignal,siteLinks,errorMessageQueue} = T.simpleSpec performAction render
   where
     performAction action props state = case action of
       ChangedCurrentPage p ->
@@ -103,6 +107,7 @@ spec {registerQueues,windowSizeSignal,siteLinks} = T.simpleSpec performAction re
                 RegisterLink ->
                   register
                     { registerQueues
+                    , errorMessageQueue
                     , toRoot: siteLinks RootLink
                     }
                 UserDetailsLink -> userDetails
@@ -148,14 +153,17 @@ content :: forall eff
            , windowSizeSignal  :: IxSignal (Effects eff) WindowSize
            , registerQueues    :: RegisterSparrowClientQueues (Effects eff)
            , siteLinks         :: SiteLinks -> Eff (Effects eff) Unit
+           , errorMessageQueue :: One.Queue (write :: WRITE) (Effects eff) SnackbarMessage
            } -> R.ReactElement
-content {currentPageSignal,registerQueues,windowSizeSignal,siteLinks} =
+content {currentPageSignal,registerQueues,windowSizeSignal,siteLinks,errorMessageQueue} =
   let init =
         { initSiteLinks: unsafePerformEff $ IxSignal.get currentPageSignal
         , initWindowSize: unsafePerformEff $ IxSignal.get windowSizeSignal
         }
       {spec: reactSpec, dispatcher} =
-        T.createReactSpec (spec {registerQueues,windowSizeSignal,siteLinks}) (initialState init)
+        T.createReactSpec
+          (spec {registerQueues,windowSizeSignal,siteLinks,errorMessageQueue})
+          (initialState init)
       reactSpec' = Signal.whileMountedIxUUID
                      currentPageSignal
                      (\this x -> unsafeCoerceEff $ dispatcher this (ChangedCurrentPage x))

@@ -1,9 +1,9 @@
 module Main where
 
 import Spec (app)
-import Spec.Snackbar (SnackbarMessage (..))
+import Spec.Snackbar (SnackbarMessage (..), RedirectError (..))
 import Window (widthToWindowSize)
-import Links (SiteLinks, initSiteLinks, onPopState, pushState')
+import Links (SiteLinks (..), initSiteLinks, onPopState, pushState', replaceState')
 import Types.Env (env)
 import Login.Error (PreliminaryAuthToken (..))
 import Login.Storage (getStoredAuthToken)
@@ -104,15 +104,35 @@ main = do
   ( authTokenSignal :: IxSignal Effects (Maybe AuthToken)
     ) <- IxSignal.make Nothing
 
+  -- for `back` compatibility while being driven by `siteLinksSignal`
   ( currentPageSignal :: IxSignal Effects SiteLinks
     ) <- do
     initSiteLink <- initSiteLinks
 
     -- fetch resources - FIXME use sparrow to drive it - via currentPageSignal?
     sig <- IxSignal.make initSiteLink
-    flip onPopState w \siteLink ->
-      -- TODO passive redirect for circumstances like unauthentication
-      IxSignal.set siteLink sig
+    flip onPopState w \siteLink -> do
+      -- Top level redirections:
+      case siteLink of
+        RegisterLink -> do
+          mAuth <- IxSignal.get authTokenSignal
+          case mAuth of
+            Nothing ->
+              IxSignal.set siteLink sig
+            Just _ -> do
+              One.putQueue errorMessageQueue (SnackbarMessageRedirect RedirectRegisterAuth)
+              replaceState' RootLink h
+              IxSignal.set RootLink sig
+        UserDetailsLink -> do
+          mAuth <- IxSignal.get authTokenSignal
+          case mAuth of
+            Just _ ->
+              IxSignal.set siteLink sig
+            Nothing -> do
+              One.putQueue errorMessageQueue (SnackbarMessageRedirect RedirectUserDetailsNoAuth)
+              replaceState' RootLink h
+              IxSignal.set RootLink sig
+        _ -> IxSignal.set siteLink sig
     pure sig
 
 
@@ -120,12 +140,30 @@ main = do
   ( siteLinksSignal :: One.Queue (write :: WRITE) Effects SiteLinks
     ) <- do
     q <- One.newQueue
-    One.onQueue q \(x :: SiteLinks) -> do
+    One.onQueue q \(siteLink :: SiteLinks) -> do
       -- only respect changed pages
       y <- IxSignal.get currentPageSignal
-      when (y /= x) $ do
-        pushState' x h
-        IxSignal.set x currentPageSignal
+      when (y /= siteLink) $ do
+        let continue x = do
+              pushState' x h
+              IxSignal.set x currentPageSignal
+        -- redirect rules
+        case siteLink of
+          RegisterLink -> do
+            mAuth <- IxSignal.get authTokenSignal
+            case mAuth of
+              Nothing -> continue siteLink
+              Just _ -> do
+                One.putQueue errorMessageQueue (SnackbarMessageRedirect RedirectRegisterAuth)
+                continue RootLink
+          UserDetailsLink -> do
+            mAuth <- IxSignal.get authTokenSignal
+            case mAuth of
+              Just _ -> continue siteLink
+              Nothing -> do
+                One.putQueue errorMessageQueue (SnackbarMessageRedirect RedirectUserDetailsNoAuth)
+                continue RootLink
+          _ -> continue siteLink
     pure (One.writeOnly q)
 
 

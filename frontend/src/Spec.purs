@@ -167,6 +167,7 @@ spec
         , registerQueues
         , windowSizeSignal
         , siteLinks
+        , errorMessageQueue: One.writeOnly errorMessageQueue
         }
       , loginDialog
         { openLoginSignal: One.readOnly openLoginSignal

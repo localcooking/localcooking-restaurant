@@ -1,5 +1,6 @@
 module Spec.Content.Register where
 
+import Spec.Snackbar (SnackbarMessage (SnackbarMessageRegister), RegisterError (..))
 import Types.Env (env)
 import Google.ReCaptcha (ReCaptchaResponse)
 import Client.Dependencies.Register (RegisterSparrowClientQueues, RegisterInitIn (..), RegisterFailure (..), RegisterInitOut (..))
@@ -36,11 +37,12 @@ import MaterialUI.TextField (textField)
 import MaterialUI.Input as Input
 import MaterialUI.Grid (grid)
 import MaterialUI.Grid as Grid
-import MaterialUI.Snackbar (snackbar)
 import MaterialUI.CircularProgress (circularProgress)
 import Crypto.Scrypt (SCRYPT)
 
 import Unsafe.Coerce (unsafeCoerce)
+import Queue (WRITE)
+import Queue.One as One
 import Queue.One.Aff as OneIO
 
 
@@ -55,9 +57,6 @@ type State =
   , passwordConfirm      :: String
   , passwordConfirmDirty :: Maybe Boolean
   , pending              :: Boolean
-  , failure              :: Maybe RegisterFailure
-  , badCaptcha           :: Boolean
-  , emailSent            :: Boolean
   }
 
 initialState :: State
@@ -72,9 +71,6 @@ initialState =
   , passwordConfirm: ""
   , passwordConfirmDirty: Nothing
   , pending: false
-  , failure: Nothing
-  , badCaptcha: false
-  , emailSent: false
   }
 
 data Action
@@ -88,12 +84,6 @@ data Action
   | PasswordUnfocused
   | PasswordConfirmUnfocused
   | SubmitRegister
-  | GotFailure RegisterFailure
-  | ClearFailure
-  | GotBadCaptcha
-  | ClearBadCaptcha
-  | GotEmailSent
-  | ClearEmailSent
 
 
 type Effects eff =
@@ -107,9 +97,14 @@ type Effects eff =
 
 spec :: forall eff
       . { registerQueues :: RegisterSparrowClientQueues (Effects eff)
+        , errorMessageQueue :: One.Queue (write :: WRITE) (Effects eff) SnackbarMessage
         , toRoot :: Eff (Effects eff) Unit
         } -> T.Spec (Effects eff) State Unit Action
-spec {registerQueues: {init: registerQueuesInit},toRoot} = T.simpleSpec performAction render
+spec
+  { registerQueues: {init: registerQueuesInit}
+  , errorMessageQueue
+  , toRoot
+  } = T.simpleSpec performAction render
   where
     performAction action props state = case action of
       GotReCaptchaVerify e -> void $ T.cotransform _ { reCaptcha = Just e }
@@ -121,21 +116,6 @@ spec {registerQueues: {init: registerQueuesInit},toRoot} = T.simpleSpec performA
       EmailConfirmUnfocused -> void $ T.cotransform _ { emailConfirmDirty = Just true }
       PasswordUnfocused -> void $ T.cotransform _ { passwordDirty = Just true }
       PasswordConfirmUnfocused -> void $ T.cotransform _ { passwordConfirmDirty = Just true }
-      GotEmailSent -> do
-        void $ T.cotransform _ { emailSent = true }
-        -- FIXME auto login
-        liftEff toRoot
-      GotBadCaptcha -> void $ T.cotransform _ { badCaptcha = true }
-      GotFailure e -> void $ T.cotransform _ { failure = Just e }
-      ClearBadCaptcha -> do
-        liftBase $ delay $ Milliseconds 12000.0
-        void $ T.cotransform _ { badCaptcha = false }
-      ClearFailure -> do
-        liftBase $ delay $ Milliseconds 12000.0
-        void $ T.cotransform _ { failure = Nothing }
-      ClearEmailSent -> do
-        liftBase $ delay $ Milliseconds 12000.0
-        void $ T.cotransform _ { emailSent = false }
       SubmitRegister -> do
         void $ T.cotransform _ { pending = true }
         case emailAddress state.email of
@@ -147,13 +127,15 @@ spec {registerQueues: {init: registerQueuesInit},toRoot} = T.simpleSpec performA
                 password <- hashPassword {password: state.password, salt: env.salt}
                 OneIO.callAsync registerQueuesInit $ RegisterInitIn {email,password,reCaptcha}
               void $ T.cotransform _ { pending = false }
-              liftEff $ log $ "received: " <> show mErr
               case mErr of
                 Nothing -> pure unit
                 Just initOut -> case initOut of
-                  RegisterInitOutEmailSent -> performAction GotEmailSent props state
-                  RegisterInitOutBadCaptcha -> performAction GotBadCaptcha props state
-                  RegisterInitOutDBError e -> performAction (GotFailure e) props state
+                  RegisterInitOutEmailSent ->
+                    liftEff $ One.putQueue errorMessageQueue (SnackbarMessageRegister Nothing)
+                  RegisterInitOutBadCaptcha ->
+                    liftEff $ One.putQueue errorMessageQueue $ SnackbarMessageRegister $ Just RegisterErrorBadCaptchaResponse
+                  RegisterInitOutDBError e ->
+                    liftEff $ One.putQueue errorMessageQueue $ SnackbarMessageRegister $ Just RegisterErrorEmailInUse
 
     render :: T.Render State Unit Action
     render dispatch props state children =
@@ -280,30 +262,12 @@ spec {registerQueues: {init: registerQueuesInit},toRoot} = T.simpleSpec performA
                 [ circularProgress {size: 50}
                 ]
           else R.text ""
-      , snackbar
-        { open: case state.failure of
-            Nothing -> state.badCaptcha || state.emailSent
-            Just _ -> true
-        , autoHideDuration: toNullable $ Just $ Milliseconds 10000.0
-        , onClose: mkEffFn2 \_ _ -> do
-            dispatch ClearFailure
-            dispatch ClearEmailSent
-            dispatch ClearBadCaptcha
-        , message: case state.failure of
-          Nothing ->
-            if state.badCaptcha
-               then R.text "Bad ReCaptcha response"
-               else if state.emailSent
-                       then R.text "User registered! Please check your email for confirmation."
-                       else R.text ""
-          Just e -> case e of
-            EmailExists -> R.text "Email address is already registered."
-        }
       ]
 
 
 register :: forall eff
           . { registerQueues :: RegisterSparrowClientQueues (Effects eff)
+            , errorMessageQueue :: One.Queue (write :: WRITE) (Effects eff) SnackbarMessage
             , toRoot         :: Eff (Effects eff) Unit
             }
          -> R.ReactElement
