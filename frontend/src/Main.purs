@@ -191,17 +191,24 @@ main = do
     pure (One.writeOnly q)
 
 
+  onceRef <- newRef false
   -- rediect for async logouts
   let gotAuth mAuth = do
         siteLink <- IxSignal.get currentPageSignal
         let continue = One.putQueue siteLinksSignal RootLink
         case mAuth of
-          Nothing -> case siteLink of
-            UserDetailsLink -> do
-              log "due to auth"
-              One.putQueue errorMessageQueue (SnackbarMessageRedirect RedirectUserDetailsNoAuth)
-              continue
-            _ -> pure unit
+          Nothing -> do
+            -- hack for listening to the signal the first time on bind
+            once <- do
+              x <- readRef onceRef
+              writeRef onceRef true
+              pure x
+            when once $ case siteLink of
+              UserDetailsLink -> do
+                log "due to auth"
+                One.putQueue errorMessageQueue (SnackbarMessageRedirect RedirectUserDetailsNoAuth)
+                continue
+              _ -> pure unit
           Just _ -> case siteLink of
             RegisterLink -> do
               log "due to register"
