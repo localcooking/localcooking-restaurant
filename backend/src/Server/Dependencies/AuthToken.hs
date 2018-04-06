@@ -109,7 +109,7 @@ authTokenServer :: Server AppM AuthTokenInitIn
 authTokenServer initIn = case initIn of
   -- invoked remotely from a client whenever casually attempting a normal login
   AuthTokenInitInLogin email password -> do
-    Env{envDatabase} <- ask
+    Env{envDatabase,envAuthTokenExpire} <- ask
 
     eUserId <- liftIO $ login envDatabase email password
 
@@ -131,12 +131,10 @@ authTokenServer initIn = case initIn of
           , serverContinue = \_ -> pure ServerReturn
             { serverInitOut = AuthTokenInitOutSuccess authToken
             , serverOnOpen = \ServerArgs{serverSendCurrent} -> do
-                Env{envAuthTokenExpire} <- ask
-
                 thread <- Aligned.liftBaseWith $ \runInBase -> async $ do
                   () <- atomically $ TMapMVar.lookup envAuthTokenExpire authToken
                   fmap runSingleton $ runInBase $ serverSendCurrent AuthTokenDeltaOutRevoked
-                pure (Just thread) -- FIXME listen for remote logouts? Streaming auth tokens?
+                pure (Just thread)
             , serverOnReceive = \_ r -> case r of
                 AuthTokenDeltaInLogout -> logoutAuth authToken
             }
@@ -144,7 +142,7 @@ authTokenServer initIn = case initIn of
 
   -- invoked remotely from client when started with an authToken in frontendEnv, or in localStorage
   AuthTokenInitInExists authToken -> do
-    Env{envDatabase} <- ask
+    Env{envDatabase,envAuthTokenExpire} <- ask
 
     mUser <- usersAuthToken authToken
     case mUser of
@@ -153,7 +151,11 @@ authTokenServer initIn = case initIn of
         { serverOnUnsubscribe = pure ()
         , serverContinue = \_ -> pure ServerReturn
           { serverInitOut = AuthTokenInitOutSuccess authToken
-          , serverOnOpen = \_ -> pure Nothing -- FIXME listen for remote logouts? Streaming auth tokens?
+          , serverOnOpen = \ServerArgs{serverSendCurrent} -> do
+              thread <- Aligned.liftBaseWith $ \runInBase -> async $ do
+                () <- atomically $ TMapMVar.lookup envAuthTokenExpire authToken
+                fmap runSingleton $ runInBase $ serverSendCurrent AuthTokenDeltaOutRevoked
+              pure (Just thread)
           , serverOnReceive = \_ r -> case r of
               AuthTokenDeltaInLogout -> logoutAuth authToken
           }
@@ -167,6 +169,7 @@ authTokenServer initIn = case initIn of
       , envHostname
       , envTls
       , envDatabase
+      , envAuthTokenExpire
       } <- ask
 
     eX <- liftIO $ handleFacebookLoginReturn managersFacebook keysFacebook envTls envHostname code
@@ -185,7 +188,11 @@ authTokenServer initIn = case initIn of
               { serverOnUnsubscribe = pure ()
               , serverContinue = \_ -> pure ServerReturn
                 { serverInitOut = AuthTokenInitOutSuccess authToken
-                , serverOnOpen = \_ -> pure Nothing
+                , serverOnOpen = \ServerArgs{serverSendCurrent} -> do
+                    thread <- Aligned.liftBaseWith $ \runInBase -> async $ do
+                      () <- atomically $ TMapMVar.lookup envAuthTokenExpire authToken
+                      fmap runSingleton $ runInBase $ serverSendCurrent AuthTokenDeltaOutRevoked
+                    pure (Just thread)
                 , serverOnReceive = \_ _ -> pure ()
                 }
               }
