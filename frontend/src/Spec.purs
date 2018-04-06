@@ -131,7 +131,8 @@ spec
         mInitOut <- liftBase $ callSparrowClientQueues authTokenQueues onDeltaOut initIn
         liftEff $ do
           case mInitOut of
-            Nothing ->
+            Nothing -> do
+              IxSignal.set Nothing authTokenSignal
               One.putQueue errorMessageQueue (SnackbarMessageAuthError AuthExistsFailure)
             Just {initOut,deltaIn: _,unsubscribe} -> case initOut of -- TODO logging out directly pushes a DeltaOut to the sparrowClientQueues, to automatically clean up dangling listeners
               AuthTokenInitOutSuccess authToken -> do
@@ -155,6 +156,7 @@ spec
                       (UserDetailsEmailInitIn authToken)
               AuthTokenInitOutFailure e -> do
                 unsubscribe
+                IxSignal.set Nothing authTokenSignal
                 One.putQueue errorMessageQueue (SnackbarMessageAuthFailure e)
           One.putQueue loginPendingSignal unit
 

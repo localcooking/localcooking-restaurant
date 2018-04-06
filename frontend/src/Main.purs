@@ -125,6 +125,7 @@ main = do
           _ -> pure x
         _ -> case x of
           UserDetailsLink -> do
+            log "didn't replace state?"
             void $ setTimeout 1000 $
               One.putQueue errorMessageQueue (SnackbarMessageRedirect RedirectUserDetailsNoAuth)
             replaceState' RootLink h
