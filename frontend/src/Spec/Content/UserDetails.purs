@@ -31,7 +31,7 @@ spec = T.simpleSpec performAction render
     render :: T.Render State Unit Action
     render dispatch props state children =
       [ Drawer.withStyles
-        (\_ -> {paper: createStyles {position: "relative", width: "200"}})
+        (\_ -> {paper: createStyles {position: "relative", width: "200px", zIndex: 1000}})
         \{classes} -> drawer
           { variant: Drawer.permanent
           , anchor: Drawer.left
