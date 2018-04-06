@@ -5,6 +5,7 @@ import Prelude
 import Thermite as T
 import React as R
 import React.DOM as R
+import React.DOM.Props as RP
 
 import MaterialUI.Types (createStyles)
 import MaterialUI.Drawer (drawer)
@@ -45,7 +46,9 @@ spec = T.simpleSpec performAction render
               ]
             ]
           ]
-      , R.text "UserDetails"
+      , R.div [RP.style {position: "absolute", left: "200px"}]
+        [ R.text "UserDetails"
+        ]
       ]
 
 
