@@ -90,6 +90,7 @@ spec {registerQueues,windowSizeSignal,siteLinks,errorMessageQueue} = T.simpleSpe
                               { width: "100%"
                               , position: "relative"
                               , minHeight: "30em"
+                              , padding: "1em"
                               }
                       else createStyles
                               { maxWidth: "80em"

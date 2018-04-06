@@ -13,13 +13,16 @@ import Login.Storage (storeAuthToken, clearAuthToken)
 import LocalCooking.Common.AuthToken (AuthToken)
 import Client.Dependencies.AuthToken
   ( AuthTokenSparrowClientQueues, AuthTokenFailure
-  , AuthTokenInitIn (..), AuthTokenInitOut (..))
+  , AuthTokenInitIn (..), AuthTokenInitOut (..), AuthTokenDeltaOut (..)
+  )
 import Client.Dependencies.Register
   ( RegisterSparrowClientQueues, RegisterFailure
   , RegisterInitIn (..), RegisterInitOut (..))
 import Client.Dependencies.UserDetails.Email
   ( UserDetailsEmailSparrowClientQueues
   , UserDetailsEmailInitIn (..), UserDetailsEmailInitOut (..))
+
+import Sparrow.Client.Queue (callSparrowClientQueues)
 
 import Prelude
 import Data.URI (URI)
@@ -122,15 +125,19 @@ spec
     performAction action props state = case action of
       GotAuthToken mToken -> void $ T.cotransform _ { authToken = mToken }
       CallAuthToken initIn -> do
-        initOut <- liftBase $ OneIO.callAsync authTokenQueues.init initIn
+        let onDeltaOut deltaOut = case deltaOut of
+              AuthTokenDeltaOutRevoked -> IxSignal.set Nothing authTokenSignal -- TODO verify this is enough to trigger a complete remote logout
+              AuthTokenDeltaOutNew authToken' -> pure unit -- FIXME TODO
+        mInitOut <- liftBase $ callSparrowClientQueues authTokenQueues onDeltaOut initIn
         liftEff $ do
-          case initOut of
+          case mInitOut of
             Nothing ->
               One.putQueue errorMessageQueue (SnackbarMessageAuthError AuthExistsFailure)
-            Just eInitOut -> case eInitOut of
+            Just {initOut,deltaIn: _,unsubscribe} -> case initOut of -- TODO logging out directly pushes a DeltaOut to the sparrowClientQueues, to automatically clean up dangling listeners
               AuthTokenInitOutSuccess authToken -> do
                 storeAuthToken authToken
                 IxSignal.set (Just authToken) authTokenSignal
+                -- fetch user details
                 case initIn of
                   AuthTokenInitInLogin {email} ->
                     IxSignal.set (Just {email}) userDetailsSignal
@@ -146,7 +153,8 @@ spec
                               One.putQueue errorMessageQueue (SnackbarMessageUserDetails UserDetailsEmailNoAuth)
                       )
                       (UserDetailsEmailInitIn authToken)
-              AuthTokenInitOutFailure e ->
+              AuthTokenInitOutFailure e -> do
+                unsubscribe
                 One.putQueue errorMessageQueue (SnackbarMessageAuthFailure e)
           One.putQueue loginPendingSignal unit
 
