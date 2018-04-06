@@ -99,6 +99,7 @@ spec = T.simpleSpec performAction render
   where
     performAction action props state = case action of
       GotMessage x -> do
+        liftEff $ unsafeCoerceEff $ log $ "got message: " <> show x
         void $ T.cotransform _ { errors = Array.snoc state.errors x, open = true }
       PopMessage -> do
         case Array.uncons state.errors of
