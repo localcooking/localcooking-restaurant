@@ -7,9 +7,11 @@
 module Types.Env where
 
 import LocalCooking.Common.Password (HashedPassword)
+import LocalCooking.Common.AuthToken (AuthToken)
+import LocalCooking.Database.Schema.User (UserId)
 import Types.Keys (Keys)
 
-import Data.TimeMap (TimeMap)
+import Data.TimeMap (TimeMap, newTimeMap)
 import qualified Data.TimeMap as TimeMap
 import Data.Word (Word64)
 import Data.Text (Text)
@@ -23,6 +25,7 @@ import qualified Data.HashMap.Strict as HashMap
 import Data.Pool (destroyAllResources)
 import Control.Concurrent.Async (Async, cancel)
 import Control.Concurrent.STM (TVar, newTVar, atomically)
+import Control.Concurrent.STM.TMapMVar.Hash (TMapMVar, newTMapMVar)
 import Crypto.Saltine.Core.Box (Nonce, newNonce)
 import System.IO.Unsafe (unsafePerformIO)
 import Network.HTTP.Client (Manager)
@@ -71,14 +74,16 @@ isDevelopment Env{envDevelopment} = case envDevelopment of
 
 
 data Env = Env
-  { envHostname    :: URIAuth
-  , envSMTPHost    :: URIAuthHost
-  , envDevelopment :: Maybe Development
-  , envTls         :: Bool
-  , envKeys        :: Keys
-  , envManagers    :: Managers
-  , envDatabase    :: ConnectionPool
-  , envSalt        :: HashedPassword
+  { envHostname        :: URIAuth
+  , envSMTPHost        :: URIAuthHost
+  , envDevelopment     :: Maybe Development
+  , envTls             :: Bool
+  , envKeys            :: Keys
+  , envManagers        :: Managers
+  , envDatabase        :: ConnectionPool
+  , envSalt            :: HashedPassword
+  , envAuthTokens      :: TimeMap AuthToken UserId
+  , envAuthTokenExpire :: TMapMVar AuthToken ()
   }
 
 instance Default Env where
@@ -91,6 +96,8 @@ instance Default Env where
     , envManagers    = def
     , envDatabase    = error "No database"
     , envSalt        = error "No salt"
+    , envAuthTokens  = unsafePerformIO $ atomically newTimeMap
+    , envAuthTokenExpire = unsafePerformIO $ atomically newTMapMVar
     }
 
 

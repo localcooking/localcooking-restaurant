@@ -9,7 +9,6 @@ module Main.Options where
 
 import Types.Env (Env (..), defManagers, defDevelopment)
 import LocalCooking.Database.Query.Salt (getPasswordSalt)
-import qualified LocalCooking.Database.Schema.Auth as Auth
 import qualified LocalCooking.Database.Schema.Facebook as Facebook
 import qualified LocalCooking.Database.Schema.User as User
 import qualified LocalCooking.Database.Schema.Salt as Salt
@@ -25,8 +24,10 @@ import qualified Data.ByteString.UTF8 as BS8
 import Data.Monoid ((<>))
 import qualified Data.Aeson as Aeson
 import qualified Data.Strict.Maybe as Strict
+import Data.TimeMap (newTimeMap)
 import Control.Monad (unless, void)
 import Control.Concurrent.STM (newTVar, atomically)
+import Control.Concurrent.STM.TMapMVar.Hash (newTMapMVar)
 import Control.Logging (errorL)
 import Control.Monad.Logger (runStderrLoggingT)
 import Path (toFilePath, parent, relfile, (</>))
@@ -155,12 +156,15 @@ mkEnv
     runStderrLoggingT (createPostgresqlPool connStr 10)
 
   flip runSqlPool envDatabase $ do
-    runMigration Auth.migrateAll
     runMigration Facebook.migrateAll
     runMigration User.migrateAll
     runMigration Salt.migrateAll
 
   envSalt <- getPasswordSalt envDatabase
+
+  envAuthTokens <- atomically newTimeMap
+
+  envAuthTokenExpire <- atomically newTMapMVar
 
   pure
     ( Env
@@ -172,6 +176,8 @@ mkEnv
       , envManagers
       , envDatabase
       , envSalt
+      , envAuthTokens
+      , envAuthTokenExpire
       }
     , fromIntegral boundPort
     )

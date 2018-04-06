@@ -7,6 +7,7 @@ module Server.Dependencies.UserDetails.Email where
 
 import Types (AppM)
 import Types.Env (Env (..))
+import LocalCooking.Auth (usersAuthToken)
 import LocalCooking.Common.AuthToken (AuthToken)
 import LocalCooking.Database.Query.User (getEmail)
 
@@ -61,7 +62,12 @@ userDetailsEmailServer :: Server AppM UserDetailsEmailInitIn
 userDetailsEmailServer (UserDetailsEmailInitIn authToken) = do
   Env{envDatabase} <- ask
 
-  mEmail <- liftIO $ getEmail envDatabase authToken
+  mEmail <- do
+    mUserId <- usersAuthToken authToken
+    case mUserId of
+      Nothing -> pure Nothing
+      Just userId -> liftIO $ getEmail envDatabase userId
+
   case mEmail of
     Nothing -> pure $ Just ServerContinue
       { serverOnUnsubscribe = pure ()

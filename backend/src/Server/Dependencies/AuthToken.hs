@@ -9,9 +9,10 @@ module Server.Dependencies.AuthToken where
 import Types (AppM)
 import Types.Keys (Keys (..))
 import Types.Env (Env (..), Managers (..), isDevelopment)
+import LocalCooking.Auth (loginAuth, logoutAuth, usersAuthToken)
 import LocalCooking.Common.Password (HashedPassword)
 import LocalCooking.Common.AuthToken (AuthToken)
-import LocalCooking.Database.Query.User (loginWithFB, usersAuthToken, login, logout, AuthTokenFailure)
+import LocalCooking.Database.Query.User (loginWithFB, login, AuthTokenFailure)
 import Text.EmailAddress (EmailAddress)
 import Facebook.Types (FacebookLoginCode)
 import Facebook.Return (handleFacebookLoginReturn)
@@ -105,9 +106,9 @@ authTokenServer initIn = case initIn of
   AuthTokenInitInLogin email password -> do
     Env{envDatabase} <- ask
 
-    mToken <- liftIO $ login envDatabase email password
+    eUserId <- liftIO $ login envDatabase email password
 
-    case mToken of
+    case eUserId of
       Left e -> pure $ Just ServerContinue
         { serverOnUnsubscribe = pure ()
         , serverContinue = \_ -> pure ServerReturn
@@ -118,21 +119,23 @@ authTokenServer initIn = case initIn of
           , serverOnReceive = \_ _ -> pure ()
           }
         }
-      Right authToken -> pure $ Just ServerContinue
-        { serverOnUnsubscribe = pure ()
-        , serverContinue = \_ -> pure ServerReturn
-          { serverInitOut = AuthTokenInitOutSuccess authToken
-          , serverOnOpen = \_ -> pure Nothing -- FIXME listen for remote logouts? Streaming auth tokens?
-          , serverOnReceive = \_ r -> case r of
-              AuthTokenDeltaInLogout -> liftIO $ logout envDatabase authToken
+      Right userId -> do
+        authToken <- loginAuth userId
+        pure $ Just ServerContinue
+          { serverOnUnsubscribe = pure ()
+          , serverContinue = \_ -> pure ServerReturn
+            { serverInitOut = AuthTokenInitOutSuccess authToken
+            , serverOnOpen = \_ -> pure Nothing -- FIXME listen for remote logouts? Streaming auth tokens?
+            , serverOnReceive = \_ r -> case r of
+                AuthTokenDeltaInLogout -> logoutAuth authToken
+            }
           }
-        }
 
   -- invoked remotely from client when started with an authToken in frontendEnv, or in localStorage
   AuthTokenInitInExists authToken -> do
     Env{envDatabase} <- ask
 
-    mUser <- liftIO $ usersAuthToken envDatabase authToken
+    mUser <- usersAuthToken authToken
     case mUser of
       Nothing -> pure Nothing
       Just _ -> pure $ Just ServerContinue
@@ -141,7 +144,7 @@ authTokenServer initIn = case initIn of
           { serverInitOut = AuthTokenInitOutSuccess authToken
           , serverOnOpen = \_ -> pure Nothing -- FIXME listen for remote logouts? Streaming auth tokens?
           , serverOnReceive = \_ r -> case r of
-              AuthTokenDeltaInLogout -> liftIO $ logout envDatabase authToken
+              AuthTokenDeltaInLogout -> logoutAuth authToken
           }
         }
 
@@ -162,14 +165,16 @@ authTokenServer initIn = case initIn of
         print e
         pure Nothing
       Right (fbToken,fbUserId) -> do
-        mAuth <- liftIO $ loginWithFB envDatabase fbToken fbUserId
-        case mAuth of
+        mUserId <- liftIO $ loginWithFB envDatabase fbToken fbUserId
+        case mUserId of
           Nothing -> pure Nothing
-          Just authToken -> pure $ Just ServerContinue
-            { serverOnUnsubscribe = pure ()
-            , serverContinue = \_ -> pure ServerReturn
-              { serverInitOut = AuthTokenInitOutSuccess authToken
-              , serverOnOpen = \_ -> pure Nothing
-              , serverOnReceive = \_ _ -> pure ()
+          Just userId -> do
+            authToken <- loginAuth userId
+            pure $ Just ServerContinue
+              { serverOnUnsubscribe = pure ()
+              , serverContinue = \_ -> pure ServerReturn
+                { serverInitOut = AuthTokenInitOutSuccess authToken
+                , serverOnOpen = \_ -> pure Nothing
+                , serverOnReceive = \_ _ -> pure ()
+                }
               }
-            }

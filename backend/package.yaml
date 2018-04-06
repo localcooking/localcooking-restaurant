@@ -72,10 +72,11 @@ library:
     - strict
     - QuickCheck
     - quickcheck-instances
-    - timemap
+    - timemap >= 0.0.7
     - text
     - time
     - tmapchan
+    - tmapmvar
     - unordered-containers
     - urlpath >= 8.0.1
     - utf8-string
@@ -116,6 +117,8 @@ executables:
     - stm
     - strict
     - text
+    - timemap
+    - tmapmvar
     - utf8-string
 
 tests:
