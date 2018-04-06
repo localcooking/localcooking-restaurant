@@ -27,12 +27,17 @@ import qualified Data.Strict.Maybe as Strict
 import Data.Strict.Tuple (Pair (..))
 import Data.Monoid ((<>))
 import Data.URI (URI (..), printURI)
+import Data.Singleton.Class (Extractable (runSingleton))
 import Control.Applicative ((<|>))
 import Control.Monad (when)
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Reader (ask)
+import qualified Control.Monad.Trans.Control.Aligned as Aligned
 import Control.Exception.Safe (throwM)
 import Control.Logging (log', warn')
+import Control.Concurrent.Async (async)
+import Control.Concurrent.STM (atomically)
+import Control.Concurrent.STM.TMapMVar.Hash as TMapMVar
 import Network.HTTP.Types.URI (Query)
 import Network.HTTP.Client (httpLbs, responseBody, parseRequest)
 
@@ -125,7 +130,13 @@ authTokenServer initIn = case initIn of
           { serverOnUnsubscribe = pure ()
           , serverContinue = \_ -> pure ServerReturn
             { serverInitOut = AuthTokenInitOutSuccess authToken
-            , serverOnOpen = \_ -> pure Nothing -- FIXME listen for remote logouts? Streaming auth tokens?
+            , serverOnOpen = \ServerArgs{serverSendCurrent} -> do
+                Env{envAuthTokenExpire} <- ask
+
+                thread <- Aligned.liftBaseWith $ \runInBase -> async $ do
+                  () <- atomically $ TMapMVar.lookup envAuthTokenExpire authToken
+                  fmap runSingleton $ runInBase $ serverSendCurrent AuthTokenDeltaOutRevoked
+                pure (Just thread) -- FIXME listen for remote logouts? Streaming auth tokens?
             , serverOnReceive = \_ r -> case r of
                 AuthTokenDeltaInLogout -> logoutAuth authToken
             }
