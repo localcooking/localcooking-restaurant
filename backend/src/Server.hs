@@ -40,7 +40,7 @@ server port = do
       let minute = 60
           hour = 60 * minute
           day = 24 * hour
-      in  day -- FIXME expire after a day?
+      in  2 * minute -- FIXME expire after a day?
     atomically $ forM_ xs $ \(authToken,userId) ->
       TMapMVar.insert envAuthTokenExpire authToken ()
     threadDelay $
