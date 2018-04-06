@@ -106,48 +106,9 @@ authTokenServer :: Server AppM AuthTokenInitIn
                                AuthTokenInitOut
                                AuthTokenDeltaIn
                                AuthTokenDeltaOut
-authTokenServer initIn = case initIn of
-  -- invoked remotely from a client whenever casually attempting a normal login
-  AuthTokenInitInLogin email password -> do
-    Env{envDatabase,envAuthTokenExpire} <- ask
-
-    eUserId <- liftIO $ login envDatabase email password
-
-    case eUserId of
-      Left e -> pure $ Just ServerContinue
-        { serverOnUnsubscribe = pure ()
-        , serverContinue = \_ -> pure ServerReturn
-          { serverInitOut = AuthTokenInitOutFailure e
-          , serverOnOpen = \ServerArgs{serverDeltaReject} -> do
-              serverDeltaReject
-              pure Nothing
-          , serverOnReceive = \_ _ -> pure ()
-          }
-        }
-      Right userId -> do
-        authToken <- loginAuth userId
-        pure $ Just ServerContinue
-          { serverOnUnsubscribe = pure ()
-          , serverContinue = \_ -> pure ServerReturn
-            { serverInitOut = AuthTokenInitOutSuccess authToken
-            , serverOnOpen = \ServerArgs{serverSendCurrent} -> do
-                thread <- Aligned.liftBaseWith $ \runInBase -> async $ do
-                  () <- atomically $ TMapMVar.lookup envAuthTokenExpire authToken
-                  fmap runSingleton $ runInBase $ serverSendCurrent AuthTokenDeltaOutRevoked
-                pure (Just thread)
-            , serverOnReceive = \_ r -> case r of
-                AuthTokenDeltaInLogout -> logoutAuth authToken
-            }
-          }
-
-  -- invoked remotely from client when started with an authToken in frontendEnv, or in localStorage
-  AuthTokenInitInExists authToken -> do
-    Env{envDatabase,envAuthTokenExpire} <- ask
-
-    mUser <- usersAuthToken authToken
-    case mUser of
-      Nothing -> pure Nothing
-      Just _ -> pure $ Just ServerContinue
+authTokenServer initIn = do
+  Env{envAuthTokenExpire,envDatabase} <- ask
+  let serverReturnSuccess authToken = ServerContinue
         { serverOnUnsubscribe = pure ()
         , serverContinue = \_ -> pure ServerReturn
           { serverInitOut = AuthTokenInitOutSuccess authToken
@@ -156,43 +117,59 @@ authTokenServer initIn = case initIn of
                 () <- atomically $ TMapMVar.lookup envAuthTokenExpire authToken
                 fmap runSingleton $ runInBase $ serverSendCurrent AuthTokenDeltaOutRevoked
               pure (Just thread)
-          , serverOnReceive = \_ r -> case r of
-              AuthTokenDeltaInLogout -> logoutAuth authToken
+          , serverOnReceive = \ServerArgs{serverDeltaReject} r -> case r of
+              AuthTokenDeltaInLogout -> do
+                serverDeltaReject
+                logoutAuth authToken
           }
         }
 
-  -- invoked on facebookLoginReturn, only when the user exists
-  AuthTokenInitInFacebookCode code -> do
-    env@Env
-      { envManagers = Managers{managersFacebook}
-      , envKeys = Keys{keysFacebook}
-      , envHostname
-      , envTls
-      , envDatabase
-      , envAuthTokenExpire
-      } <- ask
+  case initIn of
+    -- invoked remotely from a client whenever casually attempting a normal login
+    AuthTokenInitInLogin email password -> do
+      eUserId <- liftIO $ login envDatabase email password
 
-    eX <- liftIO $ handleFacebookLoginReturn managersFacebook keysFacebook envTls envHostname code
-    case eX of
-      Left e -> liftIO $ do
-        putStr "Facebook error:"
-        print e
-        pure Nothing
-      Right (fbToken,fbUserId) -> do
-        mUserId <- liftIO $ loginWithFB envDatabase fbToken fbUserId
-        case mUserId of
-          Nothing -> pure Nothing
-          Just userId -> do
-            authToken <- loginAuth userId
-            pure $ Just ServerContinue
-              { serverOnUnsubscribe = pure ()
-              , serverContinue = \_ -> pure ServerReturn
-                { serverInitOut = AuthTokenInitOutSuccess authToken
-                , serverOnOpen = \ServerArgs{serverSendCurrent} -> do
-                    thread <- Aligned.liftBaseWith $ \runInBase -> async $ do
-                      () <- atomically $ TMapMVar.lookup envAuthTokenExpire authToken
-                      fmap runSingleton $ runInBase $ serverSendCurrent AuthTokenDeltaOutRevoked
-                    pure (Just thread)
-                , serverOnReceive = \_ _ -> pure ()
-                }
-              }
+      case eUserId of
+        Left e -> pure $ Just ServerContinue
+          { serverOnUnsubscribe = pure ()
+          , serverContinue = \_ -> pure ServerReturn
+            { serverInitOut = AuthTokenInitOutFailure e
+            , serverOnOpen = \ServerArgs{serverDeltaReject} -> do
+                serverDeltaReject
+                pure Nothing
+            , serverOnReceive = \_ _ -> pure ()
+            }
+          }
+        Right userId -> do
+          authToken <- loginAuth userId
+          pure $ Just $ serverReturnSuccess authToken
+
+    -- invoked remotely from client when started with an authToken in frontendEnv, or in localStorage
+    AuthTokenInitInExists authToken -> do
+      mUser <- usersAuthToken authToken
+      case mUser of
+        Nothing -> pure Nothing
+        Just _ -> pure $ Just $ serverReturnSuccess authToken
+
+    -- invoked on facebookLoginReturn, only when the user exists
+    AuthTokenInitInFacebookCode code -> do
+      env@Env
+        { envManagers = Managers{managersFacebook}
+        , envKeys = Keys{keysFacebook}
+        , envHostname
+        , envTls
+        } <- ask
+
+      eX <- liftIO $ handleFacebookLoginReturn managersFacebook keysFacebook envTls envHostname code
+      case eX of
+        Left e -> liftIO $ do
+          putStr "Facebook error:"
+          print e
+          pure Nothing
+        Right (fbToken,fbUserId) -> do
+          mUserId <- liftIO $ loginWithFB envDatabase fbToken fbUserId
+          case mUserId of
+            Nothing -> pure Nothing
+            Just userId -> do
+              authToken <- loginAuth userId
+              pure $ Just $ serverReturnSuccess authToken
