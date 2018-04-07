@@ -142,6 +142,9 @@ spec
                 [ button -- TODO cart iconButton
                   { color: Button.inherit
                   , onTouchTap: mkEffFn1 \_ -> dispatch $ Clicked $ UserDetailsLink Nothing
+                  , disabled: case state.currentPage of
+                    UserDetailsLink _ -> true
+                    _ -> false
                   } [R.text $ Email.toString email]
                 ]
           ]

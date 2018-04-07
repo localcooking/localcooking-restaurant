@@ -1,6 +1,7 @@
 module Spec.Content.UserDetails where
 
 import Links (SiteLinks (UserDetailsLink), UserDetailsLinks (..))
+import Colors (palette)
 
 import Prelude
 
@@ -91,6 +92,19 @@ spec {siteLinks} = T.simpleSpec performAction render
           listItem
             { button: true
             , onClick: mkEffFn1 \_ -> unsafeCoerceEff $ siteLinks $ UserDetailsLink $ Just x
+            , style:
+                let borderRight = createStyles
+                      {borderRight: "3px solid " <> palette.secondary.light}
+                    none = createStyles {}
+                in  case state.page of
+                        UserDetailsLink mUserDetails -> case mUserDetails of
+                          Nothing
+                            | x == UserDetailsGeneralLink -> borderRight
+                            | otherwise -> none
+                          Just y
+                            | y == x -> borderRight
+                            | otherwise -> none
+                        _ -> none
             }
             [ listItemText
               { primary: case x of
@@ -99,11 +113,6 @@ spec {siteLinks} = T.simpleSpec performAction render
                   UserDetailsOrdersLink -> "Orders"
                   UserDetailsDietLink -> "Diet"
                   UserDetailsAllergiesLink -> "Allergies"
-              , inset: case state.page of
-                  UserDetailsLink mUserDetails -> case mUserDetails of
-                    Nothing -> x == UserDetailsGeneralLink
-                    Just y -> y == x
-                  _ -> true
               }
             ]
 
