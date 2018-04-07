@@ -1,10 +1,16 @@
 module Spec.Content.UserDetails.General where
 
+import Spec.Icons.NewPerson (newPerson)
+
 import Prelude
 
 import Thermite as T
 import React as R
 import React.DOM as R
+
+import MaterialUI.Typography (typography)
+import MaterialUI.Typography as Typography
+
 
 
 type State = Unit
@@ -22,7 +28,12 @@ spec = T.simpleSpec performAction render
 
     render :: T.Render State Unit Action
     render dispatch props state children =
-      [ R.text "General" ]
+      [ typography
+        { variant: Typography.display1
+        , align: Typography.center
+        } [R.text "General"]
+      , newPerson
+      ]
 
 
 general :: R.ReactElement

@@ -93,7 +93,8 @@ spec {siteLinks} = T.simpleSpec performAction render
             ]
           ]
       , R.div [RP.style {position: "absolute", left: "230px", top: "1em"}]
-        [ case state.page of
+        [ case state.page of -- TODO pack currentPageSignal listener to this level, so
+                             -- side buttons aren't redrawn
             UserDetailsLink mUserDetails -> case mUserDetails of
               Nothing -> general
               Just x -> case x of
