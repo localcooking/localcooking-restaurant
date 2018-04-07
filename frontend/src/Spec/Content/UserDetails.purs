@@ -1,7 +1,6 @@
 module Spec.Content.UserDetails where
 
 import Links (SiteLinks (UserDetailsLink), UserDetailsLinks (..))
-import Colors (palette)
 
 import Prelude
 
@@ -14,6 +13,7 @@ import React.Signal.WhileMounted as Signal
 import MaterialUI.Types (createStyles)
 import MaterialUI.Drawer (drawer)
 import MaterialUI.Drawer as Drawer
+import MaterialUI.Divider (divider)
 import MaterialUI.List (list)
 import MaterialUI.ListItem (listItem)
 import MaterialUI.ListItemText (listItemText)
@@ -69,10 +69,15 @@ spec {siteLinks} = T.simpleSpec performAction render
           }
           [ list {dense: true}
             [ sideButton UserDetailsGeneralLink
+            , divider {}
             , sideButton UserDetailsSecurityLink
+            , divider {}
             , sideButton UserDetailsOrdersLink
+            , divider {}
             , sideButton UserDetailsDietLink
+            , divider {}
             , sideButton UserDetailsAllergiesLink
+            , divider {}
             , listItem
               { button: true
               }
@@ -92,19 +97,6 @@ spec {siteLinks} = T.simpleSpec performAction render
           listItem
             { button: true
             , onClick: mkEffFn1 \_ -> unsafeCoerceEff $ siteLinks $ UserDetailsLink $ Just x
-            , style:
-                let borderRight = createStyles
-                      {borderRight: "3px solid " <> palette.secondary.light}
-                    none = createStyles {}
-                in  case state.page of
-                        UserDetailsLink mUserDetails -> case mUserDetails of
-                          Nothing
-                            | x == UserDetailsGeneralLink -> borderRight
-                            | otherwise -> none
-                          Just y
-                            | y == x -> borderRight
-                            | otherwise -> none
-                        _ -> none
             }
             [ listItemText
               { primary: case x of
