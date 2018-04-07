@@ -92,7 +92,13 @@ router
   matchHere handleAuthToken
   match (l_ "about" </> o_) handleAuthToken
   match (l_ "register" </> o_) handleAuthToken
-  match (l_ "userDetails" </> o_) handleAuthToken
+  matchGroup (l_ "userDetails" </> o_) $ do
+    matchHere handleAuthToken
+    match (l_ "general" </> o_) handleAuthToken
+    match (l_ "security" </> o_) handleAuthToken
+    match (l_ "orders" </> o_) handleAuthToken
+    match (l_ "diet" </> o_) handleAuthToken
+    match (l_ "allergies" </> o_) handleAuthToken
   matchGroup (l_ "meals" </> o_) $
     matchHere handleAuthToken
   matchGroup (l_ "chefs" </> o_) $
