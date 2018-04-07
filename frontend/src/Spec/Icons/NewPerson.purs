@@ -8,14 +8,14 @@ import React.DOM.Props as RP
 
 
 newPerson :: R.ReactElement
-newPerson = R.svg [RP.viewBox "0 0 200 200"]
+newPerson = R.svg [RP.viewBox "0 0 200 200", RP.width "200", RP.height "200"]
   [ R.defs []
     [ R.linearGradient
       [ RP._id "linearGradient4167"
-      , x1 "99.999985"
-      , y1 "51.517727"
-      , x2 "99.999985"
-      , y2 "199.37485"
+      , x1 "100"
+      , y1 "50"
+      , x2 "100"
+      , y2 "200"
       ]
       [ R.stop
          [ RP.style {stopColor: "#ff5f52", stopOpacity: 1}
@@ -35,10 +35,10 @@ newPerson = R.svg [RP.viewBox "0 0 200 200"]
       ]
     , R.linearGradient
       [ RP._id "linearGradient4157"
-      , x1 "99.999985"
-      , y1 "851.82648"
-      , x2 "99.999985"
-      , y2 "1053.255"
+      , x1 "100"
+      , y1 "0"
+      , x2 "100"
+      , y2 "200"
       ]
       [ R.stop
          [ RP.style {stopColor: "#ffe97d", stopOpacity: 1}
