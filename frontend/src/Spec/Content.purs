@@ -71,9 +71,16 @@ spec :: forall eff
         , windowSizeSignal  :: IxSignal (Effects eff) WindowSize
         , siteLinks         :: SiteLinks -> Eff (Effects eff) Unit
         , errorMessageQueue :: One.Queue (write :: WRITE) (Effects eff) SnackbarMessage
+        , currentPageSignal :: IxSignal (Effects eff) SiteLinks
         }
      -> T.Spec (Effects eff) State Unit Action
-spec {registerQueues,windowSizeSignal,siteLinks,errorMessageQueue} = T.simpleSpec performAction render
+spec
+  { registerQueues
+  , windowSizeSignal
+  , currentPageSignal
+  , siteLinks
+  , errorMessageQueue
+  } = T.simpleSpec performAction render
   where
     performAction action props state = case action of
       ChangedCurrentPage p ->
@@ -112,7 +119,11 @@ spec {registerQueues,windowSizeSignal,siteLinks,errorMessageQueue} = T.simpleSpe
                   , errorMessageQueue
                   , toRoot: siteLinks RootLink
                   }
-              UserDetailsLink -> userDetails
+              UserDetailsLink _ ->
+                userDetails
+                  { currentPageSignal
+                  , siteLinks
+                  }
           ]
         ]
       , typography
@@ -153,14 +164,27 @@ content :: forall eff
            , siteLinks         :: SiteLinks -> Eff (Effects eff) Unit
            , errorMessageQueue :: One.Queue (write :: WRITE) (Effects eff) SnackbarMessage
            } -> R.ReactElement
-content {currentPageSignal,registerQueues,windowSizeSignal,siteLinks,errorMessageQueue} =
+content
+  { currentPageSignal
+  , registerQueues
+  , windowSizeSignal
+  , siteLinks
+  , errorMessageQueue
+  } =
   let init =
         { initSiteLinks: unsafePerformEff $ IxSignal.get currentPageSignal
         , initWindowSize: unsafePerformEff $ IxSignal.get windowSizeSignal
         }
       {spec: reactSpec, dispatcher} =
         T.createReactSpec
-          (spec {registerQueues,windowSizeSignal,siteLinks,errorMessageQueue})
+          ( spec
+            { registerQueues
+            , windowSizeSignal
+            , currentPageSignal
+            , siteLinks
+            , errorMessageQueue
+            }
+          )
           (initialState init)
       reactSpec' = Signal.whileMountedIxUUID
                      currentPageSignal

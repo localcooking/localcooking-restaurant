@@ -1,7 +1,7 @@
 module Links where
 
 import Prelude
-import Data.Maybe (Maybe (..))
+import Data.Maybe (Maybe (..), maybe)
 import Data.Either (Either (..))
 import Data.URI (Query (..))
 import Data.URI.URI as URI
@@ -9,13 +9,14 @@ import Data.URI.Path as URIPath
 import Data.URI.Location (Location (..), fromURI, printLocation, parseLocation)
 import Data.URI.Location as Location
 import Data.StrMap as StrMap
-import Data.Path.Pathy ((</>), dir, file, rootDir)
-import Data.Generic (class Generic, gEq)
+import Data.Path.Pathy ((</>), dir, file, rootDir, Path, Rel, File, Sandboxed)
+import Data.Generic (class Generic, gEq, gShow)
 import Data.Argonaut (class EncodeJson, class DecodeJson, encodeJson, decodeJson, fail)
 import Data.NonEmpty ((:|))
 import Data.Foreign (toForeign, unsafeFromForeign)
 import Text.Parsing.StringParser (Parser, try, runParser)
 import Text.Parsing.StringParser.String (char, string, eof)
+import Text.Parsing.StringParser.Combinators (optionMaybe)
 import Control.Alternative ((<|>))
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Console (CONSOLE, warn)
@@ -28,7 +29,7 @@ import DOM.HTML.Window.Extra (onPopStateImpl)
 import DOM.HTML.Location (href)
 import DOM.HTML.History (DocumentTitle (..), pushState, replaceState, URL (..))
 import DOM.HTML.Types (History, HISTORY, Window)
-import Test.QuickCheck (class Arbitrary)
+import Test.QuickCheck (class Arbitrary, arbitrary)
 import Test.QuickCheck.Gen (oneOf)
 
 
@@ -56,12 +57,80 @@ instance toLocationImageLinks :: ToLocation ImageLinks where
 
 
 
+data UserDetailsLinks
+  = UserDetailsGeneralLink
+  | UserDetailsSecurityLink
+  | UserDetailsOrdersLink
+  | UserDetailsDietLink
+  | UserDetailsAllergiesLink
+
+derive instance genericUserDetailsLinks :: Generic UserDetailsLinks
+
+instance eqUserDetailsLinks :: Eq UserDetailsLinks where
+  eq = gEq
+
+instance showUserDetailsLinks :: Show UserDetailsLinks where
+  show = gShow
+
+instance arbitraryUserDetailsLinks :: Arbitrary UserDetailsLinks where
+  arbitrary = oneOf $
+    ( pure UserDetailsGeneralLink
+    ) :|
+    [ pure UserDetailsSecurityLink
+    , pure UserDetailsOrdersLink
+    , pure UserDetailsDietLink
+    , pure UserDetailsAllergiesLink
+    ]
+
+userDetailsLinksToDocumentTitle :: UserDetailsLinks -> String
+userDetailsLinksToDocumentTitle x = case x of
+  UserDetailsGeneralLink   -> " - General"
+  UserDetailsSecurityLink  -> " - Security"
+  UserDetailsOrdersLink    -> " - Orders"
+  UserDetailsDietLink      -> " - Diet"
+  UserDetailsAllergiesLink -> " - Allergies"
+
+userDetailsLinksToPath :: UserDetailsLinks -> Path Rel File Sandboxed
+userDetailsLinksToPath x = case x of
+  UserDetailsGeneralLink -> file "general"
+  UserDetailsSecurityLink -> file "security"
+  UserDetailsOrdersLink -> file "orders"
+  UserDetailsDietLink -> file "diet"
+  UserDetailsAllergiesLink -> file "allergies"
+
+userDetailsLinksParser :: Parser UserDetailsLinks
+userDetailsLinksParser = do
+  void divider
+  let general = do
+        void (string "general")
+        pure UserDetailsGeneralLink
+      security = do
+        void (string "security")
+        pure UserDetailsSecurityLink
+      orders = do
+        void (string "orders")
+        pure UserDetailsOrdersLink
+      diet = do
+        void (string "diet")
+        pure UserDetailsDietLink
+      allergies = do
+        void (string "allergies")
+        pure UserDetailsAllergiesLink
+  try general
+    <|> try security
+    <|> try orders
+    <|> try diet
+    <|> allergies
+  where
+    divider = char '/'
+
+
 data SiteLinks
   = RootLink
   | MealsLink -- FIXME search terms
   | ChefsLink -- FIXME search terms or hierarchy
   | RegisterLink -- FIXME authenticated vs unauthenticated?
-  | UserDetailsLink
+  | UserDetailsLink (Maybe UserDetailsLinks)
 
 instance arbitrarySiteLinks :: Arbitrary SiteLinks where
   arbitrary = oneOf $
@@ -69,7 +138,8 @@ instance arbitrarySiteLinks :: Arbitrary SiteLinks where
     :|  [ pure MealsLink
         , pure ChefsLink
         , pure RegisterLink
-        , pure UserDetailsLink
+        , do mUserDetails <- arbitrary
+             pure (UserDetailsLink mUserDetails)
         ]
 
 initSiteLinks :: forall eff
@@ -132,7 +202,12 @@ instance toLocationSiteLinks :: ToLocation SiteLinks where
     MealsLink -> Location (Right $ rootDir </> file "meals") Nothing Nothing
     ChefsLink -> Location (Right $ rootDir </> file "chefs") Nothing Nothing
     RegisterLink -> Location (Right $ rootDir </> file "register") Nothing Nothing
-    UserDetailsLink -> Location (Right $ rootDir </> file "userDetails") Nothing Nothing
+    UserDetailsLink mUserDetails ->
+      Location
+        ( Right $ case mUserDetails of
+             Nothing -> rootDir </> file "userDetails"
+             Just d -> rootDir </> dir "userDetails" </> userDetailsLinksToPath d
+        ) Nothing Nothing
 
 siteLinksToDocumentTitle :: SiteLinks -> DocumentTitle
 siteLinksToDocumentTitle x = DocumentTitle $ case x of
@@ -140,7 +215,10 @@ siteLinksToDocumentTitle x = DocumentTitle $ case x of
   MealsLink -> "Meals - Local Cooking"
   ChefsLink -> "Chefs - Local Cooking"
   RegisterLink -> "Register - Local Cooking"
-  UserDetailsLink -> "User Details - Local Cooking"
+  UserDetailsLink mUserDetails ->
+    "User Details -"
+    <> maybe "" userDetailsLinksToDocumentTitle mUserDetails
+    <> " Local Cooking"
 
 
 -- Policy: don't fail on bad query params / fragment unless you have to
@@ -152,23 +230,21 @@ siteLinksParser (Location path mQuery mFrag) = do
   where
     siteLinksPathParser :: Parser SiteLinks
     siteLinksPathParser = do
-      let root = RootLink <$ (divider *> eof)
+      void divider
+      let root = RootLink <$ eof
           meals = do
-            void divider
             void (string "meals")
             pure MealsLink
           chefs = do
-            void divider
             void (string "chefs")
             pure ChefsLink -- FIXME search parameters or hierarchy
           register = do
-            void divider
             void (string "register")
             pure RegisterLink
           userDetails = do
-            void divider
             void (string "userDetails")
-            pure UserDetailsLink
+            mUserDetails <- optionMaybe userDetailsLinksParser
+            pure (UserDetailsLink mUserDetails)
       try meals
         <|> try chefs
         <|> try register

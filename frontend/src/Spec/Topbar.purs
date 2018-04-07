@@ -141,7 +141,7 @@ spec
                Just {email} ->
                 [ button -- TODO cart iconButton
                   { color: Button.inherit
-                  , onTouchTap: mkEffFn1 \_ -> dispatch (Clicked UserDetailsLink)
+                  , onTouchTap: mkEffFn1 \_ -> dispatch $ Clicked $ UserDetailsLink Nothing
                   } [R.text $ Email.toString email]
                 ]
           ]

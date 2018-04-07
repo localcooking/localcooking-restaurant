@@ -3,7 +3,7 @@ module Main where
 import Spec (app)
 import Spec.Snackbar (SnackbarMessage (..), RedirectError (..))
 import Window (widthToWindowSize)
-import Links (SiteLinks (..), initSiteLinks, onPopState, pushState', replaceState')
+import Links (SiteLinks (..), initSiteLinks, onPopState, pushState', replaceState', siteLinksToDocumentTitle)
 import Types.Env (env)
 import Login.Error (PreliminaryAuthToken (..))
 import Login.Storage (getStoredAuthToken)
@@ -50,6 +50,7 @@ import DOM (DOM)
 import DOM.HTML (window)
 import DOM.HTML.Window (location, document, history)
 import DOM.HTML.Document (body)
+import DOM.HTML.Document.Extra (setDocumentTitle)
 import DOM.HTML.Location (hostname, protocol, port)
 import DOM.HTML.Types (HISTORY, htmlElementToElement)
 import WebSocket (WEBSOCKET)
@@ -88,6 +89,7 @@ main = do
   w <- window
   l <- location w
   h <- history w
+  d <- document w
   scheme <- Just <<< Scheme <<< String.takeWhile (\c -> c /= ':') <$> protocol l
   authority <- do
     host <- hostname l
@@ -121,20 +123,24 @@ main = do
             void $ setTimeout 1000 $
               One.putQueue errorMessageQueue (SnackbarMessageRedirect RedirectRegisterAuth)
             replaceState' RootLink h
+            setDocumentTitle d (siteLinksToDocumentTitle RootLink)
             pure RootLink
           _ -> pure x
         _ -> case x of
-          UserDetailsLink -> do
+          UserDetailsLink _ -> do
             log "didn't replace state?"
             void $ setTimeout 1000 $
               One.putQueue errorMessageQueue (SnackbarMessageRedirect RedirectUserDetailsNoAuth)
             replaceState' RootLink h
+            setDocumentTitle d (siteLinksToDocumentTitle RootLink)
             pure RootLink
           _ -> pure x
 
     sig <- IxSignal.make initSiteLink
     flip onPopState w \siteLink -> do
-      let continue x = IxSignal.set x sig
+      let continue x = do
+            setDocumentTitle d (siteLinksToDocumentTitle x)
+            IxSignal.set x sig
       -- Top level redirect for browser back-button - no history change:
       case siteLink of
         RegisterLink -> do
@@ -146,7 +152,7 @@ main = do
                 One.putQueue errorMessageQueue (SnackbarMessageRedirect RedirectRegisterAuth)
               replaceState' RootLink h
               continue RootLink
-        UserDetailsLink -> do
+        UserDetailsLink _ -> do
           mAuth <- IxSignal.get authTokenSignal
           case mAuth of
             Just _ -> continue siteLink
@@ -170,6 +176,7 @@ main = do
       when (y /= siteLink) $ do
         let continue x = do
               pushState' x h
+              setDocumentTitle d (siteLinksToDocumentTitle x)
               IxSignal.set x currentPageSignal
         -- redirect rules
         case siteLink of
@@ -181,7 +188,7 @@ main = do
                 void $ setTimeout 1000 $
                   One.putQueue errorMessageQueue (SnackbarMessageRedirect RedirectRegisterAuth)
                 continue RootLink
-          UserDetailsLink -> do
+          UserDetailsLink _ -> do
             mAuth <- IxSignal.get authTokenSignal
             case mAuth of
               Just _ -> continue siteLink
@@ -206,7 +213,7 @@ main = do
               writeRef onceRef true
               pure x
             when once $ case siteLink of
-              UserDetailsLink -> do
+              UserDetailsLink _ -> do
                 void $ setTimeout 1000 $
                   One.putQueue errorMessageQueue (SnackbarMessageRedirect RedirectUserDetailsNoAuth)
                 continue
@@ -270,4 +277,4 @@ main = do
             }
           }
       component = R.createClass reactSpec
-  traverse_ (render (R.createFactory component props) <<< htmlElementToElement) =<< body =<< document w
+  traverse_ (render (R.createFactory component props) <<< htmlElementToElement) =<< body d
