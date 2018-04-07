@@ -84,11 +84,11 @@ instance arbitraryUserDetailsLinks :: Arbitrary UserDetailsLinks where
 
 userDetailsLinksToDocumentTitle :: UserDetailsLinks -> String
 userDetailsLinksToDocumentTitle x = case x of
-  UserDetailsGeneralLink   -> " - General"
-  UserDetailsSecurityLink  -> " - Security"
-  UserDetailsOrdersLink    -> " - Orders"
-  UserDetailsDietLink      -> " - Diet"
-  UserDetailsAllergiesLink -> " - Allergies"
+  UserDetailsGeneralLink   -> "General - "
+  UserDetailsSecurityLink  -> "Security - "
+  UserDetailsOrdersLink    -> "Orders - "
+  UserDetailsDietLink      -> "Diet - "
+  UserDetailsAllergiesLink -> "Allergies - "
 
 userDetailsLinksToPath :: UserDetailsLinks -> Path Rel File Sandboxed
 userDetailsLinksToPath x = case x of
@@ -216,9 +216,8 @@ siteLinksToDocumentTitle x = DocumentTitle $ case x of
   ChefsLink -> "Chefs - Local Cooking"
   RegisterLink -> "Register - Local Cooking"
   UserDetailsLink mUserDetails ->
-    "User Details -"
-    <> maybe "" userDetailsLinksToDocumentTitle mUserDetails
-    <> " Local Cooking"
+       maybe "" userDetailsLinksToDocumentTitle mUserDetails
+    <> "User Details - Local Cooking"
 
 
 -- Policy: don't fail on bad query params / fragment unless you have to

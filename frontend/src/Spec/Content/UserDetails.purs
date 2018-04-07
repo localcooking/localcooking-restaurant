@@ -1,6 +1,11 @@
 module Spec.Content.UserDetails where
 
 import Links (SiteLinks (UserDetailsLink), UserDetailsLinks (..))
+import Spec.Content.UserDetails.General (general)
+import Spec.Content.UserDetails.Security (security)
+import Spec.Content.UserDetails.Orders (orders)
+import Spec.Content.UserDetails.Diet (diet)
+import Spec.Content.UserDetails.Allergies (allergies)
 
 import Prelude
 
@@ -88,7 +93,16 @@ spec {siteLinks} = T.simpleSpec performAction render
             ]
           ]
       , R.div [RP.style {position: "absolute", left: "230px", top: "1em"}]
-        [ R.text "UserDetails"
+        [ case state.page of
+            UserDetailsLink mUserDetails -> case mUserDetails of
+              Nothing -> general
+              Just x -> case x of
+                UserDetailsGeneralLink -> general
+                UserDetailsSecurityLink -> security
+                UserDetailsOrdersLink -> orders
+                UserDetailsDietLink -> diet
+                UserDetailsAllergiesLink -> allergies
+            _ -> general
         ]
       ]
       where
