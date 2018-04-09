@@ -178,6 +178,7 @@ spec
         , windowSizeSignal
         , siteLinks
         , errorMessageQueue: One.writeOnly errorMessageQueue
+        , toURI
         }
       , loginDialog
         { openLoginSignal: One.readOnly openLoginSignal

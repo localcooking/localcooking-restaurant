@@ -21,6 +21,8 @@ import React.DOM.SVG as RS
 import React.DOM.Props as RP
 import React.Signal.WhileMounted as Signal
 import Data.UUID (GENUUID)
+import Data.URI (URI)
+import Data.URI.Location (Location)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Console (CONSOLE)
 import Control.Monad.Eff.Unsafe (unsafeCoerceEff, unsafePerformEff)
@@ -72,6 +74,7 @@ spec :: forall eff
         , siteLinks         :: SiteLinks -> Eff (Effects eff) Unit
         , errorMessageQueue :: One.Queue (write :: WRITE) (Effects eff) SnackbarMessage
         , currentPageSignal :: IxSignal (Effects eff) SiteLinks
+        , toURI             :: Location -> URI
         }
      -> T.Spec (Effects eff) State Unit Action
 spec
@@ -80,6 +83,7 @@ spec
   , currentPageSignal
   , siteLinks
   , errorMessageQueue
+  , toURI
   } = T.simpleSpec performAction render
   where
     performAction action props state = case action of
@@ -110,7 +114,11 @@ spec
                               }
           }
           [ case state.page of
-              RootLink -> root {windowSizeSignal}
+              RootLink ->
+                root
+                  { windowSizeSignal
+                  , toURI
+                  }
               ChefsLink -> chefs
               MealsLink -> meals
               RegisterLink ->
@@ -163,6 +171,7 @@ content :: forall eff
            , registerQueues    :: RegisterSparrowClientQueues (Effects eff)
            , siteLinks         :: SiteLinks -> Eff (Effects eff) Unit
            , errorMessageQueue :: One.Queue (write :: WRITE) (Effects eff) SnackbarMessage
+           , toURI             :: Location -> URI
            } -> R.ReactElement
 content
   { currentPageSignal
@@ -170,6 +179,7 @@ content
   , windowSizeSignal
   , siteLinks
   , errorMessageQueue
+  , toURI
   } =
   let init =
         { initSiteLinks: unsafePerformEff $ IxSignal.get currentPageSignal
@@ -183,6 +193,7 @@ content
             , currentPageSignal
             , siteLinks
             , errorMessageQueue
+            , toURI
             }
           )
           (initialState init)

@@ -1,9 +1,13 @@
 module Spec.Content.Root where
 
 import Window (WindowSize (Laptop))
+import Links (AboutPageLinks (..), toLocation)
 
 import Prelude
 import Data.UUID (GENUUID)
+import Data.URI (URI)
+import Data.URI.URI as URI
+import Data.URI.Location (Location)
 import Control.Monad.Eff.Exception (EXCEPTION)
 import Control.Monad.Eff.Ref (REF)
 import Control.Monad.Eff.Unsafe (unsafeCoerceEff, unsafePerformEff)
@@ -55,8 +59,10 @@ type Effects eff =
 
 
 spec :: forall eff
-      . T.Spec eff State Unit Action
-spec = T.simpleSpec performAction render
+      . { toURI :: Location -> URI
+        }
+     -> T.Spec eff State Unit Action
+spec {toURI} = T.simpleSpec performAction render
   where
     performAction action props state = case action of
       ChangedWindowSize w -> void $ T.cotransform _ { windowSize = w }
@@ -77,12 +83,20 @@ spec = T.simpleSpec performAction render
                     , container: true
                     }
                     [ grid
-                      { xs: 9
+                      { xs: 8
                       , item: true
                       } $
                       [ R.div [RP.style {marginTop: "1em"}] []
                       ] <> paragraph1 <>
                       [ R.div [RP.style {marginBottom: "1em"}] []
+                      ]
+                    , grid
+                      { xs: 4
+                      , item: true
+                      }
+                      [ R.img
+                        [ RP.src $ URI.print $ toURI $ toLocation Paragraph1Png
+                        ] []
                       ]
                     ]
                   ]
@@ -140,13 +154,14 @@ spec = T.simpleSpec performAction render
 
 root :: forall eff
       . { windowSizeSignal :: IxSignal (Effects eff) WindowSize
+        , toURI :: Location -> URI
         }
      -> R.ReactElement
-root {windowSizeSignal} =
+root {windowSizeSignal,toURI} =
   let init =
         { initWindowSize: unsafePerformEff $ IxSignal.get windowSizeSignal
         }
-      {spec: reactSpec, dispatcher} = T.createReactSpec spec (initialState init)
+      {spec: reactSpec, dispatcher} = T.createReactSpec (spec {toURI}) (initialState init)
       reactSpec' =
           Signal.whileMountedIxUUID
             windowSizeSignal
