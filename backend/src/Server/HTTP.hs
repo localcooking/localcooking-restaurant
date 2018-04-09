@@ -5,6 +5,7 @@
   , ScopedTypeVariables
   , RecordWildCards
   , DataKinds
+  , QuasiQuotes
   #-}
 
 module Server.HTTP where
@@ -53,6 +54,7 @@ import Data.Monoid ((<>))
 import qualified Data.Strict.Maybe as Strict
 import Data.Strict.Tuple (Pair (..))
 import Path.Extended ((<&>), ToLocation (..))
+import Text.Heredoc (here)
 import Control.Applicative ((<|>))
 import Control.Monad (join, when, forM_)
 import Control.Monad.IO.Class (liftIO)
@@ -112,6 +114,12 @@ router
                           Strict.Nothing
     resp $ textOnly "" status302 [("Location", T.encodeUtf8 $ printURI redirectUri)]
 
+  match (l_ "robots" </> o_) $ action $ get $ text [here|
+User-agent: *
+Disallow: /facebookLoginReturn
+Disallow: /facebookLoginDeauthorize
+|]
+
   -- favicons
   forM_ favicons $ \(file, content) -> do
     let (file', ext) = T.breakOn "." (T.pack file)
@@ -126,7 +134,7 @@ router
         bytestring (Other (T.dropWhile (== '.') ext)) (LBS.fromStrict content)
 
   -- application
-  match (l_ "index.js" </> o_) $ \app req resp -> do
+  match (l_ "index" </> o_) $ \app req resp -> do
     Env{envDevelopment} <- ask
     let mid = case envDevelopment of
           Nothing -> action $ get $ bytestring JavaScript $ LBS.fromStrict frontendMin
@@ -192,6 +200,7 @@ router
                           )
     resp $ textOnly "" status302 [("Location", T.encodeUtf8 $ printURI redirectUri)]
 
+  -- TODO only allow facebook's ip as sockHost client?
   match (l_ "facebookLoginDeauthorize" </> o_) $ \app req resp -> do
     body <- liftIO $ strictRequestBody req
     log' $ "Got deauthorized: " <> T.pack (show body)
