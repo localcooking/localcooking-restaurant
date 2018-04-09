@@ -9,7 +9,6 @@ import Colors (palette)
 import Window (WindowSize)
 import Links (SiteLinks (RegisterLink))
 import Login.Error (AuthError (AuthExistsFailure), PreliminaryAuthToken (..))
-import Login.Storage (storeAuthToken, clearAuthToken)
 import LocalCooking.Common.AuthToken (AuthToken)
 import Client.Dependencies.AuthToken
   ( AuthTokenSparrowClientQueues, AuthTokenFailure
@@ -133,11 +132,9 @@ spec
           case mInitOut of
             Nothing -> do
               IxSignal.set Nothing authTokenSignal
-              clearAuthToken
               One.putQueue errorMessageQueue (SnackbarMessageAuthError AuthExistsFailure)
             Just {initOut,deltaIn: _,unsubscribe} -> case initOut of -- TODO logging out directly pushes a DeltaOut to the sparrowClientQueues, to automatically clean up dangling listeners
               AuthTokenInitOutSuccess authToken -> do
-                storeAuthToken authToken
                 IxSignal.set (Just authToken) authTokenSignal
                 -- fetch user details
                 case initIn of
@@ -158,7 +155,6 @@ spec
               AuthTokenInitOutFailure e -> do
                 unsubscribe
                 IxSignal.set Nothing authTokenSignal
-                clearAuthToken
                 One.putQueue errorMessageQueue (SnackbarMessageAuthFailure e)
           One.putQueue loginPendingSignal unit
 
@@ -281,9 +277,7 @@ app
                 unsafeCoerceEff $ dispatcher this $ CallAuthToken $
                   AuthTokenInitInExists {exists: prescribedAuthToken}
               Left e ->
-                unsafeCoerceEff $ do
-                  One.putQueue errorMessageQueue $ SnackbarMessageAuthError e
-                  clearAuthToken
+                unsafeCoerceEff $ One.putQueue errorMessageQueue $ SnackbarMessageAuthError e
           reactSpec.componentWillMount this
         }
 

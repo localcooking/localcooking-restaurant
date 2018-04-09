@@ -6,7 +6,7 @@ import Window (widthToWindowSize)
 import Links (SiteLinks (..), initSiteLinks, onPopState, pushState', replaceState', siteLinksToDocumentTitle)
 import Types.Env (env)
 import Login.Error (PreliminaryAuthToken (..))
-import Login.Storage (getStoredAuthToken)
+import Login.Storage (getStoredAuthToken, storeAuthToken, clearAuthToken)
 import Client.Dependencies.AuthToken (AuthTokenSparrowClientQueues)
 import Client.Dependencies.Register (RegisterSparrowClientQueues)
 import Client.Dependencies.UserDetails.Email (UserDetailsEmailSparrowClientQueues)
@@ -202,7 +202,7 @@ main = do
 
   onceRef <- newRef false
   -- rediect for async logouts
-  let gotAuth mAuth = do
+  let redirectOnAuth mAuth = do
         siteLink <- IxSignal.get currentPageSignal
         let continue = One.putQueue siteLinksSignal RootLink
         case mAuth of
@@ -224,7 +224,13 @@ main = do
                 One.putQueue errorMessageQueue (SnackbarMessageRedirect RedirectRegisterAuth)
               continue
             _ -> pure unit
-  IxSignal.subscribe gotAuth authTokenSignal
+  IxSignal.subscribe redirectOnAuth authTokenSignal
+
+  -- auth token storage and clearing on site-wide driven changes
+  let localstorageOnAuth mAuth = case mAuth of
+        Nothing -> clearAuthToken
+        Just authToken -> storeAuthToken authToken
+  IxSignal.subscribe localstorageOnAuth authTokenSignal
 
 
   windowSizeSignal <- do
