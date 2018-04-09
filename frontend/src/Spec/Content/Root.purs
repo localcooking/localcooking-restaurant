@@ -33,6 +33,7 @@ import MaterialUI.Icons.PictureInPicture (pictureInPictureIcon)
 import MaterialUI.Icons.ShoppingCart (shoppingCartIcon)
 import MaterialUI.Icons.Timelapse (timelapseIcon)
 import MaterialUI.Icons.LocalShipping (localShippingIcon)
+import MaterialUI.Icons.RestaurantMenu (restaurantMenuIcon)
 
 import IxSignal.Internal (IxSignal)
 import IxSignal.Internal as IxSignal
@@ -74,7 +75,7 @@ spec {toURI} = T.simpleSpec performAction render
         , align: Typography.right
         , color: Typography.primary
         , style: createStyles {marginBottom: "1em"}
-        } [R.text "Locally Sourced, Affordable Cuisine for the Average Family"]
+        } [R.text "Locally Sourced Cuisine for the Average Family"]
       ] <> ( if state.windowSize < Laptop
                 then paragraph1
                 else
@@ -90,7 +91,7 @@ spec {toURI} = T.simpleSpec performAction render
                     , grid {xs: 4, item: true}
                       [ R.img
                         [ RP.src $ URI.print $ toURI $ toLocation Paragraph1Png
-                        , RP.style {width: "100%"}
+                        , RP.style {width: "100%", marginBottom: "1em", borderRadius: "0 1em 1em 0"}
                         ] []
                       ]
                     ]
@@ -102,7 +103,7 @@ spec {toURI} = T.simpleSpec performAction render
         , align: Typography.left
         , color: Typography.primary
         , style: createStyles {marginBottom: "1em", marginTop: "1em"}
-        } [R.text "Simplified Ordering"]
+        } [R.text "Simple Personalized Ordering"]
       , if state.windowSize < Laptop
           then paragraph2
           else
@@ -113,7 +114,7 @@ spec {toURI} = T.simpleSpec performAction render
               [ grid {xs: 4, item: true}
                 [ R.img
                   [ RP.src $ URI.print $ toURI $ toLocation Paragraph2Png
-                  , RP.style {width: "100%"}
+                  , RP.style {width: "100%", marginBottom: "1em", borderRadius: "1em 0 0 1em"}
                   ] []
                 ]
               , grid {xs: 8, item: true}
@@ -147,7 +148,7 @@ spec {toURI} = T.simpleSpec performAction render
                     , grid {xs: 4, item: true}
                       [ R.img
                         [ RP.src $ URI.print $ toURI $ toLocation Paragraph3Png
-                        , RP.style {width: "100%"}
+                        , RP.style {width: "100%", marginBottom: "1em", borderRadius: "0 1em 1em 0"}
                         ] []
                       ]
                     ]
@@ -178,18 +179,21 @@ paragraph1 =
   [ typography
     { variant: Typography.body1
     , align: Typography.left
+    , paragraph: true
+    , style: createStyles {textIndent: "3em"}
     }
     [ R.text "We are a team of chefs dedicated to providing hand-made, healthy, creative meals to the public at competitive prices. Our platform allows chefs to debut "
-    , R.em [] [R.text "their own"]
+    , R.strong [] [R.text "their own"]
     , R.text " menus and feature "
-    , R.em [] [R.text "their own"]
-    , R.text " culinary artistry - search for a specific dish, or for a style of talent."
+    , R.strong [] [R.text "their own"]
+    , R.text " culinary artistry — search for a specific dish, or for a style of talent."
     ]
   , typography
     { variant: Typography.body1
     , align: Typography.left
+    , style: createStyles {textIndent: "3em"}
     }
-    [ R.text "Our chefs are paid by commission; they receive the majority of profit on every order, while our app gives them an opportunity to reach more customers, looking for their type of cuisine. We want to make the experience of ordering a hand-cooked meal"
+    [ R.text "Our chefs are paid by commission; they receive the majority of profit on every order, while our app gives them an opportunity to reach more customers, looking for their type of cuisine. We want to make the experience of ordering a hand-cooked meal "
     , R.em [] [R.text "personal"]
     , R.text ", yet "
     , R.em [] [R.text "streamlined"]
@@ -209,7 +213,7 @@ paragraph2 = list {dense: true}
   , listItem {}
     [ listItemIcon {} pictureInPictureIcon
     , listItemText
-      {primary: "View the details on specific meals - the ingredients, the culture and history, and how to prepare it"}
+      {primary: "View the details on specific meals — the ingredients, the culture and history, and how to prepare it"}
     ]
   , listItem {}
     [ listItemIcon {} shoppingCartIcon
@@ -234,11 +238,30 @@ paragraph3 =
   [ typography
     { variant: Typography.body1
     , align: Typography.left
+    , style: createStyles {textIndent: "3em"}
+    , paragraph: true
     }
     [ R.text "Every chef has a "
     , R.em [] [R.text "bi-weekly"]
-    , R.text " schedule, and every order must be filed at least two weeks in advance - each menu has its own shipping date, and each chef has their own planned schedule to fill their orders. This allows chefs to "
+    , R.text " schedule, and every order must be filed at least two weeks in advance — each menu has its own shipping date, and each chef has their own planned schedule to fill their orders. This allows chefs to "
     , R.em [] [R.text "care"]
-    , R.text " about each meal and give their full attention to their craft, without having to worry about wasteful time constraints."
+    , R.text " about each meal and give their full attention to their craft, without having to worry about wasteful time constraints. Each chef:"
+    ]
+  , list {dense: true}
+    [ listItem {}
+      [ listItemIcon {} restaurantMenuIcon
+      , listItemText
+        {primary: "Manages their own work schedule"}
+      ]
+    , listItem {}
+      [ listItemIcon {} restaurantMenuIcon
+      , listItemText
+        {primary: "Creates their own menus and portfolio"}
+      ]
+    , listItem {}
+      [ listItemIcon {} restaurantMenuIcon
+      , listItemText
+        {primary: "Builds their own consumer base and market"}
+      ]
     ]
   ]
