@@ -116,6 +116,7 @@ router
 
   match (l_ "robots" </> o_) $ action $ get $ text [here|
 User-agent: *
+Disallow: /dependencies
 Disallow: /facebookLoginReturn
 Disallow: /facebookLoginDeauthorize
 |]
@@ -209,7 +210,7 @@ Disallow: /facebookLoginDeauthorize
 
 
 
-httpServer :: RouterT (MiddlewareT AppM) sec AppM ()
+httpServer :: RouterT (MiddlewareT AppM) sec AppM () -- ^ Dependencies
            -> MiddlewareT AppM
 httpServer dependencies = \app req resp -> do
   route ( do dependencies
