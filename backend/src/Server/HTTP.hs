@@ -11,7 +11,7 @@ module Server.HTTP where
 
 import LocalCooking.Common.AuthToken (AuthToken)
 import Server.Dependencies.AuthToken (authTokenServer, AuthTokenInitIn (AuthTokenInitInFacebookCode), AuthTokenInitOut (AuthTokenInitOutSuccess))
-import Server.Assets (favicons, frontend, frontendMin)
+import Server.Assets (favicons, frontend, frontendMin, images)
 import Types (AppM, runAppM, HTTPException (..))
 import Types.Env (Env (..), Managers (..), isDevelopment, Development (..))
 import Types.FrontendEnv (FrontendEnv (..))
@@ -117,6 +117,13 @@ router
     let (file', ext) = T.breakOn "." (T.pack file)
     match (l_ file' </> o_) $ action $ get $
       bytestring (Other (T.dropWhile (== '.') ext)) (LBS.fromStrict content)
+
+  -- images
+  matchGroup (l_ "images" </> o_) $ do
+    forM_ images $ \(file, content) -> do
+      let (file', ext) = T.breakOn "." (T.pack file)
+      match (l_ file' </> o_) $ action $ get $
+        bytestring (Other (T.dropWhile (== '.') ext)) (LBS.fromStrict content)
 
   -- application
   match (l_ "index.js" </> o_) $ \app req resp -> do
