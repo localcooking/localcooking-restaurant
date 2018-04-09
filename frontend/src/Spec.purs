@@ -133,6 +133,7 @@ spec
           case mInitOut of
             Nothing -> do
               IxSignal.set Nothing authTokenSignal
+              clearAuthToken
               One.putQueue errorMessageQueue (SnackbarMessageAuthError AuthExistsFailure)
             Just {initOut,deltaIn: _,unsubscribe} -> case initOut of -- TODO logging out directly pushes a DeltaOut to the sparrowClientQueues, to automatically clean up dangling listeners
               AuthTokenInitOutSuccess authToken -> do
@@ -157,6 +158,7 @@ spec
               AuthTokenInitOutFailure e -> do
                 unsubscribe
                 IxSignal.set Nothing authTokenSignal
+                clearAuthToken
                 One.putQueue errorMessageQueue (SnackbarMessageAuthFailure e)
           One.putQueue loginPendingSignal unit
 
@@ -279,7 +281,9 @@ app
                 unsafeCoerceEff $ dispatcher this $ CallAuthToken $
                   AuthTokenInitInExists {exists: prescribedAuthToken}
               Left e ->
-                unsafeCoerceEff $ One.putQueue errorMessageQueue $ SnackbarMessageAuthError e
+                unsafeCoerceEff $ do
+                  One.putQueue errorMessageQueue $ SnackbarMessageAuthError e
+                  clearAuthToken
           reactSpec.componentWillMount this
         }
 

@@ -17,13 +17,15 @@ import Data.Array as Array
 import Data.Generic (class Generic, gShow)
 import Control.Monad.Base (liftBase)
 import Control.Monad.Aff (delay)
-import Control.Monad.Eff.Uncurried (mkEffFn2)
+import Control.Monad.Eff.Uncurried (mkEffFn2, mkEffFn1)
 import Control.Monad.Eff.Unsafe (unsafeCoerceEff)
 import Control.Monad.Eff.Ref (REF)
 import Control.Monad.Eff.Console (log)
 import Control.Monad.Eff.Class (liftEff)
 
 import MaterialUI.Snackbar (snackbar)
+import MaterialUI.IconButton (iconButton)
+import MaterialUI.Icons.Close (closeIcon)
 
 import Queue (READ)
 import Queue.One as One
@@ -143,6 +145,11 @@ spec = T.simpleSpec performAction render
                 SnackbarMessageRedirect redirect -> case redirect of
                   RedirectRegisterAuth -> R.text "Redirected - can't register while logged in."
                   RedirectUserDetailsNoAuth -> R.text "Redirected - can't view user details while logged out."
+          ]
+        , action:
+          [ iconButton
+            { onTouchTap: mkEffFn1 \_ -> dispatch PopMessage
+            } closeIcon
           ]
         }
       ]
