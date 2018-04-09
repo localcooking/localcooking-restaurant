@@ -65,10 +65,10 @@ data AboutPageLinks
 
 instance toLocationAboutPageLinks :: ToLocation AboutPageLinks where
   toLocation x = case x of
-    Paragraph1Png -> Location (Right $ rootDir </> dir "images" </> file "paragraph1-image.png") Nothing Nothing
-    Paragraph2Png -> Location (Right $ rootDir </> dir "images" </> file "paragraph2-image.png") Nothing Nothing
-    Paragraph3Png -> Location (Right $ rootDir </> dir "images" </> file "paragraph3-image.png") Nothing Nothing
-    Paragraph4Png -> Location (Right $ rootDir </> dir "images" </> file "paragraph4-image.png") Nothing Nothing
+    Paragraph1Png -> Location (Right $ rootDir </> dir "static" </> dir "images" </> file "paragraph1-image.png") Nothing Nothing
+    Paragraph2Png -> Location (Right $ rootDir </> dir "static" </> dir "images" </> file "paragraph2-image.png") Nothing Nothing
+    Paragraph3Png -> Location (Right $ rootDir </> dir "static" </> dir "images" </> file "paragraph3-image.png") Nothing Nothing
+    Paragraph4Png -> Location (Right $ rootDir </> dir "static" </> dir "images" </> file "paragraph4-image.png") Nothing Nothing
 
 
 data UserDetailsLinks
