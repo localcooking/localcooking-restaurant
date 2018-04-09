@@ -82,20 +82,15 @@ spec {toURI} = T.simpleSpec performAction render
                     { spacing: Grid.spacing8
                     , container: true
                     }
-                    [ grid
-                      { xs: 8
-                      , item: true
-                      } $
+                    [ grid {xs: 8, item: true} $
                       [ R.div [RP.style {marginTop: "1em"}] []
                       ] <> paragraph1 <>
                       [ R.div [RP.style {marginBottom: "1em"}] []
                       ]
-                    , grid
-                      { xs: 4
-                      , item: true
-                      }
+                    , grid {xs: 4, item: true}
                       [ R.img
                         [ RP.src $ URI.print $ toURI $ toLocation Paragraph1Png
+                        , RP.style {width: "100%"}
                         ] []
                       ]
                     ]
@@ -115,11 +110,13 @@ spec {toURI} = T.simpleSpec performAction render
               { spacing: Grid.spacing8
               , container: true
               }
-              [ grid {xs: 3, item: true} []
-              , grid
-                { xs: 9
-                , item: true
-                }
+              [ grid {xs: 4, item: true}
+                [ R.img
+                  [ RP.src $ URI.print $ toURI $ toLocation Paragraph2Png
+                  , RP.style {width: "100%"}
+                  ] []
+                ]
+              , grid {xs: 8, item: true}
                 [ R.div [RP.style {marginTop: "1em"}] []
                 , paragraph2
                 , R.div [RP.style {marginBottom: "1em"}] []
@@ -140,12 +137,18 @@ spec {toURI} = T.simpleSpec performAction render
                     , container: true
                     }
                     [ grid
-                      { xs: 9
+                      { xs: 8
                       , item: true
                       } $
                       [ R.div [RP.style {marginTop: "1em"}] []
                       ] <> paragraph3 <>
                       [ R.div [RP.style {marginBottom: "1em"}] []
+                      ]
+                    , grid {xs: 4, item: true}
+                      [ R.img
+                        [ RP.src $ URI.print $ toURI $ toLocation Paragraph3Png
+                        , RP.style {width: "100%"}
+                        ] []
                       ]
                     ]
                   ]
