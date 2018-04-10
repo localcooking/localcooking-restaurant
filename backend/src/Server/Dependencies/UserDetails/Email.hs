@@ -11,7 +11,7 @@ import LocalCooking.Auth (usersAuthToken)
 import LocalCooking.Common.AuthToken (AuthToken)
 import LocalCooking.Database.Query.User (getEmail)
 
-import Web.Dependencies.Sparrow (Server, ServerReturn (..), ServerContinue (..), ServerArgs (..))
+import Web.Dependencies.Sparrow.Types (Server, ServerReturn (..), ServerContinue (..), ServerArgs (..), JSONVoid, staticServer)
 
 import Text.EmailAddress (EmailAddress)
 import Data.Aeson (FromJSON (..), ToJSON (..), (.:), object, (.=), Value (Object, String))
@@ -42,24 +42,13 @@ instance ToJSON UserDetailsEmailInitOut where
     UserDetailsEmailInitOutSuccess x -> object ["email" .= x]
 
 
-data UserDetailsEmailDeltaIn
-
-instance FromJSON UserDetailsEmailDeltaIn where
-  parseJSON = typeMismatch "UserDetailsEmailDeltaIn"
-
-
-data UserDetailsEmailDeltaOut
-
-instance ToJSON UserDetailsEmailDeltaOut where
-  toJSON _ = String ""
-
 
 
 userDetailsEmailServer :: Server AppM UserDetailsEmailInitIn
                                       UserDetailsEmailInitOut
-                                      UserDetailsEmailDeltaIn
-                                      UserDetailsEmailDeltaOut
-userDetailsEmailServer (UserDetailsEmailInitIn authToken) = do
+                                      JSONVoid
+                                      JSONVoid
+userDetailsEmailServer = staticServer $ \(UserDetailsEmailInitIn authToken) -> do
   Env{envDatabase} <- ask
 
   mEmail <- do
@@ -69,23 +58,5 @@ userDetailsEmailServer (UserDetailsEmailInitIn authToken) = do
       Just userId -> liftIO $ getEmail envDatabase userId
 
   case mEmail of
-    Nothing -> pure $ Just ServerContinue
-      { serverOnUnsubscribe = pure ()
-      , serverContinue = \_ -> pure ServerReturn
-        { serverInitOut = UserDetailsEmailInitOutNoAuth
-        , serverOnOpen = \ServerArgs{serverDeltaReject} -> do
-            serverDeltaReject
-            pure Nothing
-        , serverOnReceive = \_ _ -> pure ()
-        }
-      }
-    Just email -> pure $ Just ServerContinue
-      { serverOnUnsubscribe = pure ()
-      , serverContinue = \_ -> pure ServerReturn
-        { serverInitOut = UserDetailsEmailInitOutSuccess email
-        , serverOnOpen = \ServerArgs{serverDeltaReject} -> do
-            serverDeltaReject
-            pure Nothing
-        , serverOnReceive = \_ _ -> pure ()
-        }
-      }
+    Nothing -> pure $ Just  UserDetailsEmailInitOutNoAuth
+    Just email -> pure $ Just $ UserDetailsEmailInitOutSuccess email
