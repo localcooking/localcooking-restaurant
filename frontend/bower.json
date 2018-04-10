@@ -1,5 +1,5 @@
 {
-  "name": "landing",
+  "name": "localcooking-mitch",
   "ignore": [
     "**/.*",
     "node_modules",
@@ -7,8 +7,8 @@
     "output"
   ],
   "dependencies": {
-    "purescript-sparrow": "git@git.localcooking.com:tooling/purescript-sparrow.git",
-    "purescript-sparrow-queue": "git@git.localcooking.com:tooling/purescript-sparrow-queue.git#10fb93b9d754e3b2e7ab4e9a91c52bfa336b5c72",
+    "purescript-sparrow": "git@git.localcooking.com:tooling/purescript-sparrow.git#c90698b4a1e204846e6f660d839bd25a6dd2e8ce",
+    "purescript-sparrow-queue": "git@git.localcooking.com:tooling/purescript-sparrow-queue.git#63bac9b4da93a1ec7742aea5036a0cf876c63f1e",
     "purescript-localcooking-shared": "git@git.localcooking.com:localcooking/purescript-localcooking-shared.git",
     "purescript-prelude": "^3.1.1",
     "purescript-console": "^3.0.0",
@@ -36,6 +36,7 @@
   },
   "resolutions": {
     "purescript-arraybuffer-types": "^2.0.0",
-    "purescript-uuid": "2e563284ee5c41d75bf9010de3c4cded9f0223db"
+    "purescript-uuid": "2e563284ee5c41d75bf9010de3c4cded9f0223db",
+    "purescript-sparrow": "c90698b4a1e204846e6f660d839bd25a6dd2e8ce"
   }
 }

@@ -101,7 +101,7 @@ spec :: forall eff
         , toRoot :: Eff (Effects eff) Unit
         } -> T.Spec (Effects eff) State Unit Action
 spec
-  { registerQueues: {init: registerQueuesInit}
+  { registerQueues
   , errorMessageQueue
   , toRoot
   } = T.simpleSpec performAction render
@@ -125,7 +125,7 @@ spec
             Just reCaptcha -> do
               mErr <- liftBase $ do
                 password <- hashPassword {password: state.password, salt: env.salt}
-                OneIO.callAsync registerQueuesInit $ RegisterInitIn {email,password,reCaptcha}
+                OneIO.callAsync registerQueues $ RegisterInitIn {email,password,reCaptcha}
               void $ T.cotransform _ { pending = false }
               case mErr of
                 Nothing -> pure unit

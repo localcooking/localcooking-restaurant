@@ -5,7 +5,7 @@ import Google.ReCaptcha (ReCaptchaResponse)
 
 import Prelude (bind, (<$>), unit, (==), pure, otherwise, class Eq, class Show)
 
-import Sparrow.Client.Queue (SparrowClientQueues)
+import Sparrow.Client.Queue (SparrowStaticClientQueues)
 import Text.Email.Validate (EmailAddress)
 import Data.Generic (class Generic, gEq, gShow)
 import Data.Argonaut (class EncodeJson, class DecodeJson, encodeJson, decodeJson, fail, (:=), (~>), jsonEmptyObject, (.?))
@@ -65,16 +65,6 @@ instance decodeJsonRegisterInitOut :: DecodeJson RegisterInitOut where
           RegisterInitOutDBError <$> o .? "db"
     str <|> obj
 
-data RegisterDeltaIn
-
-instance encodeJsonRegisterDeltaIn :: EncodeJson RegisterDeltaIn where
-  encodeJson _ = encodeJson ""
-
-data RegisterDeltaOut
-
-instance decodeJsonRegisterDeltaOut :: DecodeJson RegisterDeltaOut where
-  decodeJson json = fail "Not a RegisterDeltaOut"
-
 
 type RegisterSparrowClientQueues eff =
-  SparrowClientQueues eff RegisterInitIn RegisterInitOut RegisterDeltaIn RegisterDeltaOut
+  SparrowStaticClientQueues eff RegisterInitIn RegisterInitOut

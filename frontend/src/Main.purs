@@ -12,7 +12,7 @@ import Client.Dependencies.Register (RegisterSparrowClientQueues)
 import Client.Dependencies.UserDetails.Email (UserDetailsEmailSparrowClientQueues)
 import LocalCooking.Common.AuthToken (AuthToken)
 
-import Sparrow.Client.Queue (newSparrowClientQueues, sparrowClientQueues)
+import Sparrow.Client.Queue (newSparrowClientQueues, newSparrowStaticClientQueues, sparrowClientQueues, sparrowStaticClientQueues)
 import Sparrow.Client (unpackClient, allocateDependencies)
 import Sparrow.Types (Topic (..))
 
@@ -254,12 +254,12 @@ main = do
   ( authTokenQueues :: AuthTokenSparrowClientQueues Effects
     ) <- newSparrowClientQueues
   ( registerQueues :: RegisterSparrowClientQueues Effects
-    ) <- newSparrowClientQueues
+    ) <- newSparrowStaticClientQueues
   ( userDetailsEmailQueues :: UserDetailsEmailSparrowClientQueues Effects
     ) <- newSparrowClientQueues
   allocateDependencies (scheme == Just (Scheme "https")) authority $ do
     unpackClient (Topic ["authToken"]) (sparrowClientQueues authTokenQueues)
-    unpackClient (Topic ["register"]) (sparrowClientQueues registerQueues)
+    unpackClient (Topic ["register"]) (sparrowStaticClientQueues registerQueues)
     unpackClient (Topic ["userDetails","email"]) (sparrowClientQueues userDetailsEmailQueues)
 
 
