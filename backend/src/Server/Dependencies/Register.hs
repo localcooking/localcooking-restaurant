@@ -30,7 +30,7 @@ import Control.Logging (log')
 import Network.HTTP.Client (httpLbs, responseBody, parseRequest, method, urlEncodedBody, RequestBody (RequestBodyLBS))
 import Network.Mail.SMTP (sendMail, simpleMail, htmlPart, Address (..))
 
-import Web.Dependencies.Sparrow (Server, ServerContinue (..), ServerReturn (..))
+import Web.Dependencies.Sparrow.Types (Server, ServerContinue (..), ServerReturn (..), staticServer, JSONVoid)
 import Lucid (renderTextT)
 import qualified Lucid.Html5 as L
 
@@ -66,26 +66,11 @@ instance ToJSON RegisterInitOut where
 
 
 
-data RegisterDeltaIn
-
-
-instance FromJSON RegisterDeltaIn where
-  parseJSON = typeMismatch "RegisterDeltaIn"
-
-
-data RegisterDeltaOut
-
-
-instance ToJSON RegisterDeltaOut where
-  toJSON _ = String ""
-
-
-
 registerServer :: Server AppM RegisterInitIn
                               RegisterInitOut
-                              RegisterDeltaIn
-                              RegisterDeltaOut
-registerServer RegisterInitIn{..} = do
+                              JSONVoid
+                              JSONVoid
+registerServer = staticServer $ \RegisterInitIn{..} -> do
   liftIO $ log' "running..."
 
   Env
@@ -118,27 +103,13 @@ registerServer RegisterInitIn{..} = do
       Just (ReCaptchaVerifyResponse success)
         | not success -> do
           liftIO $ log' $ "recaptcha failure: " <> T.pack (show $ responseBody resp)
-          pure $ Just ServerContinue
-            { serverOnUnsubscribe = pure ()
-            , serverContinue = \_ -> pure ServerReturn
-              { serverInitOut = RegisterInitOutBadCaptcha
-              , serverOnOpen = \_ -> pure Nothing
-              , serverOnReceive = \_ _ -> pure ()
-              }
-            }
+          pure $ Just RegisterInitOutBadCaptcha
         | otherwise -> do
             eUid <- liftIO $ registerUser envDatabase registerInitInEmail registerInitInPassword
             case eUid of
               Left e -> do
                 liftIO $ log' "db error"
-                pure $ Just ServerContinue
-                  { serverOnUnsubscribe = pure ()
-                  , serverContinue = \_ -> pure ServerReturn
-                    { serverInitOut = RegisterInitOutDBError e
-                    , serverOnOpen = \_ -> pure Nothing
-                    , serverOnReceive = \_ _ -> pure ()
-                    }
-                  }
+                pure $ Just $ RegisterInitOutDBError e
               Right uid -> do
                 liftIO $ log' "sending email..."
                 -- Send registration email
@@ -156,11 +127,4 @@ registerServer RegisterInitIn{..} = do
                         [htmlPart emailContent]
                   sendMail (T.unpack (printURIAuthHost envSMTPHost)) message
                 liftIO $ log' "email sent."
-                pure $ Just ServerContinue
-                  { serverOnUnsubscribe = pure ()
-                  , serverContinue = \_ -> pure ServerReturn
-                    { serverInitOut = RegisterInitOutEmailSent
-                    , serverOnOpen = \_ -> pure Nothing
-                    , serverOnReceive = \_ _ -> pure ()
-                    }
-                  }
+                pure $ Just RegisterInitOutEmailSent

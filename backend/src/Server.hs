@@ -20,10 +20,13 @@ import Network.HTTP.Types (status404)
 import Data.Singleton.Class (runSingleton)
 import Data.Time.Clock (secondsToDiffTime)
 import qualified Data.TimeMap as TimeMap
-import Control.Monad (void, forM_)
+import qualified Data.Text as T
+import Data.Monoid ((<>))
+import Control.Monad (void, forM_, forever)
 import Control.Monad.Reader (ask)
 import Control.Monad.IO.Class (MonadIO (liftIO))
 import Control.Monad.Trans.Control.Aligned (liftBaseWith)
+import Control.Logging (log')
 import Control.Concurrent (threadDelay)
 import Control.Concurrent.Async (async)
 import Control.Concurrent.STM (atomically)
@@ -35,14 +38,15 @@ server :: Int -> AppM ()
 server port = do
   -- auth token expiring checker - FIXME use a cassandra database instead probably
   env@Env{envAuthTokens,envAuthTokenExpire} <- ask
-  liftIO $ void $ async $ do
+  liftIO $ void $ async $ forever $ do
     xs <- flip TimeMap.takeFromNow envAuthTokens $ fromRational $ toRational $ secondsToDiffTime $
       let minute = 60
           hour = 60 * minute
           day = 24 * hour
       in  2 * minute -- FIXME expire after a day?
-    atomically $ forM_ xs $ \(authToken,userId) ->
-      TMapMVar.insert envAuthTokenExpire authToken ()
+    forM_ xs $ \(authToken,userId) -> do
+      log' $ "Auth token revoked: " <> T.pack (show authToken) <> ", for " <> T.pack (show userId)
+      atomically (TMapMVar.insert envAuthTokenExpire authToken ())
     threadDelay $
       let second = 10 ^ 6
           minute = second * 60

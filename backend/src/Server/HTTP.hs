@@ -114,9 +114,8 @@ router
                           Strict.Nothing
     resp $ textOnly "" status302 [("Location", T.encodeUtf8 $ printURI redirectUri)]
 
-  match (l_ "robots" </> o_) $ action $ get $ text [here|
-User-agent: *
-Disallow: /dependencies
+  match (l_ "robots" </> o_) $ action $ get $ text [here|User-agent: *
+Disallow: /dependencies/
 Disallow: /facebookLoginReturn
 Disallow: /facebookLoginDeauthorize
 |]
