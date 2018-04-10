@@ -256,11 +256,11 @@ main = do
   ( registerQueues :: RegisterSparrowClientQueues Effects
     ) <- newSparrowStaticClientQueues
   ( userDetailsEmailQueues :: UserDetailsEmailSparrowClientQueues Effects
-    ) <- newSparrowClientQueues
+    ) <- newSparrowStaticClientQueues
   allocateDependencies (scheme == Just (Scheme "https")) authority $ do
     unpackClient (Topic ["authToken"]) (sparrowClientQueues authTokenQueues)
     unpackClient (Topic ["register"]) (sparrowStaticClientQueues registerQueues)
-    unpackClient (Topic ["userDetails","email"]) (sparrowClientQueues userDetailsEmailQueues)
+    unpackClient (Topic ["userDetails","email"]) (sparrowStaticClientQueues userDetailsEmailQueues)
 
 
 

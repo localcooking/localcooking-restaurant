@@ -141,7 +141,7 @@ spec
                   AuthTokenInitInLogin {email} ->
                     IxSignal.set (Just {email}) userDetailsSignal
                   AuthTokenInitInExists _ ->
-                    OneIO.callAsyncEff userDetailsQueues.emailQueues.init
+                    OneIO.callAsyncEff userDetailsQueues.emailQueues
                       (\mInitOut -> case mInitOut of
                           Nothing ->
                             One.putQueue errorMessageQueue (SnackbarMessageUserDetails UserDetailsEmailNoInitOut)

@@ -7,7 +7,7 @@ import Data.Maybe (Maybe (..))
 import Data.Argonaut (class EncodeJson, class DecodeJson, encodeJson, decodeJson, fail, (:=), (~>), jsonEmptyObject, (.?))
 import Text.Email.Validate (EmailAddress, emailAddress)
 import Control.Alternative ((<|>))
-import Sparrow.Client.Queue (SparrowClientQueues)
+import Sparrow.Client.Queue (SparrowStaticClientQueues)
 
 
 
@@ -35,16 +35,6 @@ instance decodeJsonUserDetailsEmailInitOut :: DecodeJson UserDetailsEmailInitOut
             Just email -> pure (UserDetailsEmailInitOutSuccess email)
     str <|> obj
 
-data UserDetailsEmailDeltaIn
-
-instance encodeJsonUserDetailsEmailDeltaIn :: EncodeJson UserDetailsEmailDeltaIn where
-  encodeJson _ = encodeJson ""
-
-data UserDetailsEmailDeltaOut
-
-instance decodeJsonUserDetailsEmailDeltaOut :: DecodeJson UserDetailsEmailDeltaOut where
-  decodeJson _ = fail "Not a UserDetailsEmailDeltaOut"
-
 
 type UserDetailsEmailSparrowClientQueues eff =
-  SparrowClientQueues eff UserDetailsEmailInitIn UserDetailsEmailInitOut UserDetailsEmailDeltaIn UserDetailsEmailDeltaOut
+  SparrowStaticClientQueues eff UserDetailsEmailInitIn UserDetailsEmailInitOut
