@@ -169,7 +169,7 @@ authTokenServer initIn = do
         Right (fbToken,fbUserId) -> do
           mUserId <- liftIO $ loginWithFB envDatabase fbToken fbUserId
           case mUserId of
-            Nothing -> pure Nothing
+            Nothing -> pure Nothing -- FIXME redirect to registration page with fbUserId field filled
             Just userId -> do
               authToken <- loginAuth userId
               pure $ Just $ serverReturnSuccess authToken

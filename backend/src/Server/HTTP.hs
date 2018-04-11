@@ -164,7 +164,7 @@ Disallow: /facebookLoginDeauthorize
                             else Nothing
                         good = do
                           code <- fmap T.decodeUtf8 $ join $ lookup "code" qs
-                          (state :: FacebookLoginState) <- do -- FIXME decide a monomorphic state to share for CSRF prevention
+                          (state :: FacebookLoginState) <- do
                             x <- join $ lookup "state" qs
                             join $ Aeson.decode $ LBS.fromStrict x
                           pure $ Right (FacebookLoginCode code, state)
