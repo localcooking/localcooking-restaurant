@@ -75,6 +75,9 @@ tests:
     - -Wall
     dependencies:
     - localcooking
+    - localcooking-db
+    - localcooking-template
     - aeson
+    - path-extra
     - tasty
     - tasty-quickcheck
