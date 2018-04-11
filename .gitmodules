@@ -10,3 +10,6 @@
 [submodule "localcooking-db"]
 	path = localcooking-db
 	url = git@git.localcooking.com:localcooking/localcooking-db
+[submodule "localcooking-template"]
+	path = localcooking-template
+	url = git@git.localcooking.com:localcooking/localcooking-template

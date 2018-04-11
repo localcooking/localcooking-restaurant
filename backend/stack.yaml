@@ -38,6 +38,7 @@ packages:
 - ../localcooking-shared
 - ../localcooking-db
 - ../localcooking-fb
+- ../localcooking-template
 - location:
     git: https://github.com/athanclark/saltine.git
     commit: 8debfd737231dc5f3eb5cf34f6da8c3d33bb8a4b
@@ -52,17 +53,17 @@ extra-deps:
   - attoparsec-uri-0.0.4
   - chan-0.0.3
   - logging-3.0.5
-  - markup-4.0.4
+  - markup-4.2.0
   - nested-routes-9.0.0.1
-  - path-extra-0.1.0
+  - path-extra-0.2.0
   - pred-trie-0.6.0.1
-  - sparrow-0.0.1.3
+  - sparrow-0.0.1.4
   - timemap-0.0.7
   - tmapmvar-0.0.4
   - tries-0.0.5
-  - urlpath-8.0.1
+  - urlpath-9.0.0
   - wai-transformers-0.1.0
-  - wai-middleware-content-type-0.6.1.1
+  - wai-middleware-content-type-0.6.1.2
   - wai-middleware-verbs-0.4.0.1
   - websockets-0.12.4.0
   - websockets-simple-0.1.2.1

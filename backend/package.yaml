@@ -23,71 +23,33 @@ dependencies:
 - base >= 4.8 && < 5
 
 ghc-options:
-  - -Werror
+  - -Wall
 
 library:
   source-dirs: src
   dependencies:
     - localcooking-shared
     - localcooking-db
-    - localcooking-fb
+    - localcooking-template
     - aeson
-    - aeson-attoparsec
-    - async
     - attoparsec
-    - attoparsec-base64
     - attoparsec-uri
-    - base16-bytestring
-    - base64-bytestring
     - bytestring
-    - chan
-    - data-default
     - emailaddress
-    - extractable-singleton
     - file-embed
-    - hashable
-    - heredoc
-    - http-client
-    - http-client-tls
     - http-types
-    - ixset
-    - logging
-    - lucid
-    - markup
-    - mmorph
-    - monad-control-aligned
     - mtl
     - nested-routes >= 9.0.0.1
     - path
-    - path-extra >= 0.1.0
-    - persistent
-    - resource-pool
-    - safecopy
-    - safe-exceptions
-    - saltine
+    - path-extra >= 0.2.0
     - shakespeare
-    - smtp-mail
-    - sparrow >= 0.0.1.3
-    - stm
+    - sparrow >= 0.0.1.4
     - strict
     - QuickCheck
-    - quickcheck-instances
-    - timemap >= 0.0.7
     - text
-    - time
-    - tmapchan
-    - tmapmvar
-    - unordered-containers
-    - urlpath >= 8.0.1
-    - utf8-string
-    - uuid
-    - vector
-    - wai >= 3.2.1
-    - wai-middleware-content-type >= 0.6.1.1
+    - urlpath >= 9.0.0
+    - wai-middleware-content-type >= 0.6.1.2
     - wai-transformers >= 0.1.0
-    - warp
-    - webpage
-    - websockets >= 0.12.4
 
 executables:
   localcooking:
@@ -96,30 +58,11 @@ executables:
     ghc-options:
     - -threaded
     - -rtsopts
-    - -Werror
+    - -Wall
     - -with-rtsopts=-N
     dependencies:
     - localcooking
-    - localcooking-db
-    - aeson
-    - attoparsec
-    - attoparsec-uri
-    - attoparsec-path
-    - bytestring
-    - directory
-    - logging
-    - monad-logger
-    - optparse-applicative
-    - path
-    - persistent
-    - persistent-postgresql
-    - safe-exceptions
-    - stm
-    - strict
-    - text
-    - timemap
-    - tmapmvar
-    - utf8-string
+    - localcooking-template
 
 tests:
   localcooking-test:

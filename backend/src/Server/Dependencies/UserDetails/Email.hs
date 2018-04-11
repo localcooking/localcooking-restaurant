@@ -5,13 +5,13 @@
 
 module Server.Dependencies.UserDetails.Email where
 
-import Types (AppM)
-import Types.Env (Env (..))
+import LocalCooking.Types (AppM)
+import LocalCooking.Types.Env (Env (..))
 import LocalCooking.Auth (usersAuthToken)
 import LocalCooking.Common.AuthToken (AuthToken)
 import LocalCooking.Database.Query.User (getEmail)
 
-import Web.Dependencies.Sparrow.Types (Server, ServerReturn (..), ServerContinue (..), ServerArgs (..), JSONVoid, staticServer)
+import Web.Dependencies.Sparrow.Types (Server, JSONVoid, staticServer)
 
 import Text.EmailAddress (EmailAddress)
 import Data.Aeson (FromJSON (..), ToJSON (..), (.:), object, (.=), Value (Object, String))
@@ -39,7 +39,7 @@ data UserDetailsEmailInitOut
 instance ToJSON UserDetailsEmailInitOut where
   toJSON x = case x of
     UserDetailsEmailInitOutNoAuth -> String "no-auth"
-    UserDetailsEmailInitOutSuccess x -> object ["email" .= x]
+    UserDetailsEmailInitOutSuccess y -> object ["email" .= y]
 
 
 

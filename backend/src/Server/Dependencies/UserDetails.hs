@@ -6,10 +6,10 @@ module Server.Dependencies.UserDetails where
 
 import Server.Dependencies.UserDetails.Email (userDetailsEmailServer)
 
-import Types (AppM)
+import LocalCooking.Types (AppM)
 
-import Web.Routes.Nested (RouterT, l_, o_, (</>))
-import Web.Dependencies.Sparrow (Topic (..), Server, serveDependencies, unpackServer, SparrowServerT, match)
+import Web.Routes.Nested (l_, o_, (</>))
+import Web.Dependencies.Sparrow (Topic (..), unpackServer, SparrowServerT, match)
 import Network.Wai.Trans (MiddlewareT)
 
 
