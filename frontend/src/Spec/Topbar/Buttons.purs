@@ -1,6 +1,6 @@
 module Spec.Topbar.Buttons where
 
-import Links (SiteLinks (MealsLink, ChefsLink))
+import Links (SiteLinks)
 import LocalCooking.Links.Class (toLocation)
 
 import Prelude
@@ -64,28 +64,28 @@ spec {siteLinks,toURI} = T.simpleSpec performAction render
       Clicked x -> liftEff (siteLinks x)
 
     render :: T.Render State Unit Action
-    render dispatch props state children =
-      [ button
-        { color: Button.primary
-        , disabled: state.currentPage == MealsLink
-        , onClick: mkEffFn1 preventDefault
-        , onTouchTap: mkEffFn1 \e -> do
-            preventDefault e
-            dispatch (Clicked MealsLink)
-        , href: URI.print $ toURI $ toLocation MealsLink
-        , variant: Button.raised
-        } [R.text "Meals"]
-      , button
-        { color: Button.secondary
-        , disabled: state.currentPage == ChefsLink
-        , onClick: mkEffFn1 preventDefault
-        , onTouchTap: mkEffFn1 \e -> do
-            preventDefault e
-            dispatch (Clicked ChefsLink)
-        , href: URI.print $ toURI $ toLocation ChefsLink
-        , variant: Button.raised
-        } [R.text "Chefs"]
-      ]
+    render dispatch props state children = []
+      -- [ button
+      --   { color: Button.primary
+      --   , disabled: state.currentPage == MealsLink
+      --   , onClick: mkEffFn1 preventDefault
+      --   , onTouchTap: mkEffFn1 \e -> do
+      --       preventDefault e
+      --       dispatch (Clicked MealsLink)
+      --   , href: URI.print $ toURI $ toLocation MealsLink
+      --   , variant: Button.raised
+      --   } [R.text "Meals"]
+      -- , button
+      --   { color: Button.secondary
+      --   , disabled: state.currentPage == ChefsLink
+      --   , onClick: mkEffFn1 preventDefault
+      --   , onTouchTap: mkEffFn1 \e -> do
+      --       preventDefault e
+      --       dispatch (Clicked ChefsLink)
+      --   , href: URI.print $ toURI $ toLocation ChefsLink
+      --   , variant: Button.raised
+      --   } [R.text "Chefs"]
+      -- ]
 
 
 topbarButtons :: forall eff

@@ -60,16 +60,12 @@ type Effects =
 
 main :: Eff Effects Unit
 main = do
-  log "Starting Local Cooking frontend..."
+  log "Starting Local Cooking Chefs frontend..."
 
   initSiteLink <- initSiteLinks
 
-  -- ( userDetailsEmailQueues :: UserEmailSparrowClientQueues Effects
-  --   ) <- newSparrowStaticClientQueues
   let deps = do
         pure unit
-        -- unpackClient (Topic ["userDetails","email"]) $
-        --   sparrowStaticClientQueues userDetailsEmailQueues
 
   defaultMain
     { env
@@ -77,39 +73,38 @@ main = do
     , palette
     , deps
     , leftDrawer:
-      { buttons: \{toURI,siteLinks,currentPageSignal,windowSizeSignal,authTokenSignal} ->
-        [ divider {}
-        , listItem
-          { button: true
-          , onClick: mkEffFn1 \_ -> unsafeCoerceEff $ siteLinks MealsLink
-          }
-          [ listItemIcon {} restaurantMenuIcon
-          , listItemText
-            { primary: "Meals"
-            }
-          ]
-        , divider {}
-        , listItem
-          { button: true
-          , onClick: mkEffFn1 \_ -> unsafeCoerceEff $ siteLinks ChefsLink
-          }
-          [ listItemIcon {} $ svgIcon {viewBox: chefHatViewBox, color: SvgIcon.action}
-              [chefHat]
-          , listItemText
-            { primary: "Chefs"
-            }
-          ]
-        ]
+      { buttons: \_ -> []
+        -- [ divider {}
+        -- , listItem
+        --   { button: true
+        --   , onClick: mkEffFn1 \_ -> unsafeCoerceEff $ siteLinks MealsLink
+        --   }
+        --   [ listItemIcon {} restaurantMenuIcon
+        --   , listItemText
+        --     { primary: "Meals"
+        --     }
+        --   ]
+        -- , divider {}
+        -- , listItem
+        --   { button: true
+        --   , onClick: mkEffFn1 \_ -> unsafeCoerceEff $ siteLinks ChefsLink
+        --   }
+        --   [ listItemIcon {} $ svgIcon {viewBox: chefHatViewBox, color: SvgIcon.action}
+        --       [chefHat]
+        --   , listItemText
+        --     { primary: "Chefs"
+        --     }
+        --   ]
       }
     , topbar:
       { imageSrc: toLocation Logo40Png
-      , buttons: \{toURI,siteLinks,currentPageSignal,windowSizeSignal,authTokenSignal} ->
-        [ topbarButtons
-          { currentPageSignal
-          , siteLinks
-          , toURI
-          }
-        ]
+      , buttons: \_ -> [] -- \{toURI,siteLinks,currentPageSignal,windowSizeSignal,authTokenSignal} ->
+        -- [ topbarButtons
+        --   { currentPageSignal
+        --   , siteLinks
+        --   , toURI
+        --   }
+        -- ]
       }
     , content: \{toURI,siteLinks,windowSizeSignal,currentPageSignal} ->
       [ content {toURI,siteLinks,windowSizeSignal,currentPageSignal} ]

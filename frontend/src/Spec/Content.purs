@@ -1,15 +1,10 @@
 module Spec.Content where
 
--- import Spec.Snackbar (SnackbarMessage)
 import Spec.Content.Root (root)
 import Spec.Content.Chefs (chefs)
 import Spec.Content.Meals (meals)
 import Spec.Content.UserDetails (userDetails)
--- import Spec.Content.Register (register)
--- import Spec.Flags.USA (usaFlag, usaFlagViewBox)
--- import Spec.Flags.Colorado (coloradoFlag, coloradoFlagViewBox)
 import Links (SiteLinks (..))
--- import Client.Dependencies.Register (RegisterSparrowClientQueues)
 import LocalCooking.Window (WindowSize)
 
 import Prelude
@@ -88,14 +83,7 @@ spec
               { windowSizeSignal
               , toURI
               }
-          ChefsLink -> chefs
-          MealsLink -> meals
           RegisterLink -> R.text ""
-            -- register
-            --   { registerQueues
-            --   , errorMessageQueue
-            --   , toRoot: siteLinks RootLink
-            --   }
           UserDetailsLink _ ->
             userDetails
               { currentPageSignal

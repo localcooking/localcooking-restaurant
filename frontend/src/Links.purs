@@ -135,17 +135,13 @@ userDetailsLinksParser = do
 
 data SiteLinks
   = RootLink
-  | MealsLink -- FIXME search terms
-  | ChefsLink -- FIXME search terms or hierarchy
   | RegisterLink -- FIXME authenticated vs unauthenticated?
   | UserDetailsLink (Maybe UserDetailsLinks)
 
 instance arbitrarySiteLinks :: Arbitrary SiteLinks where
   arbitrary = oneOf $
         (pure RootLink)
-    :|  [ pure MealsLink
-        , pure ChefsLink
-        , pure RegisterLink
+    :|  [ pure RegisterLink
         , do mUserDetails <- arbitrary
              pure (UserDetailsLink mUserDetails)
         ]
@@ -192,23 +188,10 @@ instance showSiteLinks :: Show SiteLinks where
 instance eqSiteLinks :: Eq SiteLinks where
   eq = gEq
 
--- instance encodeJsonSiteLinks :: EncodeJson SiteLinks where
---   encodeJson x = encodeJson (show x)
-
--- instance decodeJsonSiteLinks :: DecodeJson SiteLinks where
---   decodeJson json = do
---     s <- decodeJson json -- FIXME use location parser
---     case runParser parseLocation s of
---       Left e -> fail (show e)
---       Right loc -> case siteLinksParser loc of
---         Left e -> fail e
---         Right x -> pure x
 
 instance toLocationSiteLinks :: ToLocation SiteLinks where
   toLocation x = case x of
     RootLink  -> Location (Left rootDir) Nothing Nothing
-    MealsLink -> Location (Right $ rootDir </> file "meals") Nothing Nothing
-    ChefsLink -> Location (Right $ rootDir </> file "chefs") Nothing Nothing
     RegisterLink -> Location (Right $ rootDir </> file "register") Nothing Nothing
     UserDetailsLink mUserDetails ->
       Location
@@ -226,13 +209,11 @@ instance localCookingSiteLinksSiteLinks :: LocalCookingSiteLinks SiteLinks where
     UserDetailsLink _ -> true
     _ -> false
   toDocumentTitle x = DocumentTitle $ case x of
-    RootLink -> "Local Cooking"
-    MealsLink -> "Meals - Local Cooking"
-    ChefsLink -> "Chefs - Local Cooking"
-    RegisterLink -> "Register - Local Cooking"
+    RootLink -> "Local Cooking Chefs"
+    RegisterLink -> "Register - Local Cooking Chefs"
     UserDetailsLink mUserDetails ->
         maybe "" userDetailsLinksToDocumentTitle mUserDetails
-      <> "User Details - Local Cooking"
+      <> "User Details - Local Cooking Chefs"
 
 
 -- Policy: don't fail on bad query params / fragment unless you have to
@@ -246,12 +227,6 @@ instance fromLocationSiteLinks :: FromLocation SiteLinks where
       siteLinksPathParser = do
         void divider
         let root = RootLink <$ eof
-            meals = do
-              void (string "meals")
-              pure MealsLink
-            chefs = do
-              void (string "chefs")
-              pure ChefsLink -- FIXME search parameters or hierarchy
             register = do
               void (string "register")
               pure RegisterLink
@@ -259,9 +234,7 @@ instance fromLocationSiteLinks :: FromLocation SiteLinks where
               void (string "userDetails")
               mUserDetails <- optionMaybe userDetailsLinksParser
               pure (UserDetailsLink mUserDetails)
-        try meals
-          <|> try chefs
-          <|> try register
+        try register
           <|> try userDetails
           <|> root
         where

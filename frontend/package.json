@@ -1,7 +1,7 @@
 {
-  "name": "landing",
+  "name": "localcooking-chef",
   "version": "0.0.0",
-  "description": "Local Cooking landing page",
+  "description": "Local Cooking Chef",
   "main": "index.js",
   "directories": {
     "test": "test"
@@ -12,14 +12,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/localcooking/localcooking.github.io.git"
+    "url": "git@git.localcooking.com/localcooking/localcooking-chef.git"
   },
-  "author": "Athan Clark <athan.clark@gmail.com>",
+  "author": "Athan Clark <athan.clark@localcooking.com>",
   "license": "SEE LICENSE IN LICENSE",
   "bugs": {
-    "url": "https://github.com/localcooking/localcooking.github.io/issues"
+    "url": "https://git.localcooking.com/localcooking/localcooking-chef/issues"
   },
-  "homepage": "https://github.com/localcooking/localcooking.github.io#readme",
+  "homepage": "https://git.localcooking.com/localcooking/localcooking-chef#readme",
   "devDependencies": {
     "bower": "^1.8.2",
     "browserify": "^15.2.0",
