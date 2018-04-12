@@ -34,17 +34,17 @@ httpServer handleAuthToken = do
   Env{envHostname,envTls} <- lift ask
 
   -- main routes
-  matchGroup (l_ "userDetails" </> o_) $ do
-    matchHere handleAuthToken
-    match (l_ "general" </> o_) handleAuthToken
-    match (l_ "security" </> o_) handleAuthToken
-    match (l_ "orders" </> o_) handleAuthToken
-    match (l_ "diet" </> o_) handleAuthToken
-    match (l_ "allergies" </> o_) handleAuthToken
-  matchGroup (l_ "meals" </> o_) $
-    matchHere handleAuthToken
-  matchGroup (l_ "chefs" </> o_) $
-    matchHere handleAuthToken
+  -- matchGroup (l_ "userDetails" </> o_) $ do
+  --   matchHere handleAuthToken
+  --   match (l_ "general" </> o_) handleAuthToken
+  --   match (l_ "security" </> o_) handleAuthToken
+  --   match (l_ "orders" </> o_) handleAuthToken
+  --   match (l_ "diet" </> o_) handleAuthToken
+  --   match (l_ "allergies" </> o_) handleAuthToken
+  -- matchGroup (l_ "meals" </> o_) $
+  --   matchHere handleAuthToken
+  -- matchGroup (l_ "chefs" </> o_) $
+  --   matchHere handleAuthToken
   matchAny $ \_ _ resp -> do
     resp $ textOnly "" status302
       [ ( "Location"

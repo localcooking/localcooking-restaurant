@@ -27,8 +27,6 @@ import Test.QuickCheck (Arbitrary (..), oneof)
 data SiteLinks
   = RootLink
   | AboutLink
-  | MealsLink
-  | ChefsLink
   | RegisterLink
   deriving (Eq, Show, Generic)
 
@@ -36,8 +34,6 @@ instance Arbitrary SiteLinks where
   arbitrary = oneof
     [ pure RootLink
     , pure AboutLink
-    , pure MealsLink
-    , pure ChefsLink
     , pure RegisterLink
     ]
 
@@ -47,8 +43,6 @@ instance ToPath SiteLinks Abs File where
   toPath x = case x of
     RootLink -> unsafeCoerce [absdir|/|]
     AboutLink -> [absfile|/about|]
-    MealsLink -> [absfile|/meals|]
-    ChefsLink -> [absfile|/chefs|]
     RegisterLink -> [absfile|/register|]
 
 instance ToLocation SiteLinks where
@@ -68,10 +62,8 @@ instance FromLocation SiteLinks where
         divider
         let root  = RootLink <$ endOfInput
             about = AboutLink <$ string "about"
-            meals = MealsLink <$ string "meals"
-            chefs = ChefsLink <$ string "chefs"
             register = RegisterLink <$ string "register"
-        register <|> chefs <|> meals <|> about <|> root
+        register <|> about <|> root
       divider = void (char '/')
 
 instance LocalCookingSiteLinks SiteLinks where
