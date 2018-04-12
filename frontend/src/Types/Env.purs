@@ -1,10 +1,10 @@
 module Types.Env where
 
+import LocalCooking.Types.Env (Env)
+
 import Prelude
 import Data.Either (Either (Right))
 import Data.Argonaut (Json, decodeJson)
-import Login.Error (PreliminaryAuthToken)
-import LocalCooking.Common.Password (HashedPassword)
 import Partial.Unsafe (unsafePartial)
 
 
@@ -17,15 +17,6 @@ type EnvImpl =
   }
 
 foreign import envImpl :: EnvImpl
-
-
-type Env =
-  { development :: Boolean
-  , facebookClientID :: String
-  , googleReCaptchaSiteKey :: String
-  , authToken :: PreliminaryAuthToken
-  , salt :: HashedPassword
-  }
 
 
 env :: Env

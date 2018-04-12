@@ -1,40 +1,34 @@
 module Links where
 
+import LocalCooking.Links.Class (class ToLocation, toLocation, class FromLocation, fromLocation, class LocalCookingSiteLinks, replaceState')
+
 import Prelude
 import Data.Maybe (Maybe (..), maybe)
 import Data.Either (Either (..))
 import Data.URI (Query (..))
 import Data.URI.URI as URI
 import Data.URI.Path as URIPath
-import Data.URI.Location (Location (..), fromURI, printLocation, parseLocation)
-import Data.URI.Location as Location
+import Data.URI.Location (Location (..), fromURI, printLocation)
 import Data.StrMap as StrMap
 import Data.Path.Pathy ((</>), dir, file, rootDir, Path, Rel, File, Sandboxed)
 import Data.Generic (class Generic, gEq, gShow)
-import Data.Argonaut (class EncodeJson, class DecodeJson, encodeJson, decodeJson, fail)
 import Data.NonEmpty ((:|))
-import Data.Foreign (toForeign, unsafeFromForeign)
 import Text.Parsing.StringParser (Parser, try, runParser)
 import Text.Parsing.StringParser.String (char, string, eof)
 import Text.Parsing.StringParser.Combinators (optionMaybe)
 import Control.Alternative ((<|>))
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Console (CONSOLE, warn)
-import Control.Monad.Eff.Uncurried (mkEffFn1, runEffFn2)
-import Control.Monad.Eff.Exception (EXCEPTION, throw)
 import DOM (DOM)
 import DOM.HTML (window)
 import DOM.HTML.Window (location, history)
-import DOM.HTML.Window.Extra (onPopStateImpl)
 import DOM.HTML.Location (href)
-import DOM.HTML.History (DocumentTitle (..), pushState, replaceState, URL (..))
-import DOM.HTML.Types (History, HISTORY, Window)
+import DOM.HTML.History (DocumentTitle (..))
+import DOM.HTML.Types (HISTORY)
 import Test.QuickCheck (class Arbitrary, arbitrary)
 import Test.QuickCheck.Gen (oneOf)
 
 
-class ToLocation sym where
-  toLocation :: sym -> Location
 
 
 data ImageLinks
@@ -176,7 +170,7 @@ initSiteLinks = do
         warn $ "URI can't be a location: " <> show uri
         replaceState' RootLink h
         pure RootLink
-      Just {location: location@(Location _ mQuery _)} -> case siteLinksParser location of
+      Just {location: location@(Location _ mQuery _)} -> case fromLocation location of
         Left e -> do
           warn $ "Location can't be a SiteLinks: " <> e <> ", " <> show location
           replaceState' RootLink h
@@ -198,17 +192,17 @@ instance showSiteLinks :: Show SiteLinks where
 instance eqSiteLinks :: Eq SiteLinks where
   eq = gEq
 
-instance encodeJsonSiteLinks :: EncodeJson SiteLinks where
-  encodeJson x = encodeJson (show x)
+-- instance encodeJsonSiteLinks :: EncodeJson SiteLinks where
+--   encodeJson x = encodeJson (show x)
 
-instance decodeJsonSiteLinks :: DecodeJson SiteLinks where
-  decodeJson json = do
-    s <- decodeJson json -- FIXME use location parser
-    case runParser parseLocation s of
-      Left e -> fail (show e)
-      Right loc -> case siteLinksParser loc of
-        Left e -> fail e
-        Right x -> pure x
+-- instance decodeJsonSiteLinks :: DecodeJson SiteLinks where
+--   decodeJson json = do
+--     s <- decodeJson json -- FIXME use location parser
+--     case runParser parseLocation s of
+--       Left e -> fail (show e)
+--       Right loc -> case siteLinksParser loc of
+--         Left e -> fail e
+--         Right x -> pure x
 
 instance toLocationSiteLinks :: ToLocation SiteLinks where
   toLocation x = case x of
@@ -223,94 +217,53 @@ instance toLocationSiteLinks :: ToLocation SiteLinks where
              Just d -> rootDir </> dir "userDetails" </> userDetailsLinksToPath d
         ) Nothing Nothing
 
-siteLinksToDocumentTitle :: SiteLinks -> DocumentTitle
-siteLinksToDocumentTitle x = DocumentTitle $ case x of
-  RootLink -> "Local Cooking"
-  MealsLink -> "Meals - Local Cooking"
-  ChefsLink -> "Chefs - Local Cooking"
-  RegisterLink -> "Register - Local Cooking"
-  UserDetailsLink mUserDetails ->
-       maybe "" userDetailsLinksToDocumentTitle mUserDetails
-    <> "User Details - Local Cooking"
+
+instance localCookingSiteLinksSiteLinks :: LocalCookingSiteLinks SiteLinks where
+  rootLink = RootLink
+  registerLink = RegisterLink
+  userDetailsLink = UserDetailsLink Nothing
+  isUserDetailsLink = case _ of
+    UserDetailsLink _ -> true
+    _ -> false
+  toDocumentTitle x = DocumentTitle $ case x of
+    RootLink -> "Local Cooking"
+    MealsLink -> "Meals - Local Cooking"
+    ChefsLink -> "Chefs - Local Cooking"
+    RegisterLink -> "Register - Local Cooking"
+    UserDetailsLink mUserDetails ->
+        maybe "" userDetailsLinksToDocumentTitle mUserDetails
+      <> "User Details - Local Cooking"
 
 
 -- Policy: don't fail on bad query params / fragment unless you have to
-siteLinksParser :: Location -> Either String SiteLinks
-siteLinksParser (Location path mQuery mFrag) = do
-  case runParser siteLinksPathParser (URIPath.printPath path) of
-    Left e -> Left (show e)
-    Right link -> pure link
-  where
-    siteLinksPathParser :: Parser SiteLinks
-    siteLinksPathParser = do
-      void divider
-      let root = RootLink <$ eof
-          meals = do
-            void (string "meals")
-            pure MealsLink
-          chefs = do
-            void (string "chefs")
-            pure ChefsLink -- FIXME search parameters or hierarchy
-          register = do
-            void (string "register")
-            pure RegisterLink
-          userDetails = do
-            void (string "userDetails")
-            mUserDetails <- optionMaybe userDetailsLinksParser
-            pure (UserDetailsLink mUserDetails)
-      try meals
-        <|> try chefs
-        <|> try register
-        <|> try userDetails
-        <|> root
-      where
-        divider = char '/'
-
-
-
-pushState' :: forall eff. SiteLinks -> History -> Eff (history :: HISTORY | eff) Unit
-pushState' x h = do
-  pushState
-    (toForeign $ encodeJson x)
-    (siteLinksToDocumentTitle x)
-    (URL $ Location.printLocation $ toLocation x)
-    h
-
-
-replaceState' :: forall eff. SiteLinks -> History -> Eff (history :: HISTORY | eff) Unit
-replaceState' x h = do
-  replaceState
-    (toForeign $ encodeJson x)
-    (siteLinksToDocumentTitle x)
-    (URL $ Location.printLocation $ toLocation x)
-    h
-
-
-onPopState :: forall eff
-            . (SiteLinks -> Eff (dom :: DOM, exception :: EXCEPTION | eff) Unit)
-           -> Window
-           -> Eff (dom :: DOM, exception :: EXCEPTION | eff) Unit
-onPopState go w =
-  onPopState' \fgn -> case decodeJson (unsafeFromForeign fgn) of
-    Left e -> throw e
-    Right (x :: SiteLinks) -> go x
-  where
-    onPopState' f = runEffFn2 onPopStateImpl (mkEffFn1 f) w
-
-
-data ThirdPartyLoginReturnLinks
-  = FacebookLoginReturn -- (Maybe {code :: String, state :: Maybe Unit}) -- FIXME hardcode a facebook login state
-
-instance toLocationThirdPartyLoginReturnLinks :: ToLocation ThirdPartyLoginReturnLinks where
-  toLocation x = case x of
-    FacebookLoginReturn -> Location (Right $ rootDir </> file "facebookLoginReturn") Nothing Nothing
-
-
-thirdPartyLoginReturnLinksParser :: Parser ThirdPartyLoginReturnLinks
-thirdPartyLoginReturnLinksParser = do
-  let facebook = do
+instance fromLocationSiteLinks :: FromLocation SiteLinks where
+  fromLocation (Location path mQuery mFrag) = do
+    case runParser siteLinksPathParser (URIPath.printPath path) of
+      Left e -> Left (show e)
+      Right link -> pure link
+    where
+      siteLinksPathParser :: Parser SiteLinks
+      siteLinksPathParser = do
         void divider
-        FacebookLoginReturn <$ (string "facebookLoginReturn" *> eof)
-  facebook
-  where
-    divider = char '/'
+        let root = RootLink <$ eof
+            meals = do
+              void (string "meals")
+              pure MealsLink
+            chefs = do
+              void (string "chefs")
+              pure ChefsLink -- FIXME search parameters or hierarchy
+            register = do
+              void (string "register")
+              pure RegisterLink
+            userDetails = do
+              void (string "userDetails")
+              mUserDetails <- optionMaybe userDetailsLinksParser
+              pure (UserDetailsLink mUserDetails)
+        try meals
+          <|> try chefs
+          <|> try register
+          <|> try userDetails
+          <|> root
+        where
+          divider = char '/'
+

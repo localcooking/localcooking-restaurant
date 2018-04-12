@@ -1,7 +1,8 @@
 module Spec.Content.Root where
 
-import Window (WindowSize (Laptop))
-import Links (AboutPageLinks (..), toLocation)
+import LocalCooking.Window (WindowSize (Laptop))
+import Links (AboutPageLinks (..))
+import LocalCooking.Links.Class (toLocation)
 
 import Prelude
 import Data.UUID (GENUUID)
