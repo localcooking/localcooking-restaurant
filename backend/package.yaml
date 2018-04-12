@@ -1,6 +1,6 @@
-name:                localcooking
+name:                localcooking-chef
 version:             0.0.0
-git:                 "git://git.localcooking.com/localcooking/localcooking-mitch.git"
+git:                 "git://git.localcooking.com/localcooking/localcooking-chef.git"
 license:             BSD3
 author:              "Athan Clark"
 maintainer:          "athan.clark@localcooking.com"
@@ -52,7 +52,7 @@ library:
     - wai-transformers >= 0.1.0
 
 executables:
-  localcooking:
+  localcooking-chef:
     main:                Main.hs
     source-dirs:         app
     ghc-options:
@@ -61,7 +61,7 @@ executables:
     - -Wall
     - -with-rtsopts=-N
     dependencies:
-    - localcooking
+    - localcooking-chef
     - localcooking-template
 
 tests:
@@ -74,7 +74,7 @@ tests:
     - -with-rtsopts=-N
     - -Wall
     dependencies:
-    - localcooking
+    - localcooking-chef
     - localcooking-db
     - localcooking-template
     - aeson
