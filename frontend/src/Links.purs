@@ -1,6 +1,6 @@
 module Links where
 
-import LocalCooking.Links.Class (class ToLocation, toLocation, class FromLocation, fromLocation, class LocalCookingSiteLinks, replaceState')
+import LocalCooking.Links.Class (class ToLocation, toLocation, class FromLocation, fromLocation, class LocalCookingSiteLinks, class LocalCookingUserDetailsLinks, replaceState', defaultSiteLinksPathParser)
 
 import Prelude
 import Data.Maybe (Maybe (..), maybe)
@@ -84,10 +84,12 @@ instance arbitraryUserDetailsLinks :: Arbitrary UserDetailsLinks where
     [ pure UserDetailsSecurityLink
     ]
 
-userDetailsLinksToDocumentTitle :: UserDetailsLinks -> String
-userDetailsLinksToDocumentTitle x = case x of
-  UserDetailsGeneralLink   -> "General - "
-  UserDetailsSecurityLink  -> "Security - "
+instance localCookingUserDetailsLinksUserDetailsLinks :: LocalCookingUserDetailsLinks UserDetailsLinks where
+  userDetailsGeneralLink = UserDetailsGeneralLink
+  userDetailsSecurityLink = UserDetailsSecurityLink
+  toUserDetailsDocumentTitle x = case x of
+    UserDetailsGeneralLink   -> "General - "
+    UserDetailsSecurityLink  -> "Security - "
 
 userDetailsLinksToPath :: UserDetailsLinks -> Path Rel File Sandboxed
 userDetailsLinksToPath x = case x of
@@ -96,7 +98,6 @@ userDetailsLinksToPath x = case x of
 
 userDetailsLinksParser :: Parser UserDetailsLinks
 userDetailsLinksParser = do
-  void divider
   let general = do
         void (string "general")
         pure UserDetailsGeneralLink
@@ -105,13 +106,11 @@ userDetailsLinksParser = do
         pure UserDetailsSecurityLink
   try general
     <|> security
-  where
-    divider = char '/'
 
 
 data SiteLinks
   = RootLink
-  | RegisterLink -- FIXME authenticated vs unauthenticated?
+  | RegisterLink
   | UserDetailsLink (Maybe UserDetailsLinks)
 
 instance arbitrarySiteLinks :: Arbitrary SiteLinks where
@@ -177,19 +176,15 @@ instance toLocationSiteLinks :: ToLocation SiteLinks where
         ) Nothing Nothing
 
 
-instance localCookingSiteLinksSiteLinks :: LocalCookingSiteLinks SiteLinks where
+instance localCookingSiteLinksSiteLinks :: LocalCookingSiteLinks SiteLinks UserDetailsLinks where
   rootLink = RootLink
   registerLink = RegisterLink
-  userDetailsLink = UserDetailsLink Nothing
-  isUserDetailsLink = case _ of
-    UserDetailsLink _ -> true
-    _ -> false
-  toDocumentTitle x = DocumentTitle $ case x of
-    RootLink -> "Local Cooking Chefs"
-    RegisterLink -> "Register - Local Cooking Chefs"
-    UserDetailsLink mUserDetails ->
-        maybe "" userDetailsLinksToDocumentTitle mUserDetails
-      <> "User Details - Local Cooking Chefs"
+  userDetailsLink = UserDetailsLink
+  getUserDetailsLink link = case link of
+    UserDetailsLink mDetails -> Just mDetails
+    _ -> Nothing
+  toDocumentTitle _ = ""
+  subsidiaryTitle _ = " Chefs"
 
 
 -- Policy: don't fail on bad query params / fragment unless you have to
@@ -201,18 +196,7 @@ instance fromLocationSiteLinks :: FromLocation SiteLinks where
     where
       siteLinksPathParser :: Parser SiteLinks
       siteLinksPathParser = do
-        void divider
-        let root = RootLink <$ eof
-            register = do
-              void (string "register")
-              pure RegisterLink
-            userDetails = do
-              void (string "userDetails")
-              mUserDetails <- optionMaybe userDetailsLinksParser
-              pure (UserDetailsLink mUserDetails)
-        try register
-          <|> try userDetails
-          <|> root
-        where
-          divider = char '/'
+        let def = defaultSiteLinksPathParser userDetailsLinksParser
+        def
+        -- TODO put nonstandard parsers here
 

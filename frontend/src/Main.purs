@@ -115,6 +115,10 @@ main = do
       }
     , content: \{toURI,siteLinks,windowSizeSignal,currentPageSignal} ->
       [ content {toURI,siteLinks,windowSizeSignal,currentPageSignal} ]
+    , userDetails:
+      { buttons: \_ -> []
+      , content: \_ -> []
+      }
     , extendedNetwork:
       [ Button.withStyles
         (\_ ->
