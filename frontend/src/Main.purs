@@ -117,15 +117,27 @@ main = do
       [ content {toURI,siteLinks,windowSizeSignal,currentPageSignal} ]
     , extendedNetwork:
       [ Button.withStyles
-        (\_ -> {root: createStyles {background: "#c62828", color: "#fff", fontVariant: "normal"}})
+        (\_ ->
+          { root: createStyles
+            { background: "#c62828"
+            , color: "#fff"
+            , textTransform: "none"
+            , "&:hover":
+              { background: "#ff5f52"
+              }
+            }
+          }
+        )
         \{classes} ->
           button
           { href: "https://localcooking.com/"
           , classes: Button.createClasses classes
+          , variant: Button.raised
           }
           [ svgIcon
             { viewBox: "0 0 279 279"
             , color: SvgIcon.action
+            , styles: createStyles {marginRight: "0.2em"}
             }
             [ mainBrand
             ]
