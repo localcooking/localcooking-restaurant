@@ -76,7 +76,7 @@ spec {toURI} = T.simpleSpec performAction render
         , align: Typography.right
         , color: Typography.primary
         , style: createStyles {marginBottom: "1em"}
-        } [R.text "Locally Sourced Cuisine for the Average Family"]
+        } [R.text "Work Your Own Schedule for Your Own Profit"]
       ] <> ( if state.windowSize < Laptop
                 then paragraph1
                 else
@@ -92,7 +92,7 @@ spec {toURI} = T.simpleSpec performAction render
                     , grid {xs: 4, item: true}
                       [ R.img
                         [ RP.src $ URI.print $ toURI $ toLocation Paragraph1Png
-                        , RP.style {width: "100%", marginBottom: "1em", borderRadius: "0 1em 1em 0"}
+                        , RP.style {width: "100%", marginBottom: "1em", borderRadius: "0 0.2em 0.2em 0"}
                         ] []
                       ]
                     ]
@@ -115,7 +115,7 @@ spec {toURI} = T.simpleSpec performAction render
               [ grid {xs: 4, item: true}
                 [ R.img
                   [ RP.src $ URI.print $ toURI $ toLocation Paragraph2Png
-                  , RP.style {width: "100%", marginBottom: "1em", borderRadius: "1em 0 0 1em"}
+                  , RP.style {width: "100%", marginBottom: "1em", borderRadius: "0.2em 0 0 0.2em"}
                   ] []
                 ]
               , grid {xs: 8, item: true}
@@ -149,7 +149,7 @@ spec {toURI} = T.simpleSpec performAction render
                     , grid {xs: 4, item: true}
                       [ R.img
                         [ RP.src $ URI.print $ toURI $ toLocation Paragraph3Png
-                        , RP.style {width: "100%", marginBottom: "1em", borderRadius: "0 1em 1em 0"}
+                        , RP.style {width: "100%", marginBottom: "1em", borderRadius: "0 0.2em 0.2em 0"}
                         ] []
                       ]
                     ]

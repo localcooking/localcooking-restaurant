@@ -23,8 +23,13 @@ import Control.Monad.Eff.Uncurried (mkEffFn1)
 import Control.Monad.Eff.Unsafe (unsafeCoerceEff)
 import Control.Execution.Immediate (SET_IMMEDIATE_SHIM)
 
+import React as R
+import React.DOM as R
+import React.DOM.SVG as RS
+import React.DOM.Props as RP
 import MaterialUI.InjectTapEvent (INJECT_TAP_EVENT)
 import MaterialUI.Divider (divider)
+import MaterialUI.Button (button)
 import MaterialUI.SvgIcon (svgIcon)
 import MaterialUI.SvgIcon as SvgIcon
 import MaterialUI.ListItem (listItem)
@@ -108,4 +113,17 @@ main = do
       }
     , content: \{toURI,siteLinks,windowSizeSignal,currentPageSignal} ->
       [ content {toURI,siteLinks,windowSizeSignal,currentPageSignal} ]
+    , extendedNetwork:
+      [ button
+        { href: "https://localcooking.com/"
+        }
+        [ svgIcon
+          { viewBox: "0 0 279 279"
+          , color: SvgIcon.disabled
+          }
+          [ RS.svg [RP.src "https://localcooking.com/static/images/icon.svg"] []
+          ]
+        , R.text "Local Cooking"
+        ]
+      ]
     }
