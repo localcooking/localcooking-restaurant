@@ -76,7 +76,7 @@ spec {toURI} = T.simpleSpec performAction render
         , align: Typography.right
         , color: Typography.primary
         , style: createStyles {marginBottom: "1em"}
-        } [R.text "Work Your Own Schedule for Your Own Profit"]
+        } [R.text "Sell Your Own Creations"]
       ] <> ( if state.windowSize < Laptop
                 then paragraph1
                 else
@@ -183,7 +183,7 @@ paragraph1 =
     , paragraph: true
     , style: createStyles {textIndent: "3em"}
     }
-    [ R.text "We are a team of chefs dedicated to providing hand-made, healthy, creative meals to the public at competitive prices. Our platform allows chefs to debut "
+    [ R.text "Local Cooking aims to be an incredible place to work; "
     , R.strong [] [R.text "their own"]
     , R.text " menus and feature "
     , R.strong [] [R.text "their own"]

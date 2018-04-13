@@ -136,7 +136,7 @@ main = do
           }
           [ svgIcon
             { viewBox: "0 0 279 279"
-            , color: SvgIcon.action
+            , color: SvgIcon.inherit
             }
             [ mainBrand
             ]

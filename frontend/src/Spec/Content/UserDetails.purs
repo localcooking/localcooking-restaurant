@@ -3,9 +3,6 @@ module Spec.Content.UserDetails where
 import Links (SiteLinks (UserDetailsLink), UserDetailsLinks (..))
 import Spec.Content.UserDetails.General (general)
 import Spec.Content.UserDetails.Security (security)
-import Spec.Content.UserDetails.Orders (orders)
-import Spec.Content.UserDetails.Diet (diet)
-import Spec.Content.UserDetails.Allergies (allergies)
 
 import Prelude
 
@@ -77,12 +74,6 @@ spec {siteLinks} = T.simpleSpec performAction render
             , divider {}
             , sideButton UserDetailsSecurityLink
             , divider {}
-            , sideButton UserDetailsOrdersLink
-            , divider {}
-            , sideButton UserDetailsDietLink
-            , divider {}
-            , sideButton UserDetailsAllergiesLink
-            , divider {}
             , listItem
               { button: true
               }
@@ -100,9 +91,6 @@ spec {siteLinks} = T.simpleSpec performAction render
               Just x -> case x of
                 UserDetailsGeneralLink -> general
                 UserDetailsSecurityLink -> security
-                UserDetailsOrdersLink -> orders
-                UserDetailsDietLink -> diet
-                UserDetailsAllergiesLink -> allergies
             _ -> general
         ]
       ]
@@ -117,9 +105,6 @@ spec {siteLinks} = T.simpleSpec performAction render
               { primary: case x of
                   UserDetailsGeneralLink -> "General"
                   UserDetailsSecurityLink -> "Security"
-                  UserDetailsOrdersLink -> "Orders"
-                  UserDetailsDietLink -> "Diet"
-                  UserDetailsAllergiesLink -> "Allergies"
               }
             ]
 

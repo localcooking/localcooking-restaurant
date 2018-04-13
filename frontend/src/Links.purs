@@ -68,9 +68,6 @@ instance toLocationAboutPageLinks :: ToLocation AboutPageLinks where
 data UserDetailsLinks
   = UserDetailsGeneralLink
   | UserDetailsSecurityLink
-  | UserDetailsOrdersLink
-  | UserDetailsDietLink
-  | UserDetailsAllergiesLink
 
 derive instance genericUserDetailsLinks :: Generic UserDetailsLinks
 
@@ -85,26 +82,17 @@ instance arbitraryUserDetailsLinks :: Arbitrary UserDetailsLinks where
     ( pure UserDetailsGeneralLink
     ) :|
     [ pure UserDetailsSecurityLink
-    , pure UserDetailsOrdersLink
-    , pure UserDetailsDietLink
-    , pure UserDetailsAllergiesLink
     ]
 
 userDetailsLinksToDocumentTitle :: UserDetailsLinks -> String
 userDetailsLinksToDocumentTitle x = case x of
   UserDetailsGeneralLink   -> "General - "
   UserDetailsSecurityLink  -> "Security - "
-  UserDetailsOrdersLink    -> "Orders - "
-  UserDetailsDietLink      -> "Diet - "
-  UserDetailsAllergiesLink -> "Allergies - "
 
 userDetailsLinksToPath :: UserDetailsLinks -> Path Rel File Sandboxed
 userDetailsLinksToPath x = case x of
   UserDetailsGeneralLink -> file "general"
   UserDetailsSecurityLink -> file "security"
-  UserDetailsOrdersLink -> file "orders"
-  UserDetailsDietLink -> file "diet"
-  UserDetailsAllergiesLink -> file "allergies"
 
 userDetailsLinksParser :: Parser UserDetailsLinks
 userDetailsLinksParser = do
@@ -115,20 +103,8 @@ userDetailsLinksParser = do
       security = do
         void (string "security")
         pure UserDetailsSecurityLink
-      orders = do
-        void (string "orders")
-        pure UserDetailsOrdersLink
-      diet = do
-        void (string "diet")
-        pure UserDetailsDietLink
-      allergies = do
-        void (string "allergies")
-        pure UserDetailsAllergiesLink
   try general
-    <|> try security
-    <|> try orders
-    <|> try diet
-    <|> allergies
+    <|> security
   where
     divider = char '/'
 

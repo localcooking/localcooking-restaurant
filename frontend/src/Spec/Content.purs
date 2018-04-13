@@ -1,8 +1,6 @@
 module Spec.Content where
 
 import Spec.Content.Root (root)
-import Spec.Content.Chefs (chefs)
-import Spec.Content.Meals (meals)
 import Spec.Content.UserDetails (userDetails)
 import Links (SiteLinks (..))
 import LocalCooking.Window (WindowSize)
