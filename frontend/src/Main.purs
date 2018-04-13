@@ -6,7 +6,7 @@ import Colors (palette)
 import Spec.Topbar.Buttons (topbarButtons)
 import Spec.Content (content)
 import LocalCooking.Links.Class (toLocation)
-
+import LocalCooking.Branding.Main (mainBrand)
 import LocalCooking.Main (defaultMain)
 import LocalCooking.Spec.Icons.ChefHat (chefHatViewBox, chefHat)
 
@@ -121,7 +121,7 @@ main = do
           { viewBox: "0 0 279 279"
           , color: SvgIcon.disabled
           }
-          [ RS.svg [RP.src "https://localcooking.com/static/images/icon.svg"] []
+          [ mainBrand -- RS.svg [RP.src "https://localcooking.com/static/images/icon.svg"] []
           ]
         , R.text "Local Cooking"
         ]
