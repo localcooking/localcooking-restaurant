@@ -30,11 +30,13 @@ import React.DOM.Props as RP
 import MaterialUI.InjectTapEvent (INJECT_TAP_EVENT)
 import MaterialUI.Divider (divider)
 import MaterialUI.Button (button)
+import MaterialUI.Button as Button
 import MaterialUI.SvgIcon (svgIcon)
 import MaterialUI.SvgIcon as SvgIcon
 import MaterialUI.ListItem (listItem)
 import MaterialUI.ListItemIcon (listItemIcon)
 import MaterialUI.ListItemText (listItemText)
+import MaterialUI.Types (createStyles)
 import MaterialUI.Icons.RestaurantMenu (restaurantMenuIcon)
 import DOM (DOM)
 import DOM.HTML.Types (HISTORY)
@@ -114,16 +116,20 @@ main = do
     , content: \{toURI,siteLinks,windowSizeSignal,currentPageSignal} ->
       [ content {toURI,siteLinks,windowSizeSignal,currentPageSignal} ]
     , extendedNetwork:
-      [ button
-        { href: "https://localcooking.com/"
-        }
-        [ svgIcon
-          { viewBox: "0 0 279 279"
-          , color: SvgIcon.disabled
+      [ Button.withStyles
+        (\_ -> {root: createStyles {background: "#1565c0"}})
+        \{classes} ->
+          button
+          { href: "https://localcooking.com/"
+          , classes: Button.createClasses classes
           }
-          [ mainBrand -- RS.svg [RP.src "https://localcooking.com/static/images/icon.svg"] []
+          [ svgIcon
+            { viewBox: "0 0 279 279"
+            , color: SvgIcon.action
+            }
+            [ mainBrand -- RS.svg [RP.src "https://localcooking.com/static/images/icon.svg"] []
+            ]
+          , R.text "Local Cooking"
           ]
-        , R.text "Local Cooking"
-        ]
       ]
     }
