@@ -29,7 +29,7 @@ import Control.Monad.Trans (lift)
 
 
 
-httpServer :: MiddlewareT AppM -> RouterT (MiddlewareT AppM) sec AppM ()
+httpServer :: (SiteLinks -> MiddlewareT AppM) -> RouterT (MiddlewareT AppM) sec AppM ()
 httpServer handleAuthToken = do
   Env{envHostname,envTls} <- lift ask
 

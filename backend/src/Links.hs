@@ -12,6 +12,7 @@ module Links where
 
 import LocalCooking.Links.Class (LocalCookingSiteLinks (..))
 
+import Data.Monoid ((<>))
 import Data.Attoparsec.Text (Parser, parseOnly, char, string, endOfInput)
 import Path (File, Abs, absdir, absfile, toFilePath)
 import Path.Extended (Location (..), ToPath (..), ToLocation (..), FromLocation (..), fromAbsFile)
@@ -69,6 +70,12 @@ instance FromLocation SiteLinks where
 instance LocalCookingSiteLinks SiteLinks where
   rootLink = RootLink
   registerLink = RegisterLink
+  toDocumentTitle x =
+    ( case x of
+        RootLink -> ""
+        AboutLink -> "About - "
+        RegisterLink -> "Register - "
+      ) <> "Local Cooking Chefs"
 
 
 data LogoLinks
