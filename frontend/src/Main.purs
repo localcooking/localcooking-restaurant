@@ -117,7 +117,7 @@ main = do
       [ content {toURI,siteLinks,windowSizeSignal,currentPageSignal} ]
     , extendedNetwork:
       [ Button.withStyles
-        (\_ -> {root: createStyles {background: "#1565c0"}})
+        (\_ -> {root: createStyles {background: "#c62828", color: "#fff", fontVariant: "normal"}})
         \{classes} ->
           button
           { href: "https://localcooking.com/"
@@ -127,7 +127,7 @@ main = do
             { viewBox: "0 0 279 279"
             , color: SvgIcon.action
             }
-            [ mainBrand -- RS.svg [RP.src "https://localcooking.com/static/images/icon.svg"] []
+            [ mainBrand
             ]
           , R.text "Local Cooking"
           ]
