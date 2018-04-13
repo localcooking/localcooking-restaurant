@@ -5,6 +5,7 @@ import Types.Env (env)
 import Colors (palette)
 import Spec.Topbar.Buttons (topbarButtons)
 import Spec.Content (content)
+import Spec.Content.UserDetails (userDetails)
 import LocalCooking.Links.Class (toLocation)
 import LocalCooking.Branding.Main (mainBrand)
 import LocalCooking.Main (defaultMain)
@@ -117,7 +118,9 @@ main = do
       [ content {toURI,siteLinks,windowSizeSignal,currentPageSignal} ]
     , userDetails:
       { buttons: \_ -> []
-      , content: \_ -> []
+      , content: \{currentPageSignal,siteLinks} ->
+        [ userDetails {currentPageSignal,siteLinks}
+        ]
       }
     , extendedNetwork:
       [ Button.withStyles

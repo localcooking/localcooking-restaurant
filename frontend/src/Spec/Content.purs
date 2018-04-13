@@ -25,6 +25,7 @@ import Crypto.Scrypt (SCRYPT)
 
 import IxSignal.Internal (IxSignal)
 import IxSignal.Internal as IxSignal
+import Partial.Unsafe (unsafePartial)
 
 
 
@@ -75,17 +76,11 @@ spec
 
     render :: T.Render State Unit Action
     render dispatch props state children =
-      [ case state.page of
+      [ unsafePartial $ case state.page of
           RootLink ->
             root
               { windowSizeSignal
               , toURI
-              }
-          RegisterLink -> R.text ""
-          UserDetailsLink _ ->
-            userDetails
-              { currentPageSignal
-              , siteLinks
               }
       ]
 

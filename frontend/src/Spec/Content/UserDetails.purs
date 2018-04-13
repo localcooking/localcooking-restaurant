@@ -30,6 +30,7 @@ import Control.Monad.Eff.Exception (EXCEPTION)
 
 import IxSignal.Internal (IxSignal)
 import IxSignal.Internal as IxSignal
+import Partial.Unsafe (unsafePartial)
 
 
 type State =
@@ -62,51 +63,14 @@ spec {siteLinks} = T.simpleSpec performAction render
 
     render :: T.Render State Unit Action
     render dispatch props state children =
-      [ Drawer.withStyles
-        (\_ -> {paper: createStyles {position: "relative", width: "200px", zIndex: 1000}})
-        \{classes} -> drawer
-          { variant: Drawer.permanent
-          , anchor: Drawer.left
-          , classes: Drawer.createClasses classes
-          }
-          [ list {dense: true}
-            [ sideButton UserDetailsGeneralLink
-            , divider {}
-            , sideButton UserDetailsSecurityLink
-            , divider {}
-            , listItem
-              { button: true
-              }
-              [ listItemText
-                { primary: "Logout"
-                }
-              ]
-            ]
-          ]
-      , R.div [RP.style {position: "absolute", left: "230px", top: "1em"}]
-        [ case state.page of -- TODO pack currentPageSignal listener to this level, so
-                             -- side buttons aren't redrawn
-            UserDetailsLink mUserDetails -> case mUserDetails of
-              Nothing -> general
-              Just x -> case x of
-                UserDetailsGeneralLink -> general
-                UserDetailsSecurityLink -> security
-            _ -> general
-        ]
+      [ unsafePartial
+      $ case state.page of -- TODO pack currentPageSignal listener to this level, so
+                            -- side buttons aren't redrawn
+          UserDetailsLink mUserDetails -> case mUserDetails of
+            Nothing -> general
+            Just x -> case x of
+              UserDetailsGeneralLink -> general
       ]
-      where
-        sideButton :: UserDetailsLinks -> R.ReactElement
-        sideButton x =
-          listItem
-            { button: true
-            , onClick: mkEffFn1 \_ -> unsafeCoerceEff $ siteLinks $ UserDetailsLink $ Just x
-            }
-            [ listItemText
-              { primary: case x of
-                  UserDetailsGeneralLink -> "General"
-                  UserDetailsSecurityLink -> "Security"
-              }
-            ]
 
 
 userDetails :: forall eff
