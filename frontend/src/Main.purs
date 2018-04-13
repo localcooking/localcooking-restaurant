@@ -137,7 +137,6 @@ main = do
           [ svgIcon
             { viewBox: "0 0 279 279"
             , color: SvgIcon.action
-            , styles: createStyles {marginRight: "0.2em"}
             }
             [ mainBrand
             ]
