@@ -149,5 +149,31 @@ main = do
             ]
           , R.text " Local Cooking"
           ]
+      , Button.withStyles
+        (\_ ->
+          { root: createStyles
+            { background: "#1565c0"
+            , color: "#fff"
+            , textTransform: "none"
+            , "&:hover":
+              { background: "#5e92f3"
+              }
+            }
+          }
+        )
+        \{classes} ->
+          button
+          { href: "https://chef.localcooking.com/"
+          , classes: Button.createClasses classes
+          , variant: Button.raised
+          }
+          [ svgIcon
+            { viewBox: "0 0 279 279"
+            , color: SvgIcon.inherit
+            }
+            [ mainBrand
+            ]
+          , R.text " Chefs"
+          ]
       ]
     }
