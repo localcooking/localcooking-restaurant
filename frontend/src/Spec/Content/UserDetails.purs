@@ -2,7 +2,6 @@ module Spec.Content.UserDetails where
 
 import Links (SiteLinks (UserDetailsLink), UserDetailsLinks (..))
 import Spec.Content.UserDetails.General (general)
-import Spec.Content.UserDetails.Security (security)
 
 import Prelude
 
