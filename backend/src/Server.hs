@@ -27,8 +27,8 @@ server = LocalCookingArgs
   , localCookingArgsHTTP = httpServer
   , localCookingArgsDeps = dependencies
   , localCookingArgsColors = LocalCookingColors
-    { localCookingColorsMain = Color 0 60 143
-    , localCookingColorsActive = Color 21 101 192
-    , localCookingColorsHover = Color 94 146 243
+    { localCookingColorsMain = Color 0 51 0
+    , localCookingColorsActive = Color 27 94 32
+    , localCookingColorsHover = Color 76 140 74
     }
   }

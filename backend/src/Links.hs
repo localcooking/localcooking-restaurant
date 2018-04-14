@@ -75,7 +75,7 @@ instance LocalCookingSiteLinks SiteLinks where
         RootLink -> ""
         AboutLink -> "About - "
         RegisterLink -> "Register - "
-      ) <> "Local Cooking Chefs"
+      ) <> "Local Cooking Farms"
 
 
 data LogoLinks

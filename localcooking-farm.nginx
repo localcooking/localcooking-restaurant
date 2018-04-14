@@ -37,7 +37,7 @@ server {
 	# include snippets/snakeoil.conf;
 
 	# root /var/www/html;
-	server_name localcooking.com www.localcooking.com;
+	server_name farm.localcooking.com;
 
 	location /static/ {
 		alias /var/www/html/static/;
