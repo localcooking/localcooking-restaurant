@@ -76,7 +76,7 @@ spec {toURI} = T.simpleSpec performAction render
         , align: Typography.right
         , color: Typography.primary
         , style: createStyles {marginBottom: "1em"}
-        } [R.text "Sell Your Own Creations"]
+        } [R.text "Build Your Own Menus, Sell Your Own Creations"]
       ] <> ( if state.windowSize < Laptop
                 then paragraph1
                 else
@@ -104,7 +104,7 @@ spec {toURI} = T.simpleSpec performAction render
         , align: Typography.left
         , color: Typography.primary
         , style: createStyles {marginBottom: "1em", marginTop: "1em"}
-        } [R.text "Simple Personalized Ordering"]
+        } [R.text "Work Your Own Schedule, Manage Your Own Orders"]
       , if state.windowSize < Laptop
           then paragraph2
           else
@@ -130,7 +130,7 @@ spec {toURI} = T.simpleSpec performAction render
         , align: Typography.right
         , color: Typography.primary
         , style: createStyles {marginBottom: "1em", marginTop: "1em"}
-        } [R.text "How Long Does it Take, and Why?"]
+        } [R.text "Develop Your Own Portfolio And Local Reputation"]
       ] <> ( if state.windowSize < Laptop
                 then paragraph3
                 else
@@ -183,22 +183,25 @@ paragraph1 =
     , paragraph: true
     , style: createStyles {textIndent: "3em"}
     }
-    [ R.text "Local Cooking aims to be an incredible place to work; "
+    [ R.text "Building and managing a website is hard, but in our modern age, it's a necessary requirement for any serious small business or craftsman. Our platform takes care of the technical details by giving our chefs an "
+    , R.em [] [R.text "interactive menu"]
+    , R.text " editing system; each chef crafts "
     , R.strong [] [R.text "their own"]
-    , R.text " menus and feature "
-    , R.strong [] [R.text "their own"]
-    , R.text " culinary artistry — search for a specific dish, or for a style of talent."
+    , R.text " menus and recipes, using ingredients locally available. — search for a specific dish, or for a style of talent."
     ]
   , typography
     { variant: Typography.body1
     , align: Typography.left
     , style: createStyles {textIndent: "3em"}
     }
-    [ R.text "Our chefs are paid by commission; they receive the majority of profit on every order, while our app gives them an opportunity to reach more customers, looking for their type of cuisine. We want to make the experience of ordering a hand-cooked meal "
-    , R.em [] [R.text "personal"]
-    , R.text ", yet "
-    , R.em [] [R.text "streamlined"]
-    , R.text " enough to meet the needs of our modern world."
+    [ R.text "Every menu is modern and richly interactive — chefs can publish a near unlimited amount of detail per meal, giving rise to various multimedia accompanied with each meal description — from close-ups of a finished product, to preparation instructions, we have an open playing field for our chefs to express their talent."
+    ]
+  , typography
+    { variant: Typography.body1
+    , align: Typography.left
+    , style: createStyles {textIndent: "3em"}
+    }
+    [ R.text "Local Cooking chefs are independent contractors, and get paid a majority commission per-order; Local Cooking just manages the insurance of wholesale produce orders and kitchen supplies & upkeep.Each chef is responsible for their customer base and supplying market demands."
     ]
   ]
 
