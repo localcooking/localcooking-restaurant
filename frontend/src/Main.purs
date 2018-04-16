@@ -147,8 +147,9 @@ main = do
             }
             [ mainBrand
             ]
-          , R.text " Local Cooking"
+          , R.text " Customers"
           ]
+      , R.text " "
       , Button.withStyles
         (\_ ->
           { root: createStyles
