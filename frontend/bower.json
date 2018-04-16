@@ -7,7 +7,7 @@
     "output"
   ],
   "dependencies": {
-    "purescript-localcooking-template": "git@git.localcooking.com:localcooking/purescript-localcooking-template.git#bc040388437fc20f8fc683b645a5978dd5b8e0c2",
+    "purescript-localcooking-template": "git@git.localcooking.com:localcooking/purescript-localcooking-template.git#a56f26dbc41b1d104cca19a92a892bcd1867eeaf",
     "purescript-prelude": "^3.1.1",
     "purescript-console": "^3.0.0",
     "purescript-material-ui": "git://github.com/athanclark/purescript-material-ui.git#8a81c508b2603b6204f5400468c865ed8380fb24",
