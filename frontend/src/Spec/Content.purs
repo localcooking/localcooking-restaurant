@@ -76,12 +76,13 @@ spec
 
     render :: T.Render State Unit Action
     render dispatch props state children =
-      [ unsafePartial $ case state.page of
+      [ case state.page of
           RootLink ->
             root
               { windowSizeSignal
               , toURI
               }
+          _ -> R.text ""
       ]
 
 
