@@ -150,9 +150,13 @@ initSiteLinks = do
           -- FIXME only adjust for authToken when it's parsable? Why?
           case mQuery of
             Nothing -> pure unit
-            Just (Query qs) -> case StrMap.lookup "authToken" (StrMap.fromFoldable qs) of
-              Nothing -> pure unit
-              Just _ -> replaceState' x h
+            Just (Query qs) -> do
+              case
+                    StrMap.lookup "authToken" (StrMap.fromFoldable qs)
+                <|> StrMap.lookup "formData" (StrMap.fromFoldable qs)
+                of
+                Nothing -> pure unit
+                Just _ -> replaceState' x h
           pure x
 
 derive instance genericSiteLinks :: Generic SiteLinks

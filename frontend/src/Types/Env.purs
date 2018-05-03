@@ -13,6 +13,7 @@ type EnvImpl =
   , facebookClientID :: String
   , googleReCaptchaSiteKey :: String
   , authToken :: Json
+  , formData :: Json
   , salt :: Json
   }
 
@@ -27,5 +28,7 @@ env =
   , authToken: unsafePartial $ case decodeJson envImpl.authToken of
     Right x -> x
   , salt: unsafePartial $ case decodeJson envImpl.salt of
+    Right x -> x
+  , formData: unsafePartial $ case decodeJson envImpl.formData of
     Right x -> x
   }
