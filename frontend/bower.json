@@ -7,7 +7,7 @@
     "output"
   ],
   "dependencies": {
-    "purescript-localcooking-template": "git@git.localcooking.com:localcooking/purescript-localcooking-template.git#70c3159a613b1a1b723f3e8a047c0395206211ec",
+    "purescript-localcooking-template": "git@git.localcooking.com:localcooking/purescript-localcooking-template.git#b6756701ca6d9569820c3c1a7e6b7eb095e6433c",
     "purescript-prelude": "^3.1.1",
     "purescript-console": "^3.0.0",
     "purescript-thermite": "git://github.com/jvliwanag/purescript-thermite.git#94299d6832d92f14bef029f35d07bd5e8b062e05",
@@ -15,7 +15,6 @@
     "purescript-uri-extra": "git@git.localcooking.com:private-tooling/purescript-uri-extra.git",
     "purescript-parseint": "^0.0.0",
     "purescript-typelevel": "^3.0.0",
-    "purescript-react-queue": "^0.0.2",
     "purescript-react": "5.x",
     "purescript-crypt-nacl": "git://github.com/athanclark/purescript-crypt-nacl.git#b57328882f27a9a46dcd437d89ec09ccde118d19",
     "purescript-argonaut-generic": "^1.2.0",
