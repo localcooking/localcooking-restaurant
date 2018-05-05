@@ -3,7 +3,7 @@ module Main where
 import Links (SiteLinks (..), ImageLinks (Logo40Png), initSiteLinks)
 import Types.Env (env)
 import Colors (palette)
-import User (UserDetails (..))
+import User (UserDetails (..), PreUserDetails (..))
 import Spec.Topbar.Buttons (topbarButtons)
 import Spec.Content (content)
 import Spec.Content.UserDetails (userDetails)
@@ -124,11 +124,12 @@ main = do
       , content: \{currentPageSignal,siteLinks} ->
         [ userDetails {currentPageSignal,siteLinks}
         ]
-      , obtain: \getEmail -> do
-        mEmail <- sequential getEmail
+      , obtain: \{email,roles} -> do
+        PreUserDetails mEmail roles <- sequential $ PreUserDetails <$> email <*> roles
         case mEmail of
-          Nothing -> pure Nothing
-          Just email -> pure $ Just $ UserDetails {email}
+          Just email -> pure $ Just $ UserDetails {email,roles}
+          _ -> pure Nothing
+
       }
     , extendedNetwork:
       [ Button.withStyles
