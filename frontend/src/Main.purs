@@ -107,6 +107,7 @@ main = do
         --     }
         --   ]
       }
+    , extraRedirect: \link mUserDetails -> Nothing
     , topbar:
       { imageSrc: toLocation Logo40Png
       , buttons: \_ -> [] -- \{toURI,siteLinks,currentPageSignal,windowSizeSignal,authTokenSignal} ->

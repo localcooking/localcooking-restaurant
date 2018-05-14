@@ -12,6 +12,6 @@ import Web.Dependencies.Sparrow (SparrowServerT, matchGroup)
 import Network.Wai.Trans (MiddlewareT)
 
 
-dependencies :: SparrowServerT (MiddlewareT AppM) AppM ()
+dependencies :: SparrowServerT (MiddlewareT AppM) [] AppM ()
 dependencies =
   pure ()
