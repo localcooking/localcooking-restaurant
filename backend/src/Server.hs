@@ -19,7 +19,7 @@ import LocalCooking.Colors (LocalCookingColors (..))
 import Text.Lucius (Color (..))
 
 
-server :: LocalCookingArgs SiteLinks sec
+server :: LocalCookingArgs SiteLinks sec []
 server = LocalCookingArgs
   { localCookingArgsFrontend = frontend
   , localCookingArgsFrontendMin = frontendMin
