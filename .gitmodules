@@ -13,3 +13,9 @@
 [submodule "localcooking-template"]
 	path = localcooking-template
 	url = git@git.localcooking.com:localcooking/localcooking-template
+[submodule "localcooking-function"]
+	path = localcooking-function
+	url = git@git.localcooking.com:localcooking/localcooking-function.git
+[submodule "localcooking-dependencies"]
+	path = localcooking-dependencies
+	url = git@git.localcooking.com:localcooking/localcooking-dependencies.git

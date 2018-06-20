@@ -1,25 +1,26 @@
 module User where
 
-import LocalCooking.User (class UserDetails)
-import LocalCooking.Common.User.Role (UserRole)
+import LocalCooking.Global.User.Class (class UserDetails)
+import LocalCooking.Semantics.Common (User)
 
+import Prelude
 import Data.Maybe (Maybe)
-import Data.Generic (class Generic)
-import Text.Email.Validate (EmailAddress)
+import Data.Generic (class Generic, gShow)
 
 
 
-data PreUserDetails = PreUserDetails (Maybe EmailAddress) (Array UserRole)
+data PreUserDetails = PreUserDetails (Maybe User)
 
 
 newtype UserDetails = UserDetails
-  { email :: EmailAddress
-  , roles :: Array UserRole
+  { user :: User
   }
 
 derive instance genericUserDetails :: Generic UserDetails
 
+instance showUserDetails :: Show UserDetails where
+  show = gShow
 
 instance userDetailsUserDetails :: UserDetails UserDetails where
-  getEmailAddress (UserDetails {email}) = email
-  getUserRoles (UserDetails {roles}) = roles
+  getUser (UserDetails {user}) = user
+  setUser user (UserDetails u) = UserDetails u {user = user}

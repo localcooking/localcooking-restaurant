@@ -1,21 +1,23 @@
 module Main where
 
-import Links (SiteLinks (..), ImageLinks (Logo40Png), initSiteLinks)
-import Types.Env (env)
 import Colors (palette)
 import User (UserDetails (..), PreUserDetails (..))
 import Spec.Topbar.Buttons (topbarButtons)
+import Spec.Drawers.Buttons (drawersButtons)
 import Spec.Content (content)
 import Spec.Content.UserDetails (userDetails)
-import LocalCooking.Links.Class (toLocation)
-import LocalCooking.Branding.Main (mainBrand)
+import Spec.Content.UserDetails.Buttons (userDetailsButtons)
+import Spec.Snackbar (messages)
+import LocalCooking.Types.ServerToClient (env)
 import LocalCooking.Main (defaultMain)
-import LocalCooking.Spec.Icons.ChefHat (chefHatViewBox, chefHat)
-
+import LocalCooking.Spec.Misc.Branding (mainBrand)
+import LocalCooking.Dependencies.Chef (chefDependencies, newChefQueues)
+import LocalCooking.Global.Links.Internal (ImageLinks (Logo40Png))
 
 import Prelude
 import Data.Maybe (Maybe (..))
 import Data.UUID (GENUUID)
+import Data.URI.Location (toLocation)
 import Control.Monad.Aff (sequential)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Now (NOW)
@@ -23,31 +25,24 @@ import Control.Monad.Eff.Timer (TIMER)
 import Control.Monad.Eff.Exception (EXCEPTION)
 import Control.Monad.Eff.Ref (REF)
 import Control.Monad.Eff.Console (CONSOLE, log)
-import Control.Monad.Eff.Uncurried (mkEffFn1)
-import Control.Monad.Eff.Unsafe (unsafeCoerceEff)
 import Control.Execution.Immediate (SET_IMMEDIATE_SHIM)
 
-import React as R
-import React.DOM as R
-import React.DOM.SVG as RS
-import React.DOM.Props as RP
+import React.DOM (text) as R
 import MaterialUI.InjectTapEvent (INJECT_TAP_EVENT)
-import MaterialUI.Divider (divider)
 import MaterialUI.Button (button)
 import MaterialUI.Button as Button
 import MaterialUI.SvgIcon (svgIcon)
 import MaterialUI.SvgIcon as SvgIcon
-import MaterialUI.ListItem (listItem)
-import MaterialUI.ListItemIcon (listItemIcon)
-import MaterialUI.ListItemText (listItemText)
 import MaterialUI.Types (createStyles)
-import MaterialUI.Icons.RestaurantMenu (restaurantMenuIcon)
 import DOM (DOM)
 import DOM.HTML.Types (HISTORY)
 import WebSocket (WEBSOCKET)
 import Network.HTTP.Affjax (AJAX)
 import Browser.WebStorage (WEB_STORAGE)
 import Crypto.Scrypt (SCRYPT)
+import Queue.Types (readOnly)
+import Queue.One as One
+
 
 
 -- | All top-level effects
@@ -73,64 +68,35 @@ main :: Eff Effects Unit
 main = do
   log "Starting Local Cooking Chefs frontend..."
 
-  initSiteLink <- initSiteLinks
+  chefQueues <- newChefQueues
+  siteErrorQueue <- One.newQueue
 
-  let deps = do
-        pure unit
 
   defaultMain
     { env
-    , initSiteLinks: initSiteLink
     , palette
-    , deps
+    , siteQueues: chefQueues
+    , deps: chefDependencies
+    , extraRedirect: \_ _ -> Nothing
     , leftDrawer:
-      { buttons: \_ -> []
-        -- [ divider {}
-        -- , listItem
-        --   { button: true
-        --   , onClick: mkEffFn1 \_ -> unsafeCoerceEff $ siteLinks MealsLink
-        --   }
-        --   [ listItemIcon {} restaurantMenuIcon
-        --   , listItemText
-        --     { primary: "Meals"
-        --     }
-        --   ]
-        -- , divider {}
-        -- , listItem
-        --   { button: true
-        --   , onClick: mkEffFn1 \_ -> unsafeCoerceEff $ siteLinks ChefsLink
-        --   }
-        --   [ listItemIcon {} $ svgIcon {viewBox: chefHatViewBox, color: SvgIcon.action}
-        --       [chefHat]
-        --   , listItemText
-        --     { primary: "Chefs"
-        --     }
-        --   ]
+      { buttons: drawersButtons
       }
-    , extraRedirect: \link mUserDetails -> Nothing
     , topbar:
       { imageSrc: toLocation Logo40Png
-      , buttons: \_ -> [] -- \{toURI,siteLinks,currentPageSignal,windowSizeSignal,authTokenSignal} ->
-        -- [ topbarButtons
-        --   { currentPageSignal
-        --   , siteLinks
-        --   , toURI
-        --   }
-        -- ]
+      , buttons: topbarButtons
       }
-    , content: \{toURI,siteLinks,windowSizeSignal,currentPageSignal} ->
-      [ content {toURI,siteLinks,windowSizeSignal,currentPageSignal} ]
+    , content: content
     , userDetails:
-      { buttons: \_ -> []
-      , content: \{currentPageSignal,siteLinks} ->
-        [ userDetails {currentPageSignal,siteLinks}
-        ]
-      , obtain: \{email,roles} -> do
-        PreUserDetails mEmail roles <- sequential $ PreUserDetails <$> email <*> roles
-        case mEmail of
-          Just email -> pure $ Just $ UserDetails {email,roles}
+      { buttons: userDetailsButtons
+      , content: userDetails
+      , obtain: \{user} -> do
+        PreUserDetails mUser <- sequential $ PreUserDetails <$> user
+        case mUser of
+          Just user -> pure $ Just $ UserDetails {user}
           _ -> pure Nothing
-
+      }
+    , error:
+      { content: messages {siteErrorQueue: readOnly siteErrorQueue}
       }
     , extendedNetwork:
       [ Button.withStyles
@@ -163,18 +129,18 @@ main = do
       , Button.withStyles
         (\_ ->
           { root: createStyles
-            { background: "#1565c0"
+            { background: "#1b5e20"
             , color: "#fff"
             , textTransform: "none"
             , "&:hover":
-              { background: "#5e92f3"
+              { background: "#4c8c4a"
               }
             }
           }
         )
         \{classes} ->
           button
-          { href: "https://chef.localcooking.com/"
+          { href: "https://farm.localcooking.com/"
           , classes: Button.createClasses classes
           , variant: Button.raised
           }
@@ -184,7 +150,7 @@ main = do
             }
             [ mainBrand
             ]
-          , R.text " Chefs"
+          , R.text " Farms"
           ]
       ]
     }
