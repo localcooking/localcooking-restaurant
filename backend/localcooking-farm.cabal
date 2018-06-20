@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 309c1ef80d3f3c3a1945747cad410d78fec9e98331b6d103174b134eab4d81fa
+-- hash: 2595094dd37d22e9559da9bb79c3b110539db3d4c9c79b1954f61dd283c4e056
 
 name:           localcooking-farm
 version:        0.0.0
@@ -28,7 +28,6 @@ library
       Links
       Server
       Server.Assets
-      Server.Dependencies
       Server.HTTP
   other-modules:
       Paths_localcooking_farm
@@ -46,6 +45,9 @@ library
     , file-embed
     , http-types
     , localcooking-db
+    , localcooking-dependencies
+    , localcooking-fb
+    , localcooking-function
     , localcooking-shared
     , localcooking-template
     , mtl

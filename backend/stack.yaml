@@ -39,9 +39,15 @@ packages:
 - ../localcooking-db
 - ../localcooking-fb
 - ../localcooking-template
+- ../localcooking-dependencies
+- ../localcooking-function
 - location:
     git: https://github.com/athanclark/saltine.git
     commit: 8debfd737231dc5f3eb5cf34f6da8c3d33bb8a4b
+  extra-dep: true
+- location:
+    git: git@git.localcooking.com:private-tooling/emailaddress.git
+    commit: d4c426e1a9c6d5b53be4782b072cf0746049bfa7
   extra-dep: true
 # Dependency packages to be pulled from upstream that are not in the resolver
 # using the same syntax as the packages field.
@@ -57,7 +63,7 @@ extra-deps:
   - nested-routes-9.0.0.1
   - path-extra-0.2.0
   - pred-trie-0.6.0.1
-  - sparrow-0.0.2.0
+  - sparrow-0.0.2.1
   - timemap-0.0.7
   - tmapmvar-0.0.4
   - tries-0.0.5
@@ -67,6 +73,7 @@ extra-deps:
   - wai-middleware-verbs-0.4.0.1
   - websockets-0.12.4.0
   - websockets-simple-0.1.2.1
+  - quickcheck-combinators-0.0.4
 
 # Override default flag values for local packages and extra-deps
 # flags: {}

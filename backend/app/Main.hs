@@ -9,4 +9,4 @@ main :: IO ()
 main = do
   defaultMain head' server
   where
-    head' = "localcooking-chef - Chef.LocalCooking.com Server"
+    head' = "localcooking-farm - Farm.LocalCooking.com Server"

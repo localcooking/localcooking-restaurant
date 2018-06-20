@@ -30,7 +30,10 @@ library:
   dependencies:
     - localcooking-shared
     - localcooking-db
+    - localcooking-fb
     - localcooking-template
+    - localcooking-function
+    - localcooking-dependencies
     - aeson
     - attoparsec
     - attoparsec-uri
