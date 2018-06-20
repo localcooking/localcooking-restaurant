@@ -122,7 +122,7 @@ instance LocalCookingSiteLinks SiteLinks where
         UserDetailsLink mDetails -> case mDetails of
           Nothing -> "User Details - "
           Just d -> userDetailsToDocumentTitle d <> "User Details - "
-      ) <> "Local Cooking Chefs"
+      ) <> "Local Cooking Farms"
 
 
 data LogoLinks
