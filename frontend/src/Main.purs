@@ -140,7 +140,7 @@ main = do
         )
         \{classes} ->
           button
-          { href: "https://farm.localcooking.com/"
+          { href: "https://restaurant.localcooking.com/"
           , classes: Button.createClasses classes
           , variant: Button.raised
           }
@@ -150,7 +150,7 @@ main = do
             }
             [ mainBrand
             ]
-          , R.text " Farms"
+          , R.text " Restaurants"
           ]
       ]
     }
